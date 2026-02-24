@@ -7,6 +7,7 @@ import type { SalesChartProps } from './SalesChart.types';
 
 const SalesChart: FC<SalesChartProps> = ({ 
   title = 'Sales',
+  data: externalData,
 }) => {
   const [selectedPeriod, setSelectedPeriod] = useState('6months');
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -20,7 +21,7 @@ const SalesChart: FC<SalesChartProps> = ({
     { value: '1year', label: 'Last Year' },
   ];
 
-  // Data based on selected period
+  // Data based on selected period (used when no API data)
   const dataByPeriod = {
     '1month': [
       { month: 'Week 1', value: 20000 },
@@ -57,8 +58,10 @@ const SalesChart: FC<SalesChartProps> = ({
     ],
   };
 
-  const currentData = dataByPeriod[selectedPeriod as keyof typeof dataByPeriod];
-  const maxValue = Math.max(...currentData.map(d => d.value));
+  const currentData = externalData && externalData.length > 0
+    ? externalData
+    : dataByPeriod[selectedPeriod as keyof typeof dataByPeriod];
+  const maxValue = currentData.length ? Math.max(...currentData.map(d => d.value)) : 0;
 
   // Close dropdown when clicking outside
   useEffect(() => {

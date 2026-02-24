@@ -5,7 +5,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faEnvelope, faHome, faPhone } from '@fortawesome/free-solid-svg-icons';
 import axios from 'axios';
 import { sendContact, type ContactData } from "../../services/contactService";
-import toast, { Toaster } from 'react-hot-toast';
+import toast from 'react-hot-toast';
 
 const ContactUsSection: React.FC = () => {
   const [form, setForm] = useState<ContactData>({
@@ -53,7 +53,7 @@ const ContactUsSection: React.FC = () => {
         successMsg = String((data['messages'] as Record<string, unknown>)['Status']);
       }
 
-      toast.success(successMsg, { position: "top-right" });
+      toast.success(successMsg);
       setForm({ name: "", email: "", phone: "", message: "" });
 
     } catch (err: unknown) {
@@ -62,14 +62,14 @@ const ContactUsSection: React.FC = () => {
         
         if (responseData?.errorMessages) {
           setFieldErrors(responseData.errorMessages);
-          toast.error("Please check the input fields.", { position: "top-right" });
+          toast.error("Please check the input fields.");
         } 
         else {
           const generalError = responseData?.message || "Something went wrong. Please try again later";
-          toast.error(generalError, { position: "top-right" });
+          toast.error(generalError);
         }
       } else {
-        toast.error("Unable to connect to the server. Please check your internet connection.", { position: "top-right" });
+        toast.error("Unable to connect to the server. Please check your internet connection.");
       }
     } finally {
       setLoading(false);
@@ -79,20 +79,6 @@ const ContactUsSection: React.FC = () => {
   return (
     <section className="py-16 sm:py-20 bg-gray-50">
    
-<Toaster
-  toastOptions={{
-
-    className: 'text-sm md:text-lg md:max-w-md w-full shadow-lg rounded-2xl border border-gray-100 p-4',
-    duration: 4000,
-    success: {
-      className: 'bg-white text-green-800 border-green-100',
-    },
-    error: {
-      className: 'bg-white text-red-800 border-red-100',
-    },
-  }}
-/>
-
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex flex-col-reverse lg:grid lg:grid-cols-2 gap-12 sm:gap-16 items-start">
 

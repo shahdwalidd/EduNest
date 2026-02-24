@@ -36,6 +36,35 @@ export const useForgetPassForm = () => {
     }
   };
 
+<<<<<<< Updated upstream
+=======
+  const handleSubmit = async (e: FormEvent) => {
+    e.preventDefault();
+
+    if (!validate()) return;
+
+    setLoading(true);
+    try {
+      await forgetPassword(formData.email);
+      toast.success("Verification code sent to your email.");
+
+      navigate("/check-email", { state: { email: formData.email } });
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (error: any) {
+      const backendMessage =
+      error?.response?.data?.errorMessages?.["User Search"] || 
+      error?.response?.data?.message || 
+      error?.message || 
+        "Something went wrong while sending reset email.";
+
+      toast.error(backendMessage);
+      console.error("Forget password error:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+>>>>>>> Stashed changes
   return {
     formData,
     errors,

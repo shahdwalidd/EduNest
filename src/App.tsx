@@ -1,11 +1,11 @@
-import { Routes, Route } from 'react-router-dom'
+import { useEffect } from 'react'
+import { Routes, Route, useNavigate, useLocation } from 'react-router-dom'
 import Home from './pages/Home'
 import Navbar from './components/Navbar'
 import './index.css'
 import BecomeMentor from './pages/BecomeMentor'
 import GetStarted from './pages/GetStarted'
 import NotFound from './pages/NotFound'
-import { useLocation } from 'react-router-dom'
 import Login from "./pages/Login/Login.tsx";
 import Register from "./pages/register/Register.tsx";
 import { Verify } from "./pages/verifiy/Verify.tsx";
@@ -15,13 +15,40 @@ import ForgetPass from "./pages/forgetPass/ForgetPass.tsx";
 import CheckEmail from "./pages/forgetPass/CheckEmail.tsx";
 import ResetPassword from "./pages/forgetPass/ResetPassword.tsx";
 import ResetSuccess from "./pages/forgetPass/ResetSuccess.tsx";
+<<<<<<< Updated upstream
 // import Dashboard from './pages/Dashboard.tsx'
 
 
+=======
+import MentorDash from './pages/mentordash/MentorDash.tsx';
+import MyMentorships from './pages/my-mentorsship-dash/MyMentorsship.tsx';
+import StudentsList from './pages/studentspage-mentordash/StudentsList.tsx';
+import Messages from './pages/mentorMessages/Messages.tsx';
+import NotificationsList from './pages/mentorNotifications/NotificationsList.tsx';
+import ProfilePage from './pages/mentorProfile/ProfilePage.tsx';
+import Setting from './pages/mentorSettings/Settings.tsx';
+import MentorshipDetail from './pages/mentorship-detail/MentorshipDetail.tsx';
+import EditMentorship from './pages/edit-mentorship/EditMentorship.tsx';
+import { useAuthStore } from './store/authStore';
+>>>>>>> Stashed changes
 
 
 function App() {
   const location = useLocation();
+  const navigate = useNavigate();
+
+  // Check if user is logged in with Remember Me on app load
+  useEffect(() => {
+    const token = useAuthStore.getState().token;
+    const rememberMe = useAuthStore.getState().rememberMe;
+    const lastEmail = useAuthStore.getState().lastEmail;
+
+    // If user has valid token and Remember Me is enabled, redirect to dashboard
+    if (token && rememberMe && lastEmail && location.pathname === '/login') {
+      console.log('🔐 Auto-redirecting to dashboard (Remember Me enabled)');
+      navigate('/mentor/dashboard');
+    }
+  }, [navigate]);
 
   const showNavbar = ["/"].includes(
     location.pathname
@@ -44,6 +71,23 @@ function App() {
         <Route path="/check-email" element={<CheckEmail />} />
         <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="/reset-success" element={<ResetSuccess />} />
+<<<<<<< Updated upstream
+=======
+        <Route path="/mentor/dashboard" element={<MentorDash />} />
+        <Route path="/mentor/mentorships" element={<MyMentorships />} />
+        <Route path="/mentor/mentorships/:id" element={<MentorshipDetail />} />
+        <Route path="/mentor/mentorships/:id/edit" element={<EditMentorship />} />
+        <Route path="/mentor/students" element={<StudentsList />} />
+        <Route path="/mentor/messages" element={<Messages />} />
+        <Route path="/mentor/notifications" element={<NotificationsList />} />
+        <Route path="/mentor/profile" element={<ProfilePage />} />
+        <Route path="/mentor/settings" element={<Setting />} />
+                 
+
+             
+        
+         
+>>>>>>> Stashed changes
         {/* <Route path="/dash-board" element={<Dashboard />} /> */}
 
       </Routes>
