@@ -1,17 +1,39 @@
-
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import MentorSidebar from "../common/common-dash/MentorSidebar";
 import { MentorNavbar } from "../common/common-dash";
-
+import { useAuthStore } from "../../store/authStore";
+import { getFirstNameFromToken } from "../../utils/jwt";
 
 interface DashLayoutProps {
   children: React.ReactNode;
   pageTitle: string;
 }
 
-
 export default function DashLayout({ children, pageTitle }: DashLayoutProps) {
+  const navigate = useNavigate();
   const [isSidebarOpen, setSidebarOpen] = useState(false);
+  const token = useAuthStore((s) => s.token);
+  const userName = useAuthStore((s) => s.userName);
+  const setAuth = useAuthStore((s) => s.setAuth);
+  const userEmail = useAuthStore((s) => s.userEmail);
+
+  useEffect(() => {
+    if (token && (!userName?.trim() || userName === 'Mentor')) {
+      const name = getFirstNameFromToken(token);
+      if (name) setAuth({ token, userName: name });
+    }
+  }, [token, userName, setAuth]);
+
+  const displayName = userName?.trim().split(/\s+/)[0] || userName || 'Mentor';
+
+  useEffect(() => {
+    if (!token) {
+      navigate('/', { replace: true });
+    }
+  }, [token, navigate]);
+
+  if (!token) return null;
 
   return (
     <div className="flex min-h-screen bg-[#F7F7F8] overflow-hidden relative">
@@ -26,9 +48,9 @@ export default function DashLayout({ children, pageTitle }: DashLayoutProps) {
         `}
       >
         <MentorSidebar
-          userName="John Smith"
-          userEmail="Johnsmith@gmail.com"
-          userAvatar="https://api.dicebear.com/7.x/avataaars/svg?seed=John"
+          userName={displayName}
+          userEmail={userEmail || `${(userName || '').toLowerCase().replace(/\s/g, '')}@email.com`}
+          userAvatar={`https://api.dicebear.com/7.x/avataaars/svg?seed=${displayName}`}
           onClose={() => setSidebarOpen(false)}
         />
       </div>
@@ -47,9 +69,9 @@ export default function DashLayout({ children, pageTitle }: DashLayoutProps) {
         <div className="z-20">
           <MentorNavbar
             pageTitle={pageTitle}
-            userName="John Smith"
+            userName={displayName}
             userRole="Mentor"
-            userAvatar="https://api.dicebear.com/7.x/avataaars/svg?seed=John"
+            userAvatar={`https://api.dicebear.com/7.x/avataaars/svg?seed=${displayName}`}
             notificationCount={5}
             onMenuClick={() => setSidebarOpen(true)}
           />

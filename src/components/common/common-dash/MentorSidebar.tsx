@@ -1,6 +1,8 @@
 
 import type { FC } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
+import toast from 'react-hot-toast';
+import { useAuthStore } from '../../../store/authStore';
 import {
   Home as LayoutDashboard,
   BookOpen,
@@ -15,7 +17,6 @@ import type { MentorSidebarProps } from "./Mentorside.types";
 
 const MentorSidebar: FC<MentorSidebarProps & { onClose?: () => void }> = ({
   userName,
-  userEmail,
   userAvatar,
   onClose
 }) => {
@@ -29,7 +30,19 @@ const MentorSidebar: FC<MentorSidebarProps & { onClose?: () => void }> = ({
   ];
 
   const navigate = useNavigate();
-  const handleLogout = () => navigate('/logout');
+  const logout = useAuthStore((s) => s.logout);
+  const userEmail = useAuthStore((s) => s.userEmail);
+  const firstName = userName?.trim().split(/\s+/)[0] || userName || 'Mentor';
+  const handleLogout = () => {
+    logout();
+    onClose?.();
+    toast.success('You have been logged out. See you soon!', {
+      duration: 2000,
+      position: 'top-center',
+     
+    });
+    navigate('/', { replace: true });
+  };
 
   return (
     <aside className="w-64 min-h-screen bg-[#0c2d48] flex flex-col rounded-r-[32px] relative overflow-hidden">
@@ -40,9 +53,9 @@ const MentorSidebar: FC<MentorSidebarProps & { onClose?: () => void }> = ({
         
           <div className="w-16 h-16 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center overflow-hidden ring-2 ring-white/20">
             {userAvatar ? (
-              <img src={userAvatar} alt={userName} className="w-full h-full object-cover" />
+              <img src={userAvatar} alt={firstName} className="w-full h-full object-cover" />
             ) : (
-              <span className="text-white font-bold text-xl">{userName.charAt(0).toUpperCase()}</span>
+              <span className="text-white font-bold text-xl">{firstName.charAt(0).toUpperCase()}</span>
             )}
           </div>
           {/* state */}
@@ -50,7 +63,7 @@ const MentorSidebar: FC<MentorSidebarProps & { onClose?: () => void }> = ({
         </div>
 
         <div className="text-center">
-          <h3 className="text-white font-bold text-lg">{userName}</h3>
+          <h3 className="text-white font-bold text-lg">{firstName}</h3>
           <p className="text-gray-400 text-[10px] truncate max-w-[150px]">{userEmail}</p>
         </div>
       </div>

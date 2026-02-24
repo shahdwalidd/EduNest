@@ -6,25 +6,129 @@ import { Plus, ChevronDown } from 'lucide-react';
 import DashLayout from '../../components/layout/Dash-layout';
 import MentorshipTable from '../../components/my-mentorships-com/MentorshipTable/MentorshipTable';
 import Pagination from '../../components/common/Pagination/Pagination';
+import { getMentorships } from '../../services/dashboardService';
+import { useAuthStore } from '../../store/authStore';
 import type { Mentorship } from '../../types/mentorship.types';
+
+/** استخراج مصفوفة mentorships من أي شكل شائع للـ API */
+function ensureMentorshipsArray(raw: unknown): unknown[] {
+  console.log('🔍 ensureMentorshipsArray input:', raw);
+  
+  if (Array.isArray(raw)) {
+    console.log('✅ Already an array:', raw.length, 'items');
+    return raw;
+  }
+  
+  if (raw == null || typeof raw !== 'object') {
+    console.warn('⚠️ Invalid input type:', typeof raw);
+    return [];
+  }
+  
+  const obj = raw as Record<string, unknown>;
+  
+  // Check apiResponse.mentorships (جمع) - both lowercase and camelCase
+  const apiRes = obj.apiResponse as Record<string, unknown> | undefined;
+  if (apiRes?.mentorships && Array.isArray(apiRes.mentorships)) {
+    console.log('✅ Found in apiResponse.mentorships:', (apiRes.mentorships as unknown[]).length);
+    return apiRes.mentorships;
+  }
+  
+  // Check apiResponse.mentorShips (with capital S)
+  if (apiRes?.mentorShips) {
+    const mentorShips = apiRes.mentorShips as Record<string, unknown> | undefined;
+    if (mentorShips?.content && Array.isArray(mentorShips.content)) {
+      console.log('✅ Found in apiResponse.mentorShips.content:', (mentorShips.content as unknown[]).length);
+      return mentorShips.content;
+    }
+  }
+  
+  // Check nested data structures
+  const keys = ['mentorships', 'mentorShips', 'data', 'items', 'results', 'list', 'courses', 'content'];
+  for (const key of keys) {
+    const val = obj[key];
+    if (Array.isArray(val)) {
+      console.log(`✅ Found in obj.${key}:`, val.length);
+      return val;
+    }
+    // If it's an object with content property
+    if (val && typeof val === 'object' && 'content' in val && Array.isArray((val as Record<string, unknown>).content)) {
+      const content = (val as Record<string, unknown>).content as unknown[];
+      console.log(`✅ Found in obj.${key}.content:`, content.length);
+      return content;
+    }
+  }
+  
+  console.error('❌ No mentorships array found in response structure');
+  return [];
+}
+
+/** تحويل عنصر API إلى Mentorship */
+function mapApiMentorshipToUi(item: unknown): Mentorship {
+  const m = item as Record<string, unknown>;
+  const status = String(m.status ?? 'DRAFT').toUpperCase();
+  
+  // Map status: ACTIVE/PUBLISHED -> active, DRAFT -> draft, COMPLETED -> completed
+  const uiStatus = 
+    status === 'ACTIVE' || status === 'PUBLISHED' ? 'active' : 
+    status === 'DRAFT' ? 'draft' : 
+    status === 'COMPLETED' ? 'completed' : 
+    'draft';
+  
+  // Try to get date from various possible fields
+  const created = m.createdAt ?? m.createdDate ?? m.created_at ?? m.uploadDate ?? new Date().toISOString();
+  const dateStr = typeof created === 'string'
+    ? new Date(created).toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' })
+    : '—';
+  
+  return {
+    id: String(m.id ?? ''),
+    title: String(m.title ?? 'Untitled'),
+    icon: '📋',
+    level: String(m.difficultyLevel ?? m.level ?? 'ALL_LEVEL'),
+    rating: Number(m.rating ?? 0),
+    totalEnrolled: Number(m.totalEnrolled ?? m.enrolledCount ?? m.students ?? 0),
+    revenue: Number(m.price ?? m.revenue ?? 0),
+    createdDate: dateStr,
+    status: uiStatus,
+  };
+}
 
 const MentorshipsList: FC = () => {
   const navigate = useNavigate();
+  const token = useAuthStore((s) => s.token);
+  const [allMentorships, setAllMentorships] = useState<Mentorship[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(6);
-  const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'draft'>('all');
+  const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'draft' | 'completed'>('all');
   const [isFilterOpen, setIsFilterOpen] = useState(false);
 
-
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  const allMentorships: Mentorship[] = [
-    { id: '1', title: 'Design Systems Bootcamp', icon: '📋', level: 'All Level', rating: 5.0, totalEnrolled: 342, revenue: 5028, createdDate: '28 Oct, 2026', status: 'active' },
-    { id: '2', title: 'Design Systems Bootcamp', icon: '🖥️', level: 'All Level', rating: 5.0, totalEnrolled: 342, revenue: 5028, createdDate: '28 Oct, 2026', status: 'active' },
-    { id: '3', title: 'Design Systems Bootcamp', icon: '📊', level: 'All Level', rating: 5.0, totalEnrolled: 342, revenue: 5028, createdDate: '28 Oct, 2026', status: 'active' },
-    { id: '4', title: 'Design Systems Bootcamp', icon: '👥', level: 'All Level', rating: 5.0, totalEnrolled: 342, revenue: 5028, createdDate: '28 Oct, 2026', status: 'active' },
-    { id: '5', title: 'Design Systems Bootcamp', icon: '📋', level: 'All Level', rating: 5.0, totalEnrolled: 342, revenue: 5028, createdDate: '28 Oct, 2026', status: 'active' },
-    { id: '6', title: 'Design Systems Bootcamp', icon: '📋', level: 'All Level', rating: 0, totalEnrolled: 0, revenue: 0, createdDate: '28 Oct, 2026', status: 'draft' },
-  ];
+  useEffect(() => {
+    if (!token) {
+      navigate('/login');
+      return;
+    }
+    setLoading(true);
+    setError(null);
+    getMentorships()
+      .then((res: unknown) => {
+        console.log('📊 Mentorships API Response:', res);
+        const raw = res && typeof res === 'object' && 'data' in res ? (res as { data: unknown }).data : res;
+        const arr = ensureMentorshipsArray(raw);
+        console.log('✅ Mentorships Array:', arr);
+        const mapped = arr.map(mapApiMentorshipToUi);
+        console.log('✅ Mentorships Mapped:', mapped.length, 'items');
+        setAllMentorships(mapped);
+      })
+      .catch((err: unknown) => {
+        const error = err as { response?: { data?: { message?: string } }; message?: string };
+        const msg = error?.response?.data?.message ?? error?.message ?? 'Failed to load mentorships';
+        console.error('❌ Error Loading Mentorships:', msg);
+        setError(String(msg));
+      })
+      .finally(() => setLoading(false));
+  }, [token, navigate]);
 
   const filteredData = useMemo(() => {
     if (statusFilter === 'all') return allMentorships;
@@ -80,7 +184,7 @@ const MentorshipsList: FC = () => {
 
               {isFilterOpen && (
                 <div className="absolute right-0 mt-2 w-full sm:w-40 bg-white border border-gray-100 rounded-xl shadow-xl z-50 py-2">
-                  {['all', 'active', 'draft'].map((s) => (
+                  {['all', 'active', 'draft', 'completed'].map((s) => (
                     <button
                       key={s}
                       className="w-full text-left px-4 py-2 text-sm font-bold hover:bg-blue-50 capitalize text-gray-700"
@@ -96,13 +200,68 @@ const MentorshipsList: FC = () => {
           </div>
 
           {/* Table */}
-          <MentorshipTable
-            mentorships={currentMentorships}
-            onDetails={(id) => navigate(`/mentor/mentorships/${id}`)}
-            onAction={(type, id) => console.log(type, id)}
-          />
+          {error && (
+            <div className="p-8 text-center bg-red-50 border border-red-200 rounded-2xl m-4">
+              <div className="inline-block mb-4">
+                <svg className="w-12 h-12 text-red-500 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4v.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+              <p className="text-red-700 font-semibold text-sm">Failed to Load Mentorships</p>
+              <p className="text-red-600 text-xs mt-1">{error}</p>
+              <button
+                onClick={() => window.location.reload()}
+                className="mt-3 px-4 py-2 bg-red-600 text-white rounded-lg text-xs font-semibold hover:bg-red-700 transition-colors"
+              >
+                Try Again
+              </button>
+            </div>
+          )}
+          {loading ? (
+            <div className="p-12 flex flex-col items-center justify-center gap-4 min-h-[400px]">
+              <div className="relative w-14 h-14">
+                <div className="absolute inset-0 rounded-full border-4 border-gray-200"></div>
+                <div className="absolute inset-0 rounded-full border-4 border-transparent border-t-blue-500 border-r-blue-500 animate-spin"></div>
+              </div>
+              <div className="text-center">
+                <p className="text-gray-700 font-semibold">Loading...</p>
+                <p className="text-gray-500 text-sm mt-1">Fetching your mentorships</p>
+              </div>
+            </div>
+          ) : currentMentorships.length === 0 ? (
+            <div className="p-12 flex flex-col items-center justify-center gap-4 min-h-[400px]">
+              <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center">
+                <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                </svg>
+              </div>
+              <div className="text-center">
+                <p className="text-gray-700 font-semibold">No Mentorships Yet</p>
+                <p className="text-gray-500 text-sm mt-1">Create your first mentorship to get started</p>
+                <button
+                  onClick={() => navigate('/mentor/mentorships/create')}
+                  className="mt-4 px-6 py-2 bg-blue-600 text-white rounded-lg text-sm font-semibold hover:bg-blue-700 transition-colors"
+                >
+                  Create Mentorship
+                </button>
+              </div>
+            </div>
+          ) : (
+            <MentorshipTable
+              mentorships={currentMentorships}
+              onDetails={(id) => navigate(`/mentor/mentorships/${id}`)}
+              onAction={(type, id) => {
+                if (type === 'edit') {
+                  navigate(`/mentor/mentorships/${id}/edit`);
+                } else if (type === 'delete') {
+                  console.log('Delete mentorship:', id);
+                }
+              }}
+            />
+          )}
 
           {/* Footer / Pagination: Padding  */}
+          {!loading && !error && currentMentorships.length > 0 && (
           <div className="p-4 md:p-6 border-t border-gray-50">
             <Pagination
               currentPage={currentPage}
@@ -113,6 +272,7 @@ const MentorshipsList: FC = () => {
               onItemsPerPageChange={(val) => setItemsPerPage(Number(val))}
             />
           </div>
+          )}
         </div>
       </div>
     </DashLayout>
