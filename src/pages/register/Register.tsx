@@ -47,14 +47,11 @@ const Register: React.FC = () => {
       
       // Send OTP to email
       try {
-        // Store email for verification page
+        // Store email and user type for verification page
         localStorage.setItem("registrationEmail", form.formData.email);
+        localStorage.setItem("registrationType", form.joinAs);
         
-<<<<<<< Updated upstream
-        const otpRes = await sendOtp(form.formData.email);
-=======
         const otpRes = await sendOtp(form.formData.email) as { message?: string };
->>>>>>> Stashed changes
         toast.success(otpRes.message || 'OTP sent to your email');
       } catch (otpErr: unknown) {
         console.log('OTP Error:', otpErr);
@@ -85,6 +82,7 @@ const Register: React.FC = () => {
       if (isUnverifiedAccount) {
         try {
           localStorage.setItem("registrationEmail", form.formData.email);
+          localStorage.setItem("registrationType", form.joinAs);
           const otpRes = await sendOtp(form.formData.email) as { message?: string };
           toast.success(otpRes.message || 'A new verification code has been sent to your email');
         } catch (otpErr) {
@@ -104,11 +102,6 @@ const Register: React.FC = () => {
         form.setEmailError('This email is already registered. Please use a different email.');
         toast.error('Email already exists. Please use a different email.');
       } else {
-<<<<<<< Updated upstream
-        const errorMessage = errorData?.message || err.message || 'Registration Failed';
-        form.setGeneralError(errorMessage);
-        toast.error(errorMessage);
-=======
         // استخراج الرسالة: errorMessages أولاً، ثم message من الباكند، ثم رسالة عامة
         const errorMessage =
           (errorData?.errorMessages && Object.values(errorData.errorMessages)[0]) ||
@@ -117,7 +110,6 @@ const Register: React.FC = () => {
           'Registration Failed';
         form.setGeneralError(typeof errorMessage === 'string' ? errorMessage : 'Registration Failed');
         toast.error(typeof errorMessage === 'string' ? errorMessage : 'Registration Failed');
->>>>>>> Stashed changes
       }
       console.log(err);
     } finally {

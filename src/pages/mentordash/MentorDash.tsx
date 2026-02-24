@@ -18,7 +18,13 @@ import {
   extractSessionsData,
   extractReviewsData,
 } from '../../services/dashboardService';
-import type { DashboardCardsData } from '../../types/dashboard.types';
+// Local dashboard types (to avoid missing import and keep things explicit here)
+type DashboardCardsData = {
+  totalStudents: number;
+  totalMentorships: number;
+  averageRating: number;
+  totalRevenue: number;
+};
 import type { Session } from '../../components/mentor-dash-com/ScheduledSessions/ScheduledSessions.types';
 import type { Review } from '../../components/mentor-dash-com/Reviews/Reviews.types';
 import type { SalesData } from '../../components/mentor-dash-com/SalesChart/SalesChart.types';
@@ -98,7 +104,8 @@ function mapSessions(raw: unknown): Session[] {
   console.log('📅 Upcoming Sessions Count:', dataArray.length);
   
   return dataArray
-    .map((item) => {
+    .map((rawItem) => {
+      const item = rawItem as Record<string, unknown>;
       const id = String(item.id ?? item.sessionId ?? '');
       const title = String(item.title ?? item.name ?? 'Session');
       const startTime = String(item.startTime ?? item.start ?? '');
@@ -134,7 +141,8 @@ function mapReviews(raw: unknown): Review[] {
   console.log('⭐ Reviews Count:', dataArray.length);
   
   return dataArray
-    .map((item) => {
+    .map((rawItem) => {
+      const item = rawItem as Record<string, unknown>;
       const id = String(item.id ?? '');
       const studentName = String(item.studentName ?? 'Student');
       const courseTitle = String(item.courseTitle ?? item.mentorshipTitle ?? 'Course');
@@ -172,7 +180,8 @@ function mapRevenueChart(raw: unknown): SalesData[] {
   console.log('📊 Revenue Chart Data Points:', dataArray.length);
   
   return dataArray
-    .map((item) => {
+    .map((rawItem) => {
+      const item = rawItem as Record<string, unknown>;
       const value = Number(item.value ?? item.sales ?? item.revenue ?? item.amount ?? 0);
       const month = String(item.month ?? item.label ?? item.date ?? '');
       
@@ -348,11 +357,17 @@ const MentorDash: React.FC = () => {
     <DashLayout pageTitle="Dashboard">
       <div className="bg-[#F7F7F8] min-h-screen px-4 md:px-8 py-4">
         {!isHydrated ? (
-          <div className="flex items-center justify-center min-h-screen">
+          <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
             <div className="text-center">
-              <div className="inline-block px-6 py-3 bg-white rounded-lg border border-gray-200 shadow-sm">
-                <div className="animate-spin w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full mx-auto mb-2" />
-                <p className="text-gray-600 text-sm">جاري التحميل...</p>
+              <div className="inline-flex flex-col items-center gap-4">
+                <div className="relative w-16 h-16">
+                  <div className="absolute inset-0 rounded-full border-4 border-gray-200"></div>
+                  <div className="absolute inset-0 rounded-full border-4 border-transparent border-t-blue-500 border-r-blue-500 animate-spin"></div>
+                </div>
+                <div>
+                  <p className="text-gray-700 font-semibold text-lg">Loading...</p>
+                  <p className="text-gray-500 text-sm mt-1">Please wait while we prepare your dashboard</p>
+                </div>
               </div>
             </div>
           </div>
@@ -366,17 +381,33 @@ const MentorDash: React.FC = () => {
             </div>
 
             {error && (
-              <div className="mb-4 p-3 rounded-lg bg-amber-50 border border-amber-200 text-amber-800 text-sm">
-                {error}
+              <div className="mb-4 p-4 rounded-xl bg-red-50 border border-red-200 text-red-800 text-sm flex items-start gap-3">
+                <svg className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4v.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <div>
+                  <p className="font-semibold">{error}</p>
+                  <button
+                    onClick={() => window.location.reload()}
+                    className="mt-2 text-xs font-semibold underline hover:no-underline"
+                  >
+                    Reload Page
+                  </button>
+                </div>
               </div>
             )}
 
             <div className="space-y-6">
           {loading ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-              {[1, 2, 3, 4].map((i) => (
-                <div key={i} className="bg-white rounded-[20px] p-6 border border-gray-200 animate-pulse h-32" />
-              ))}
+            <div className="flex flex-col items-center justify-center gap-4 py-16 bg-white rounded-[20px] border border-gray-200">
+              <div className="relative w-12 h-12">
+                <div className="absolute inset-0 rounded-full border-4 border-gray-200"></div>
+                <div className="absolute inset-0 rounded-full border-4 border-transparent border-t-blue-500 border-r-blue-500 animate-spin"></div>
+              </div>
+              <div className="text-center">
+                <p className="text-gray-700 font-semibold">Loading...</p>
+                <p className="text-gray-500 text-sm mt-1">Preparing your dashboard data</p>
+              </div>
             </div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">

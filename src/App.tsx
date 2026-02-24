@@ -15,11 +15,6 @@ import ForgetPass from "./pages/forgetPass/ForgetPass.tsx";
 import CheckEmail from "./pages/forgetPass/CheckEmail.tsx";
 import ResetPassword from "./pages/forgetPass/ResetPassword.tsx";
 import ResetSuccess from "./pages/forgetPass/ResetSuccess.tsx";
-<<<<<<< Updated upstream
-// import Dashboard from './pages/Dashboard.tsx'
-
-
-=======
 import MentorDash from './pages/mentordash/MentorDash.tsx';
 import MyMentorships from './pages/my-mentorsship-dash/MyMentorsship.tsx';
 import StudentsList from './pages/studentspage-mentordash/StudentsList.tsx';
@@ -29,26 +24,25 @@ import ProfilePage from './pages/mentorProfile/ProfilePage.tsx';
 import Setting from './pages/mentorSettings/Settings.tsx';
 import MentorshipDetail from './pages/mentorship-detail/MentorshipDetail.tsx';
 import EditMentorship from './pages/edit-mentorship/EditMentorship.tsx';
-import { useAuthStore } from './store/authStore';
->>>>>>> Stashed changes
+import { useAuthStore } from './store/authStore.ts';
 
 
 function App() {
   const location = useLocation();
   const navigate = useNavigate();
 
-  // Check if user is logged in with Remember Me on app load
+  // Initialize app - check for Remember Me on first load
   useEffect(() => {
     const token = useAuthStore.getState().token;
     const rememberMe = useAuthStore.getState().rememberMe;
     const lastEmail = useAuthStore.getState().lastEmail;
 
     // If user has valid token and Remember Me is enabled, redirect to dashboard
-    if (token && rememberMe && lastEmail && location.pathname === '/login') {
-      console.log('🔐 Auto-redirecting to dashboard (Remember Me enabled)');
-      navigate('/mentor/dashboard');
+    if (token && rememberMe && lastEmail) {
+      console.log('🔐 Auto-login enabled - Redirecting to dashboard');
+      navigate('/mentor/dashboard', { replace: true });
     }
-  }, [navigate]);
+  }, []); // Run only once on component mount
 
   const showNavbar = ["/"].includes(
     location.pathname
@@ -71,8 +65,6 @@ function App() {
         <Route path="/check-email" element={<CheckEmail />} />
         <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="/reset-success" element={<ResetSuccess />} />
-<<<<<<< Updated upstream
-=======
         <Route path="/mentor/dashboard" element={<MentorDash />} />
         <Route path="/mentor/mentorships" element={<MyMentorships />} />
         <Route path="/mentor/mentorships/:id" element={<MentorshipDetail />} />
@@ -87,7 +79,6 @@ function App() {
              
         
          
->>>>>>> Stashed changes
         {/* <Route path="/dash-board" element={<Dashboard />} /> */}
 
       </Routes>

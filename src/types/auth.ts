@@ -32,46 +32,20 @@ export interface FormErrors {
 
 export type JoinAs = "mentor" | "student";
 
-<<<<<<< Updated upstream
-=======
 // --- API Responses ---
 
-// هيكل بيانات المستخدم
-export interface UserData {
-  id?: string;
-  name?: string;
-  fullName?: string;
-  full_name?: string;
-  firstName?: string;
-  first_name?: string;
-  lastName?: string;
-  last_name?: string;
-  email?: string;
-  role?: string;
-  phoneNumber?: string;
-  phone_number?: string;
+// هيكل الرسالة العائدة من السيرفر في عمليات الـ auth (login, register, ...)
+export interface AuthMessages {
+  jwt?: string;          // التوكن في حالة نجاح تسجيل الدخول
+  status?: string;       // رسالة الحالة العامة من الباك إند
+  // أي فيلدات إضافية يضيفها الباك إند بدون كسر التايب
   [key: string]: unknown;
 }
 
-// الـ apiResponse الداخلي
-export interface ApiResponseData {
-  jwt?: string;
-  token?: string;
-  status?: string;
-  message?: string;
-  user?: UserData;
-  [key: string]: unknown;
-}
-
-// الشكل النهائي لريسبونس الـ BE
+// الشكل العام لريسبونس الـ auth المستخدم في loginUser وغيره
 export interface AuthResponse {
-  apiResponse?: ApiResponseData;
-  jwt?: string;
-  token?: string;
-  status?: string;
-  message?: string;
-  user?: UserData;
+  messages?: AuthMessages;
+  // لو في بيانات أخرى (مثلاً user, errors ...) تتضاف هنا تلقائيًا
   [key: string]: unknown;
 }
 
->>>>>>> Stashed changes

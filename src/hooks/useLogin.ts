@@ -1,22 +1,21 @@
 import React, { useState } from "react";
 import type { LoginFormData, FormErrors } from "../types/auth";
-<<<<<<< Updated upstream
-=======
 import { loginUser, sendOtp } from "../services/authService";
 import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
 import { useAuthStore } from "../store/authStore";
 import { getFirstNameFromToken, getFirstNameFromUser } from "../utils/jwt";
->>>>>>> Stashed changes
 
 export const useLogin = () => {
-  const [formData, setFormData] = useState<LoginFormData>({ 
-    email: "", 
+
+  const navigate = useNavigate();
+  const [formData, setFormData] = useState<LoginFormData>({
+    email: "",
     password: "",
-    rememberMe: false 
+    rememberMe: false
   });
-  
-  const [errors, setErrors] = useState<FormErrors>({}); 
+
+  const [errors, setErrors] = useState<FormErrors>({});
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
@@ -41,73 +40,44 @@ export const useLogin = () => {
 
     setLoading(true);
     try {
-<<<<<<< Updated upstream
-      console.log("Logging in with:", formData);
-      // هنا سيتم استدعاء الـ AuthService لاحقاً
-=======
-      console.log('🔍 Attempting login with:', formData.email);
       const data = await loginUser(formData.email, formData.password);
-      console.log('✅ Login response:', data);
 
-      // جرّب عدة طرق للوصول للـ JWT
-      const jwt = data?.apiResponse?.jwt 
-        || data?.jwt 
-        || data?.token 
-        || (data?.apiResponse as Record<string, unknown>)?.token;
-      
-      const statusMessage = data?.apiResponse?.status 
-        || data?.status 
-        || data?.message 
-        || "Logged in successfully!";
-
-      console.log('🔑 JWT found:', jwt ? '✅ YES' : '❌ NO');
-      console.log('📝 Status message:', statusMessage);
-      console.log('📊 Full data:', JSON.stringify(data, null, 2));
+      const jwt = data?.apiResponse?.jwt;
+      const statusMessage = data?.apiResponse?.status || "Logged in successfully!";
 
       if (jwt) {
         toast.success(statusMessage);
-        
-        // جرّب عدة طرق للوصول للـ user data
         const apiRes = data?.apiResponse as Record<string, unknown> | undefined;
         const user = (apiRes?.user ?? data?.user) as Record<string, unknown> | undefined;
-        
         let userName = getFirstNameFromUser(user);
         if (!userName) userName = getFirstNameFromToken(jwt);
         if (!userName && user) {
           const full = String(user.name ?? user.fullName ?? user.full_name ?? user.firstName ?? user.first_name ?? '');
           userName = full.trim().split(/\s+/)[0] || '';
         }
-        
-        console.log('💾 Saving auth with token:', jwt);
-        console.log('👤 User name:', userName);
-        console.log('🔖 Remember Me:', formData.rememberMe);
-        
-        // حفظ التوكن والبيانات
         useAuthStore.getState().setAuth({
           token: jwt,
           userName: userName || (user?.email ? String(user.email).split('@')[0] : ''),
           userEmail: (user?.email ? String(user.email) : formData.email) ?? formData.email,
           userRole: (user?.role ? String(user.role) : '') ?? '',
-          rememberMe: formData.rememberMe,
         });
         
-        // تحقق من الحفظ
-        const stored = useAuthStore.getState().token;
-        console.log('✅ Token stored:', stored ? '✅ YES' : '❌ NO', stored);
+        // Save Remember Me preference
+        if (formData.rememberMe) {
+          useAuthStore.getState().setRememberMe(formData.email, true);
+          console.log('✅ Remember Me enabled - Email saved:', formData.email);
+        } else {
+          useAuthStore.getState().setRememberMe('', false);
+        }
         
-        // انتظر قليلاً قبل الـ navigate للتأكد من حفظ البيانات
-        setTimeout(() => {
-          navigate("/mentor/dashboard");
-        }, 100);
+        navigate("/mentor/dashboard");
         
       } else {
-        const errorMsg = statusMessage || "Login failed. Please check your credentials.";
-        toast.error(errorMsg);
-        console.error("❌ No JWT in response:", data);
+        // لم يتم إرجاع توكن، نعتبرها محاولة فاشلة
+        toast.error(statusMessage || "Login failed. Please check your credentials.");
       }
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
-      console.error("❌ Login error:", error);
       const errorData = error.response?.data;
       const rawMsg = errorData?.errorMessages?.error 
         || errorData?.errorMessages?.['Email Error']
@@ -137,7 +107,7 @@ export const useLogin = () => {
 
       const backendMessage = rawMsg || "Something went wrong";
       toast.error(backendMessage);
->>>>>>> Stashed changes
+      console.error("Login Error:", error);
     } finally {
       setLoading(false);
     }

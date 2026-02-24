@@ -23,6 +23,7 @@ const MentorNavbar: FC<MentorNavbarProps & { onMenuClick?: () => void }> = ({
 
   const navigate = useNavigate();
   const logout = useAuthStore((s) => s.logout);
+  const userEmail = useAuthStore((s) => s.userEmail);
   const firstName = userName?.trim().split(/\s+/)[0] || userName || 'Mentor';
 
   const handleLogout = () => {
@@ -91,7 +92,7 @@ const MentorNavbar: FC<MentorNavbarProps & { onMenuClick?: () => void }> = ({
           >
             <Menu size={18} />
           </button>
-          <h2 className=" text-md  truncate block flex items-center gap-1">
+          <h2 className="text-md truncate flex items-center gap-1">
             {pageTitle.split('/').map((part, index) => (
               <span key={index} className="flex items-center gap-1">
                 <span className={index === 0 ? 'font-bold' : ' text-gray-500 '}>
@@ -164,8 +165,8 @@ const MentorNavbar: FC<MentorNavbarProps & { onMenuClick?: () => void }> = ({
                 <p className="text-[11px] font-semibold text-gray-900 leading-tight truncate max-w-[80px]">
                   {firstName}
                 </p>
-                <p className="text-[9px] text-gray-500 font-medium leading-tight">
-                  Mentor
+                <p className="text-[9px] text-gray-500 font-medium leading-tight truncate max-w-[120px]">
+                  {userEmail}
                 </p>
               </div>
               <ChevronDown className={`w-3 h-3 sm:w-3.5 sm:h-3.5 text-gray-400 transition-transform flex-shrink-0 ${isProfileMenuOpen ? 'rotate-180' : ''}`} />

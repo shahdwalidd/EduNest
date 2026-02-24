@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { getAuthToken } from '../store/authStore';
 
-const API_BASE_URL = 'https://arline-unbalked-hiram.ngrok-free.dev/api/v1';
+const API_BASE_URL = 'https://blake-glottologic-carlee.ngrok-free.dev/';
 
 const api = axios.create({
   baseURL: API_BASE_URL,
@@ -11,16 +11,6 @@ const api = axios.create({
   },
 });
 
-<<<<<<< Updated upstream
-// Add authorization token to requests
-api.interceptors.request.use((config) => {
-  const token = localStorage.getItem('token');
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
-  return config;
-});
-=======
 // مسارات لا تحتاج توكن (تسجيل، لوجين، نسيت كلمة المرور)
 const PUBLIC_AUTH_PATHS = [
   'api/v1/register/mentor',
@@ -75,6 +65,5 @@ api.interceptors.response.use(
     return Promise.reject(error);
   }
 );
->>>>>>> Stashed changes
 
 export default api;

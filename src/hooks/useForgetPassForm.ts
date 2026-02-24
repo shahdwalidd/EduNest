@@ -1,4 +1,8 @@
 import { useState } from "react";
+import type { FormEvent } from "react";
+import { useNavigate } from "react-router-dom";
+import toast from "react-hot-toast";
+import { forgetPassword } from "../services/authService";
 
 interface ForgetPassFormData {
   email: string;
@@ -12,6 +16,7 @@ export const useForgetPassForm = () => {
   const [formData, setFormData] = useState<ForgetPassFormData>({ email: "" });
   const [errors, setErrors] = useState<ForgetPassErrors>({});
   const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
 
   const emailRegex = /^\S+@\S+\.\S+$/;
 
@@ -36,8 +41,6 @@ export const useForgetPassForm = () => {
     }
   };
 
-<<<<<<< Updated upstream
-=======
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
 
@@ -64,7 +67,6 @@ export const useForgetPassForm = () => {
     }
   };
 
->>>>>>> Stashed changes
   return {
     formData,
     errors,
@@ -72,5 +74,6 @@ export const useForgetPassForm = () => {
     setLoading,
     validate,
     handleInputChange,
+    handleSubmit,
   };
 };

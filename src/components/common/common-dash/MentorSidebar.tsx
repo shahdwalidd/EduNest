@@ -31,6 +31,7 @@ const MentorSidebar: FC<MentorSidebarProps & { onClose?: () => void }> = ({
 
   const navigate = useNavigate();
   const logout = useAuthStore((s) => s.logout);
+  const userEmail = useAuthStore((s) => s.userEmail);
   const firstName = userName?.trim().split(/\s+/)[0] || userName || 'Mentor';
   const handleLogout = () => {
     logout();
@@ -63,7 +64,7 @@ const MentorSidebar: FC<MentorSidebarProps & { onClose?: () => void }> = ({
 
         <div className="text-center">
           <h3 className="text-white font-bold text-lg">{firstName}</h3>
-          <p className="text-gray-400 text-[10px] truncate max-w-[150px]">Mentor</p>
+          <p className="text-gray-400 text-[10px] truncate max-w-[150px]">{userEmail}</p>
         </div>
       </div>
 

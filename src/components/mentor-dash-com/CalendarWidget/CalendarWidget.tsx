@@ -119,9 +119,6 @@ const CalendarWidget: FC<CalendarWidgetProps> = ({
                 {date.getDate()}
               </button>
 
-<<<<<<< Updated upstream
-              {isSelected && <div className="w-1 h-1 bg-[#d4af37] rounded-full mt-1"></div>}
-=======
               {/* Session indicators and gold point */}
               <div className="h-2 mt-1 flex flex-col items-center gap-0.5">
                 {/* Gold point for selected */}
@@ -151,7 +148,6 @@ const CalendarWidget: FC<CalendarWidgetProps> = ({
                   </div>
                 )}
               </div>
->>>>>>> Stashed changes
             </div>
           );
         })}
