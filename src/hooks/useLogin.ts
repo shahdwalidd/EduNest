@@ -1,16 +1,10 @@
 import React, { useState } from "react";
 import type { LoginFormData, FormErrors } from "../types/auth";
-<<<<<<< HEAD
-import { loginUser } from "../services/authService";
-import toast from "react-hot-toast";
-import { useNavigate } from "react-router-dom";
-=======
 import { loginUser, sendOtp } from "../services/authService";
 import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
 import { useAuthStore } from "../store/authStore";
 import { getFirstNameFromToken, getFirstNameFromUser } from "../utils/jwt";
->>>>>>> origin/my-new-branch
 
 export const useLogin = () => {
 
@@ -48,20 +42,6 @@ export const useLogin = () => {
     try {
       const data = await loginUser(formData.email, formData.password);
 
-<<<<<<< HEAD
-      const jwt = data?.messages?.jwt;
-      const statusMessage = data?.messages?.status || "Logged in successfully!";
-
-      if (jwt) {
-        // نجاح تسجيل الدخول
-        toast.success(statusMessage);
-
-        localStorage.setItem("token", jwt);
-        localStorage.setItem("isAuthenticated", "true");
-
-// هاتروح للداش بورد  بس لما تخلص 
-        navigate("/");
-=======
       const jwt = data?.apiResponse?.jwt;
       const statusMessage = data?.apiResponse?.status || "Logged in successfully!";
 
@@ -91,7 +71,6 @@ export const useLogin = () => {
         }
         
         navigate("/mentor/dashboard");
->>>>>>> origin/my-new-branch
         
       } else {
         // لم يتم إرجاع توكن، نعتبرها محاولة فاشلة
@@ -99,16 +78,6 @@ export const useLogin = () => {
       }
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
-<<<<<<< HEAD
-      // أخطاء الشبكة أو أخطاء من السيرفر (غير 2xx)
-      const backendMessage = 
-      error.response?.data?.errorMessages?.error ||  // المسار الذي ذكرته
-      error.response?.data?.message ||               // مسار شائع آخر
-      error.message ||                               // رسالة Axios نفسها (مثل Network Error)
-      "Something went wrong";
-        // error.response?.data?.message ||
-       
-=======
       const errorData = error.response?.data;
       const rawMsg = errorData?.errorMessages?.error 
         || errorData?.errorMessages?.['Email Error']
@@ -137,7 +106,6 @@ export const useLogin = () => {
       }
 
       const backendMessage = rawMsg || "Something went wrong";
->>>>>>> origin/my-new-branch
       toast.error(backendMessage);
       console.error("Login Error:", error);
     } finally {

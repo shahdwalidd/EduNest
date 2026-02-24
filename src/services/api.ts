@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { getAuthToken } from '../store/authStore';
 
-const API_BASE_URL = 'https://blake-glottologic-carlee.ngrok-free.dev/';
+const API_BASE_URL = 'https://arline-unbalked-hiram.ngrok-free.dev/'; 
 
 const api = axios.create({
   baseURL:API_BASE_URL,
@@ -16,6 +16,7 @@ const PUBLIC_AUTH_PATHS = [
   'api/v1/register/mentor',
   'api/v1/register/student',
   'api/v1/register/send-otp',
+  'api/v1/contact/save-message',
   'api/v1/register/verify-user',
   'login-api',
   'forget-password',
