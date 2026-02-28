@@ -16,7 +16,6 @@ export default function DashLayout({ children, pageTitle }: DashLayoutProps) {
   const token = useAuthStore((s) => s.token);
   const userName = useAuthStore((s) => s.userName);
   const setAuth = useAuthStore((s) => s.setAuth);
-  const userEmail = useAuthStore((s) => s.userEmail);
 
   useEffect(() => {
     if (token && (!userName?.trim() || userName === 'Mentor')) {
@@ -25,11 +24,9 @@ export default function DashLayout({ children, pageTitle }: DashLayoutProps) {
     }
   }, [token, userName, setAuth]);
 
-  const displayName = userName?.trim().split(/\s+/)[0] || userName || 'Mentor';
-
   useEffect(() => {
     if (!token) {
-      navigate('/', { replace: true });
+      navigate('/login', { replace: true });
     }
   }, [token, navigate]);
 
@@ -47,12 +44,7 @@ export default function DashLayout({ children, pageTitle }: DashLayoutProps) {
           ${isSidebarOpen ? "translate-x-0" : "-translate-x-full"}
         `}
       >
-        <MentorSidebar
-          userName={displayName}
-          userEmail={userEmail || `${(userName || '').toLowerCase().replace(/\s/g, '')}@email.com`}
-          userAvatar={`https://api.dicebear.com/7.x/avataaars/svg?seed=${displayName}`}
-          onClose={() => setSidebarOpen(false)}
-        />
+        <MentorSidebar onClose={() => setSidebarOpen(false)} />
       </div>
 
       {/* 2. Overlay */}
@@ -69,9 +61,6 @@ export default function DashLayout({ children, pageTitle }: DashLayoutProps) {
         <div className="z-20">
           <MentorNavbar
             pageTitle={pageTitle}
-            userName={displayName}
-            userRole="Mentor"
-            userAvatar={`https://api.dicebear.com/7.x/avataaars/svg?seed=${displayName}`}
             notificationCount={5}
             onMenuClick={() => setSidebarOpen(true)}
           />

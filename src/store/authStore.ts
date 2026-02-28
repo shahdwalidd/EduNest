@@ -10,6 +10,7 @@ export interface AuthState {
   userName: string;
   userEmail: string;
   userRole: string;
+  userAvatar: string;
   isHydrated: boolean;
   lastEmail: string;
   rememberMe: boolean;
@@ -18,6 +19,11 @@ export interface AuthState {
     userName?: string;
     userEmail?: string;
     userRole?: string;
+    userAvatar?: string;
+  }) => void;
+  updateProfile: (payload: {
+    userName?: string;
+    userAvatar?: string;
   }) => void;
   setHydrated: (value: boolean) => void;
   setRememberMe: (email: string, remember: boolean) => void;
@@ -32,6 +38,7 @@ export const useAuthStore = create<AuthState>()(
       userName: '',
       userEmail: '',
       userRole: '',
+      userAvatar: '',
       isHydrated: false,
       lastEmail: '',
       rememberMe: false,
@@ -47,8 +54,15 @@ export const useAuthStore = create<AuthState>()(
             userName: payload.userName ?? state.userName,
             userEmail: payload.userEmail ?? state.userEmail,
             userRole: payload.userRole ?? state.userRole,
+            userAvatar: payload.userAvatar ?? state.userAvatar,
           };
         }),
+      updateProfile: (payload) =>
+        set((state) => ({
+          ...state,
+          userName: payload.userName ?? state.userName,
+          userAvatar: payload.userAvatar ?? state.userAvatar,
+        })),
       setHydrated: (value) =>
         set({ isHydrated: value }),
       setRememberMe: (email, remember) =>
@@ -64,6 +78,7 @@ export const useAuthStore = create<AuthState>()(
             userName: '',
             userEmail: '',
             userRole: '',
+            userAvatar: '',
             lastEmail: '',
             rememberMe: false,
           };

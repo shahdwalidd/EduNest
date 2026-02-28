@@ -1,5 +1,6 @@
 
 import type { FC } from 'react';
+import { useState, useEffect } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { useAuthStore } from '../../../store/authStore';
@@ -15,11 +16,7 @@ import {
 } from 'lucide-react';
 import type { MentorSidebarProps } from "./Mentorside.types";
 
-const MentorSidebar: FC<MentorSidebarProps & { onClose?: () => void }> = ({
-  userName,
-  userAvatar,
-  onClose
-}) => {
+const MentorSidebar: FC<MentorSidebarProps & { onClose?: () => void }> = ({ onClose }) => {
   const menuItems = [
     { icon: LayoutDashboard, label: 'Dashboard', path: '/mentor/dashboard' },
     { icon: BookOpen, label: 'My Mentorships', path: '/mentor/mentorships' },
@@ -32,7 +29,21 @@ const MentorSidebar: FC<MentorSidebarProps & { onClose?: () => void }> = ({
   const navigate = useNavigate();
   const logout = useAuthStore((s) => s.logout);
   const userEmail = useAuthStore((s) => s.userEmail);
-  const firstName = userName?.trim().split(/\s+/)[0] || userName || 'Mentor';
+  // ✅ بنقرأ مباشرة من الـ store — بيتحدث تلقائياً لما updateProfile يتم استدعاؤه
+  const userName = useAuthStore((s) => s.userName);
+  const userAvatar = useAuthStore((s) => s.userAvatar);
+
+  // Local cached avatar to avoid flicker when store transiently clears avatar
+  const [avatarSrc, setAvatarSrc] = useState<string | null>(userAvatar || null);
+
+  const firstName = userName?.trim().split(/\s+/)[0] || 'Mentor';
+
+  useEffect(() => {
+    if (!userAvatar) return;
+    const img = new Image();
+    img.src = userAvatar;
+    img.onload = () => setAvatarSrc(userAvatar);
+  }, [userAvatar]);
   const handleLogout = () => {
     logout();
     onClose?.();
@@ -52,8 +63,8 @@ const MentorSidebar: FC<MentorSidebarProps & { onClose?: () => void }> = ({
         <div className="relative mb-3">
         
           <div className="w-16 h-16 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center overflow-hidden ring-2 ring-white/20">
-            {userAvatar ? (
-              <img src={userAvatar} alt={firstName} className="w-full h-full object-cover" />
+            {avatarSrc ? (
+              <img src={avatarSrc} alt={firstName} className="w-full h-full object-cover" />
             ) : (
               <span className="text-white font-bold text-xl">{firstName.charAt(0).toUpperCase()}</span>
             )}

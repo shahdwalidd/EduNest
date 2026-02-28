@@ -9,8 +9,6 @@ import type { MentorNavbarProps } from './MentorNavbar.types';
 
 const MentorNavbar: FC<MentorNavbarProps & { onMenuClick?: () => void }> = ({
   pageTitle = 'Dashboard',
-  userName,
-  userAvatar,
   notificationCount = 0,
   onNotificationClick,
   onProfileClick,
@@ -24,7 +22,23 @@ const MentorNavbar: FC<MentorNavbarProps & { onMenuClick?: () => void }> = ({
   const navigate = useNavigate();
   const logout = useAuthStore((s) => s.logout);
   const userEmail = useAuthStore((s) => s.userEmail);
-  const firstName = userName?.trim().split(/\s+/)[0] || userName || 'Mentor';
+  const userName = useAuthStore((s) => s.userName);
+  const userAvatar = useAuthStore((s) => s.userAvatar);
+
+  // Local cached avatar to prevent flicker when `userAvatar` briefly becomes empty
+  const [avatarSrc, setAvatarSrc] = useState<string | null>(userAvatar || null);
+
+  const firstName = userName?.trim().split(/\s+/)[0] || 'Mentor';
+
+  // Preload and commit avatar when available
+  useEffect(() => {
+    if (!userAvatar) return;
+    const img = new Image();
+    img.src = userAvatar;
+    img.onload = () => setAvatarSrc(userAvatar);
+    // if image fails to load, keep previous avatarSrc
+    // no need to cleanup the Image object
+  }, [userAvatar]);
 
   const handleLogout = () => {
     setIsProfileMenuOpen(false);
@@ -152,8 +166,8 @@ const MentorNavbar: FC<MentorNavbarProps & { onMenuClick?: () => void }> = ({
               className="flex items-center gap-1.5 sm:gap-3 px-1.5 sm:px-3 py-1.5 h-[42px] rounded-lg border border-gray-200/50 hover:bg-gray-50 transition-colors"
             >
               <div className="w-[28px] h-[28px] sm:w-[30px] sm:h-[30px] rounded-full bg-blue-500 flex-shrink-0 overflow-hidden">
-                {userAvatar ? (
-                  <img src={userAvatar} alt={userName} className="w-full h-full object-cover" />
+                {avatarSrc ? (
+                  <img src={avatarSrc} alt={userName} className="w-full h-full object-cover" />
                 ) : (
                   <span className="text-white text-[11px] sm:text-[12px] flex items-center justify-center h-full font-bold">
                     {firstName?.charAt(0) || "U"}
