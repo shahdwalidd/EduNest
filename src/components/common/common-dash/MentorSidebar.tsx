@@ -1,6 +1,5 @@
 
 import type { FC } from 'react';
-import { useState, useEffect } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { useAuthStore } from '../../../store/authStore';
@@ -17,6 +16,18 @@ import {
 import type { MentorSidebarProps } from "./Mentorside.types";
 
 const MentorSidebar: FC<MentorSidebarProps & { onClose?: () => void }> = ({ onClose }) => {
+  // اسحب القيم دي من الـ Store
+  const { userName, userAvatar, userEmail, isHydrated } = useAuthStore();
+  const logout = useAuthStore((s) => s.logout);
+  const navigate = useNavigate();
+
+  const firstName = userName?.trim().split(/\s+/)[0] || 'Mentor';
+
+  // لو الـ Store لسه بيحمل البيانات من الـ LocalStorage، ممكن تظهر Loader بسيط أو ترجع null
+  if (!isHydrated) {
+    return <div className="w-64 min-h-screen bg-[#0c2d48]" />; // مستطيل فارغ بنفس لون السايدبار
+  }
+
   const menuItems = [
     { icon: LayoutDashboard, label: 'Dashboard', path: '/mentor/dashboard' },
     { icon: BookOpen, label: 'My Mentorships', path: '/mentor/mentorships' },
@@ -25,25 +36,6 @@ const MentorSidebar: FC<MentorSidebarProps & { onClose?: () => void }> = ({ onCl
     { icon: Bell, label: 'Notifications', path: '/mentor/notifications' },
     { icon: User, label: 'Profile', path: '/mentor/profile' },
   ];
-
-  const navigate = useNavigate();
-  const logout = useAuthStore((s) => s.logout);
-  const userEmail = useAuthStore((s) => s.userEmail);
-  // ✅ بنقرأ مباشرة من الـ store — بيتحدث تلقائياً لما updateProfile يتم استدعاؤه
-  const userName = useAuthStore((s) => s.userName);
-  const userAvatar = useAuthStore((s) => s.userAvatar);
-
-  // Local cached avatar to avoid flicker when store transiently clears avatar
-  const [avatarSrc, setAvatarSrc] = useState<string | null>(userAvatar || null);
-
-  const firstName = userName?.trim().split(/\s+/)[0] || 'Mentor';
-
-  useEffect(() => {
-    if (!userAvatar) return;
-    const img = new Image();
-    img.src = userAvatar;
-    img.onload = () => setAvatarSrc(userAvatar);
-  }, [userAvatar]);
   const handleLogout = () => {
     logout();
     onClose?.();
@@ -63,10 +55,19 @@ const MentorSidebar: FC<MentorSidebarProps & { onClose?: () => void }> = ({ onCl
         <div className="relative mb-3">
         
           <div className="w-16 h-16 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center overflow-hidden ring-2 ring-white/20">
-            {avatarSrc ? (
-              <img src={avatarSrc} alt={firstName} className="w-full h-full object-cover" />
+            {/* استخدم userAvatar من الـ Store مباشرة */}
+            {userAvatar ? (
+              <img 
+                src={userAvatar} 
+                alt={firstName} 
+                className="w-full h-full object-cover" 
+                loading="eager"
+                key="sidebar-avatar"
+              />
             ) : (
-              <span className="text-white font-bold text-xl">{firstName.charAt(0).toUpperCase()}</span>
+              <span className="text-white font-bold text-xl">
+                {firstName.charAt(0).toUpperCase()}
+              </span>
             )}
           </div>
           {/* state */}
@@ -74,7 +75,7 @@ const MentorSidebar: FC<MentorSidebarProps & { onClose?: () => void }> = ({ onCl
         </div>
 
         <div className="text-center">
-          <h3 className="text-white font-bold text-lg">{firstName}</h3>
+          <h3 className="text-white font-bold text-lg">{userName || 'Mentor'}</h3>
           <p className="text-gray-400 text-[10px] truncate max-w-[150px]">{userEmail}</p>
         </div>
       </div>
