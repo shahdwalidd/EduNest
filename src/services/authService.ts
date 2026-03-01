@@ -24,6 +24,7 @@ const handleRequest = async <T>(request: Promise<{ data: T }>): Promise<T> => {
 
 // للمينتور لا نرسل educationalLevel (حقل خاص بالطالب فقط)
 function buildMentorPayload(formData: RegisterFormData) {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { educationalLevel, ...rest } = formData;
   return rest;
 }
@@ -55,3 +56,4 @@ export const forgetPasswordVerifyOtp = (email: string, otp: string) =>
 
 export const forgetResetPassword = (email: string, newPassword: string) => 
   handleRequest(api.post(ENDPOINTS.FORGET_PWD_RESET, { email, newPassword }));
+

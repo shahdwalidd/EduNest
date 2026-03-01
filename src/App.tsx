@@ -24,7 +24,10 @@ import ProfilePage from './pages/mentorProfile/ProfilePage.tsx';
 import Setting from './pages/mentorSettings/Settings.tsx';
 import MentorshipDetail from './pages/mentorship-detail/MentorshipDetail.tsx';
 import EditMentorship from './pages/edit-mentorship/EditMentorship.tsx';
+import CreateMentorship from './pages/create-mentorship/CreateMentorship.tsx';
+import MentorshipContent from './pages/mentorship-content/MentorshipContent.tsx';
 import { useAuthStore } from './store/authStore.ts';
+import { ProtectedRoute } from './routes';
 
 
 function App() {
@@ -65,20 +68,25 @@ function App() {
         <Route path="/check-email" element={<CheckEmail />} />
         <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="/reset-success" element={<ResetSuccess />} />
-        <Route path="/mentor/dashboard" element={<MentorDash />} />
-        <Route path="/mentor/mentorships" element={<MyMentorships />} />
-        <Route path="/mentor/mentorships/:id" element={<MentorshipDetail />} />
-        <Route path="/mentor/mentorships/:id/edit" element={<EditMentorship />} />
-        <Route path="/mentor/students" element={<StudentsList />} />
-        <Route path="/mentor/messages" element={<Messages />} />
-        <Route path="/mentor/notifications" element={<NotificationsList />} />
-        <Route path="/mentor/profile" element={<ProfilePage />} />
-        <Route path="/mentor/settings" element={<Setting />} />
-                 
+        {/* Protected Mentor Routes */}
+        <Route element={<ProtectedRoute />}>
+          <Route path="/mentor/dashboard" element={<MentorDash />} />
+          <Route path="/mentor/mentorships" element={<MyMentorships />} />
+          <Route path="/mentor/mentorships/create" element={<CreateMentorship />} />
+          <Route path="/mentor/mentorships/:id" element={<MentorshipDetail />} />
+          <Route path="/mentor/mentorships/:id/content" element={<MentorshipContent />} />
+          <Route path="/mentor/mentorships/:id/edit" element={<EditMentorship />} />
+          <Route path="/mentor/students" element={<StudentsList />} />
+          <Route path="/mentor/messages" element={<Messages />} />
+          <Route path="/mentor/notifications" element={<NotificationsList />} />
+          <Route path="/mentor/profile" element={<ProfilePage />} />
+          <Route path="/mentor/settings" element={<Setting />} />
+        </Route>
 
-             
-        
-         
+
+
+
+
         {/* <Route path="/dash-board" element={<Dashboard />} /> */}
 
       </Routes>
