@@ -1,6 +1,5 @@
 
 import api from './api';
-import type { ConversationDto, ConversationMessageDto } from '../types/mentor-meaasges.types';
 
 const handleRequest = async <T>(req: Promise<{ data: T }>): Promise<T> => {
   try { return (await req).data; }
@@ -11,19 +10,26 @@ const handleRequest = async <T>(req: Promise<{ data: T }>): Promise<T> => {
 };
 
 // GET /api/v1/conversation/all
-export const getAllConversations = ():
-  Promise<{ apiResponse: { conversations: ConversationDto[] } }> =>
+export const getAllConversations = () =>
   handleRequest(api.get('api/v1/conversation/all'));
 
 // GET /api/v1/conversation/{conversationId}/messages
-export const getConversationMessages = (conversationId: number):
-  Promise<{ apiResponse: { messages: ConversationMessageDto[] } }> =>
-  handleRequest(api.get(`api/v1/conversation/${conversationId}/messages`));
+export const getConversationMessages = (conversationId: number, size = 20, beforeId?: number) =>
+  handleRequest(api.get(`api/v1/conversation/${conversationId}/messages`, {
+    params: { size, ...(beforeId ? { beforeId } : {}) },
+  }));
 
 // PATCH /api/v1/conversation/messages/{messageId}
-export const editMessage = (messageId: number, content: string) =>
-  handleRequest(api.patch(`api/v1/conversation/messages/${messageId}`, { content }));
+// Body: { content, recipientEmail }
+export const editMessage = (messageId: number, content: string, recipientEmail: string) =>
+  handleRequest(api.patch(`api/v1/conversation/messages/${messageId}`, {
+    content,
+    recipientEmail,
+  }));
 
 // DELETE /api/v1/conversation/messages/{messageId}
-export const deleteMessage = (messageId: number) =>
-  handleRequest(api.delete(`api/v1/conversation/messages/${messageId}`));
+// Body: { recipientEmail }
+export const deleteMessage = (messageId: number, recipientEmail: string) =>
+  handleRequest(api.delete(`api/v1/conversation/messages/${messageId}`, {
+    data: { recipientEmail },
+  }));

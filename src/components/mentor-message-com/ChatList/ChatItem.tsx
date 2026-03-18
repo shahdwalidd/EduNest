@@ -1,82 +1,86 @@
 
-
 import type { FC } from 'react';
 import type { Chat } from '../../../types/mentor-meaasges.types';
 
 interface ChatItemProps {
-  chat: Chat;
+  chat:     Chat;
   isActive: boolean;
-  onClick: () => void;
+  onClick:  () => void;
 }
 
-const ChatItem: FC<ChatItemProps> = ({ chat, isActive, onClick }) => {
+const BASE_URL = (import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8080')
+  .replace(/\/api\/v1\/?$/, '').replace(/\/$/, '');
+
+// ── Same UTC fix ─────────────────────────────────────────────────────────────
+const toUtcTs = (ts: string): string => {
+  if (!ts) return ts;
+  if (ts.endsWith('Z') || ts.includes('+')) return ts;
+  return ts + 'Z';
+};
+
+const formatTimeAgo = (ts: string): string => {
+  if (!ts) return '';
+  try {
+    const diff  = Date.now() - new Date(toUtcTs(ts)).getTime();
+    const mins  = Math.floor(diff / 60_000);
+    const hours = Math.floor(diff / 3_600_000);
+    const days  = Math.floor(diff / 86_400_000);
+    if (diff  < 0)   return 'now';
+    if (mins  < 1)   return 'now';
+    if (mins  < 60)  return `${mins}m`;
+    if (hours < 24)  return `${hours}h`;
+    if (days  < 7)   return `${days}d`;
+    return new Date(toUtcTs(ts)).toLocaleDateString([], { month: 'short', day: 'numeric' });
+  } catch { return ''; }
+};
+
+const Avatar: FC<{ name: string; src?: string }> = ({ name, src }) => {
+  const fullSrc = src
+    ? (src.startsWith('http') || src.startsWith('data:') ? src : `${BASE_URL}${src}`)
+    : null;
   return (
-    <button
-      onClick={onClick}
-      className={`
-        w-full flex items-center gap-3 p-3 
-        transition-all duration-200
-        ${isActive
-          ? 'bg-[#E8F3FF] border-l-4 border-l-[#2D9CDB]'
-          : 'hover:bg-gray-50'
-        }
-      `}
-    >
-      {/* Avatar */}
-      <div className="relative flex-shrink-0">
-        <div className="w-12 h-12 rounded-full overflow-hidden bg-gray-200">
-          {chat.userAvatar ? (
-            <img
-              src={chat.userAvatar}
-              alt={chat.userName}
-              className="w-full h-full object-cover"
-            />
-          ) : (
-            <div className="w-full h-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center">
-              <span className="text-white font-semibold text-sm">
-                {chat.userName.charAt(0).toUpperCase()}
-              </span>
-            </div>
-          )}
+    <div className="w-11 h-11 rounded-full overflow-hidden flex-shrink-0">
+      {fullSrc ? (
+        <img src={fullSrc} alt={name} className="w-full h-full object-cover"
+          onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+      ) : (
+        <div className="w-full h-full bg-gradient-to-br from-[#2D9CDB] to-[#1a7bc4] flex items-center justify-center text-white font-bold text-base">
+          {name?.charAt(0)?.toUpperCase() ?? '?'}
         </div>
-
-        {/* Online Status */}
-        {chat.isOnline && (
-          <div className="absolute bottom-0 right-0 w-3 h-3 bg-[#27AE60] border-2 border-white rounded-full"></div>
-        )}
-      </div>
-
-      {/* Content */}
-      <div className="flex-1 min-w-0 text-left">
-        <div className="flex items-center justify-between mb-1">
-          <h3 className="text-sm font-semibold truncate text-gray-900">
-            {chat.userName}
-          </h3>
-          <span className="text-xs text-gray-500 flex-shrink-0 ml-2">
-            {chat.timestamp}
-          </span>
-        </div>
-
-        <div className="flex items-center justify-between gap-2">
-          <div className="flex items-center gap-1 flex-1 min-w-0">
-            {chat.lastMessageIcon && (
-              <span className="text-sm">{chat.lastMessageIcon}</span>
-            )}
-            <p className="text-xs text-gray-600 truncate">
-              {chat.lastMessage}
-            </p>
-          </div>
-          {chat.unreadCount > 0 && (
-            <span className="flex-shrink-0 min-w-[20px] h-5 px-1.5 bg-[#EB5757] text-white text-xs font-bold rounded-full flex items-center justify-center">
-              {chat.unreadCount}
-            </span>
-          )}
-        </div>
-      </div>
-    </button>
+      )}
+    </div>
   );
 };
 
+const ChatItem: FC<ChatItemProps> = ({ chat, isActive, onClick }) => (
+  <div
+    onClick={onClick}
+    className={`flex items-center gap-3 px-4 py-3 cursor-pointer transition-colors ${
+      isActive ? 'bg-[#E8F3FF]' : 'hover:bg-gray-50'
+    }`}
+  >
+    <Avatar name={chat.userName} src={chat.userAvatar} />
+    <div className="flex-1 min-w-0">
+      <div className="flex items-center justify-between mb-0.5">
+        <span className={`text-sm font-semibold truncate ${isActive ? 'text-[#2D9CDB]' : 'text-gray-900'}`}>
+          {chat.userName}
+        </span>
+        {chat.timestamp && (
+          <span className="text-[11px] text-gray-400 flex-shrink-0 ml-1">
+            {formatTimeAgo(chat.timestamp)}
+          </span>
+        )}
+      </div>
+      <div className="flex items-center justify-between">
+        <span className="text-xs text-gray-500 truncate">{chat.lastMessage}</span>
+        {chat.unreadCount > 0 && (
+          <span className="ml-1 flex-shrink-0 w-5 h-5 rounded-full bg-[#2D9CDB] text-white text-[10px] font-bold flex items-center justify-center">
+            {chat.unreadCount > 9 ? '9+' : chat.unreadCount}
+          </span>
+        )}
+      </div>
+    </div>
+  </div>
+);
+
 export default ChatItem;
-
-
