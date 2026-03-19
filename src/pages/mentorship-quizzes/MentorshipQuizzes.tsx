@@ -1,10 +1,12 @@
 import type { FC } from 'react';
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { FileText, CheckCircle, Clock, BarChart2, Search, Filter, MoreVertical, Eye } from 'lucide-react';
+import { FileText, CheckCircle, Clock, BarChart2, Search, Filter, MoreVertical, Eye, Edit2, Trash2 } from 'lucide-react';
 import DashLayout from '../../components/layout/Dash-layout';
-import type {  QuizOverviewContent, QuizOverviewDtoPageResponse, QuizDashboardDTO } from '../../services/mentorshipsContent/quiz';
-import { getMentorshipQuizzesOverview, filterQuizzes } from '../../services/mentorshipsContent/quiz';
+import type { QuizOverviewContent, QuizOverviewDtoPageResponse, QuizDashboardDTO } from '../../services/mentorshipsContent/quiz';
+import { getMentorshipQuizzesOverview, filterQuizzes, deleteQuiz } from '../../services/mentorshipsContent/quiz';
+import EditQuizModal from './components/EditQuizModal';
+import ConfirmDeleteModal from './components/ConfirmDeleteModal';
 import { useAuthStore } from '../../store/authStore';
 import toast from 'react-hot-toast';
 
@@ -25,6 +27,25 @@ const MentorshipQuizzes: FC = () => {
     // Pagination
     const [page, setPage] = useState(0); // 0-indexed API
     const size = 6;
+
+    // Actions state
+    const [refreshTrigger, setRefreshTrigger] = useState(0);
+    const [openDropdownId, setOpenDropdownId] = useState<number | null>(null);
+    const [editQuizId, setEditQuizId] = useState<number | null>(null);
+    const [deleteQuizId, setDeleteQuizId] = useState<number | null>(null);
+    const [quizToDeleteTitle, setQuizToDeleteTitle] = useState('');
+    const [isDeleting, setIsDeleting] = useState(false);
+
+    // Close dropdowns when clicking outside
+    useEffect(() => {
+        const handleClickOutside = (e: MouseEvent) => {
+            if (openDropdownId !== null && !(e.target as Element).closest('.action-dropdown-container')) {
+                setOpenDropdownId(null);
+            }
+        };
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, [openDropdownId]);
 
     useEffect(() => {
         if (!token || !mentorshipId) return;
@@ -51,7 +72,7 @@ const MentorshipQuizzes: FC = () => {
                         setQuizPage(responseData.quizOverviewDtoPageResponse);
                     }
                 }
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
             } catch (err: any) {
                 if (!active) return;
                 const message = err?.message || 'Failed to load quizzes';
@@ -70,7 +91,36 @@ const MentorshipQuizzes: FC = () => {
             active = false;
             clearTimeout(timeoutId);
         };
-    }, [mentorshipId, token, page, searchQuery, statusFilter, stats]);
+    }, [mentorshipId, token, page, searchQuery, statusFilter, refreshTrigger]);
+
+    const triggerRefresh = () => setRefreshTrigger(prev => prev + 1);
+
+    const handleEditQuiz = (quiz: QuizOverviewContent) => {
+        setEditQuizId(quiz.id);
+        setOpenDropdownId(null);
+    };
+
+    const handleDeleteClick = (quiz: QuizOverviewContent) => {
+        setDeleteQuizId(quiz.id);
+        setQuizToDeleteTitle(quiz.title);
+        setOpenDropdownId(null);
+    };
+
+    const handleConfirmDelete = async () => {
+        if (!deleteQuizId) return;
+        try {
+            setIsDeleting(true);
+            await deleteQuiz(deleteQuizId);
+            toast.success('Quiz deleted successfully');
+            setDeleteQuizId(null);
+            triggerRefresh();
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        } catch (err: any) {
+            toast.error(err?.message || 'Failed to delete quiz');
+        } finally {
+            setIsDeleting(false);
+        }
+    };
 
     const handleNextPage = () => {
         if (quizPage && page + 1 < quizPage.totalPages) {
@@ -249,9 +299,33 @@ const MentorshipQuizzes: FC = () => {
                                                         <Eye size={16} />
                                                         Details
                                                     </button>
-                                                    <button className="p-1.5 text-blue-400 border border-blue-200 rounded-lg hover:bg-blue-50 transition-colors">
-                                                        <MoreVertical size={16} />
-                                                    </button>
+                                                    <div className="relative action-dropdown-container">
+                                                        <button
+                                                            onClick={() => setOpenDropdownId(openDropdownId === quiz.id ? null : quiz.id)}
+                                                            className="p-1.5 text-blue-400 border border-blue-200 rounded-lg hover:bg-blue-50 transition-colors"
+                                                        >
+                                                            <MoreVertical size={16} />
+                                                        </button>
+
+                                                        {openDropdownId === quiz.id && (
+                                                            <div className="absolute right-0 mt-2 w-36 bg-white rounded-lg shadow-lg border border-gray-100 z-10 py-1 overflow-hidden">
+                                                                <button
+                                                                    onClick={() => handleEditQuiz(quiz)}
+                                                                    className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2 transition-colors"
+                                                                >
+                                                                    <Edit2 size={16} className="text-gray-400" />
+                                                                    Edit
+                                                                </button>
+                                                                <button
+                                                                    onClick={() => handleDeleteClick(quiz)}
+                                                                    className="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 flex items-center gap-2 transition-colors"
+                                                                >
+                                                                    <Trash2 size={16} className="text-red-400" />
+                                                                    Delete
+                                                                </button>
+                                                            </div>
+                                                        )}
+                                                    </div>
                                                 </div>
                                             </td>
                                         </tr>
@@ -306,6 +380,21 @@ const MentorshipQuizzes: FC = () => {
                     )}
                 </div>
             </div>
+
+            <EditQuizModal
+                isOpen={!!editQuizId}
+                onClose={() => setEditQuizId(null)}
+                quizId={editQuizId}
+                onSuccess={triggerRefresh}
+            />
+
+            <ConfirmDeleteModal
+                isOpen={!!deleteQuizId}
+                onClose={() => setDeleteQuizId(null)}
+                onConfirm={handleConfirmDelete}
+                title={quizToDeleteTitle}
+                loading={isDeleting}
+            />
         </DashLayout>
     );
 };

@@ -53,6 +53,7 @@ const GradeModal: FC<GradeModalProps> = ({ submission, maxPoints, onClose, onGra
             });
             toast.success('Graded successfully! ✨');
             onGraded();
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } catch (err: any) {
             toast.error(err?.message || 'Failed to grade submission');
         } finally {
@@ -221,6 +222,7 @@ const TaskDetail: FC = () => {
                 setSubmissions([]);
                 setSubmissionsPage(null);
             }
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } catch (err: any) {
             const message = err?.message || 'Failed to load task details';
             setError(message);

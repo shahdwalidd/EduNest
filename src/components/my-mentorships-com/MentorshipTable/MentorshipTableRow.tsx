@@ -23,8 +23,25 @@ const MentorshipTableRow: FC<MentorshipTableRowProps> = ({
       <td className="py-4 px-4 md:px-6">
         <div className="flex items-center gap-2 md:gap-3">
           <div className="w-8 h-8 md:w-10 md:h-10 rounded-lg bg-orange-50 dark:bg-orange-900/20 flex items-center justify-center flex-shrink-0 group-hover:bg-white dark:group-hover:bg-gray-700 transition-colors">
-            <span className="text-base md:text-xl cursor-pointer" 
-             onClick={() => onDetails(mentorship.id)}>{mentorship.icon}</span>
+            {mentorship.coverImageUrl ? (
+              <img 
+                src={`http://localhost:8080${mentorship.coverImageUrl}`} 
+                alt="" 
+                title={mentorship.coverImageUrl}
+                className="w-full h-full object-cover rounded-lg cursor-pointer"
+                loading="lazy"
+                onError={(e) => { 
+                  console.warn('Image load failed:', mentorship.coverImageUrl);
+                  (e.target as HTMLImageElement).style.display = 'none';
+                }}
+                onClick={() => onDetails(mentorship.id)}
+              />
+            ) : (
+              <span className="text-base md:text-xl cursor-pointer" 
+                   onClick={() => onDetails(mentorship.id)}>
+                {mentorship.icon}
+              </span>
+            )}
           </div>
           <div className="min-w-0 flex-1">
             <h3 className="text-[12px] cursor-pointer md:text-sm font-bold text-gray-900 dark:text-gray-100 line-clamp-1 leading-tight"

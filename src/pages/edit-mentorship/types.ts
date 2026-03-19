@@ -7,4 +7,6 @@ export interface MentorshipFormData {
     whatWillLearn: string[];
     tags: string[];
     duration: number;
+    coverImageUrl?: string;
+    coverImageFile?: File | null;
 }

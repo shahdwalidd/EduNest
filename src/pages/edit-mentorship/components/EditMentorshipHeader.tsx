@@ -14,14 +14,14 @@ const EditMentorshipHeader: FC = () => {
                 <ArrowLeft size={18} />
                 Back
             </button>
-            <div>
+            {/* <div>
                 <h1 className="text-2
                 .xl font-bold text-gray-900 mb-2">Edit Mentorship Program</h1>
                 <p className="text-gray-600 flex items-center gap-2 text-sm">
                     <span>→</span>
                     <span>Update your program details to attract and engage more students</span>
                 </p>
-            </div>
+            </div> */}
         </div>
     );
 };

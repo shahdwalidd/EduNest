@@ -6,11 +6,11 @@ import DashLayout from '../../components/layout/Dash-layout';
 import {
   getMentorshipDetail,
   updateMentorship,
+  changeMentorshipCoverImage,
   type MentorshipApiResponse,
 } from '../../services/mentorDashboardService';
 import { useAuthStore } from '../../store/authStore';
 import type { MentorshipFormData } from './types';
-import EditMentorshipHeader from './components/EditMentorshipHeader';
 import EditMentorshipForm from './components/EditMentorshipForm';
 
 const EditMentorship: FC = () => {
@@ -28,6 +28,8 @@ const EditMentorship: FC = () => {
     whatWillLearn: [],
     tags: [],
     duration: 0,
+    coverImageUrl: undefined,
+    coverImageFile: null,
   });
 
   const [loading, setLoading] = useState(true);
@@ -66,6 +68,7 @@ const EditMentorship: FC = () => {
           whatWillLearn: Array.isArray(mentorship.whatWillLearn) ? mentorship.whatWillLearn.filter((item) => item !== 'string') : [],
           tags: Array.isArray(mentorship.tags) ? mentorship.tags.filter((item) => item !== 'string') : [],
           duration: Number(mentorship.duration ?? 0),
+          coverImageUrl: (mentorship.Image_URL as string) || (mentorship.imageUrl as string) || (mentorship.coverImage as string) || undefined,
         });
       } catch (err) {
         const message = err instanceof Error ? err.message : 'Failed to load mentorship';
@@ -89,10 +92,27 @@ const EditMentorship: FC = () => {
     });
   };
 
-  const handleArrayInputChange = (arrayName: 'whatWillLearn' | 'tags', value: string) => {
+  const handleAddArrayItem = (arrayName: 'whatWillLearn' | 'tags', value: string) => {
+    if (!value.trim()) return;
     setFormData((prev) => ({
       ...prev,
-      [arrayName]: value.split(',').map((item) => item.trim()).filter((item) => item),
+      [arrayName]: [...prev[arrayName], value.trim()],
+    }));
+  };
+
+  const handleRemoveArrayItem = (arrayName: 'whatWillLearn' | 'tags', index: number) => {
+    setFormData((prev) => ({
+      ...prev,
+      [arrayName]: prev[arrayName].filter((_, i) => i !== index),
+    }));
+  };
+
+  const handleImageChange = (file: File | null) => {
+    setFormData((prev) => ({
+      ...prev,
+      coverImageFile: file,
+      // Create a temporary URL to preview the newly selected image
+      ...(file ? { coverImageUrl: URL.createObjectURL(file) } : {})
     }));
   };
 
@@ -119,6 +139,10 @@ const EditMentorship: FC = () => {
       };
 
       await updateMentorship(mentorshipId, payload);
+
+      if (formData.coverImageFile) {
+        await changeMentorshipCoverImage(mentorshipId, formData.coverImageFile);
+      }
 
       toast.success('Mentorship updated successfully');
       navigate(`/mentor/mentorships/${mentorshipId}`);
@@ -176,11 +200,13 @@ const EditMentorship: FC = () => {
     <DashLayout pageTitle="Edit Mentorship">
       <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-50 py-8 px-4 sm:px-6 lg:px-8">
         <div className="max-w-5xl mx-auto">
-          <EditMentorshipHeader />
+          {/* <EditMentorshipHeader /> */}
           <EditMentorshipForm
             formData={formData}
             handleInputChange={handleInputChange}
-            handleArrayInputChange={handleArrayInputChange}
+            handleAddArrayItem={handleAddArrayItem}
+            handleRemoveArrayItem={handleRemoveArrayItem}
+            handleImageChange={handleImageChange}
             handleSubmit={handleSubmit}
             submitting={submitting}
             onCancel={handleCancel}

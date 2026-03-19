@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
     ClipboardList, CheckCircle, Clock, BarChart2,
-    Search, Filter, MoreVertical, Eye,
+    Search, Filter, MoreVertical, Eye, Edit2, Trash2
 } from 'lucide-react';
 import DashLayout from '../../components/layout/Dash-layout';
 import type {
@@ -11,9 +11,11 @@ import type {
     TaskResponsePageResponse,
     TaskResponseContent,
 } from '../../services/mentorshipsContent/task';
-import { getTaskFullDashboard } from '../../services/mentorshipsContent/task';
+import { getTaskFullDashboard, deleteTask } from '../../services/mentorshipsContent/task';
 import { useAuthStore } from '../../store/authStore';
 import toast from 'react-hot-toast';
+import EditTaskModal from './components/EditTaskModal';
+import ConfirmDeleteTaskModal from './components/ConfirmDeleteTaskModal';
 
 const MentorshipTasks: FC = () => {
     const { id: mentorshipId } = useParams<{ id: string }>();
@@ -32,6 +34,25 @@ const MentorshipTasks: FC = () => {
     // Pagination
     const [page, setPage] = useState(0);
     const size = 6;
+
+    // Actions state
+    const [refreshTrigger, setRefreshTrigger] = useState(0);
+    const [openDropdownId, setOpenDropdownId] = useState<number | null>(null);
+    const [editTaskId, setEditTaskId] = useState<number | null>(null);
+    const [deleteTaskId, setDeleteTaskId] = useState<number | null>(null);
+    const [taskToDeleteTitle, setTaskToDeleteTitle] = useState('');
+    const [isDeleting, setIsDeleting] = useState(false);
+
+    // Close dropdowns when clicking outside
+    useEffect(() => {
+        const handleClickOutside = (e: MouseEvent) => {
+            if (openDropdownId !== null && !(e.target as Element).closest('.action-dropdown-container')) {
+                setOpenDropdownId(null);
+            }
+        };
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, [openDropdownId]);
 
     useEffect(() => {
         if (!token || !mentorshipId) return;
@@ -70,7 +91,35 @@ const MentorshipTasks: FC = () => {
             active = false;
             clearTimeout(timeoutId);
         };
-    }, [mentorshipId, token, page, searchQuery, statusFilter]);
+    }, [mentorshipId, token, page, searchQuery, statusFilter, refreshTrigger]);
+
+    const triggerRefresh = () => setRefreshTrigger(prev => prev + 1);
+
+    const handleEditTask = (task: TaskResponseContent) => {
+        setEditTaskId(task.id);
+        setOpenDropdownId(null);
+    };
+
+    const handleDeleteClick = (task: TaskResponseContent) => {
+        setDeleteTaskId(task.id);
+        setTaskToDeleteTitle(task.title);
+        setOpenDropdownId(null);
+    };
+
+    const handleConfirmDelete = async () => {
+        if (!deleteTaskId) return;
+        try {
+            setIsDeleting(true);
+            await deleteTask(deleteTaskId);
+            toast.success('Task deleted successfully');
+            setDeleteTaskId(null);
+            triggerRefresh();
+        } catch (err: any) {
+            toast.error(err?.message || 'Failed to delete task');
+        } finally {
+            setIsDeleting(false);
+        }
+    };
 
     const handleNextPage = () => {
         if (taskPage && page + 1 < taskPage.totalPages) {
@@ -283,9 +332,33 @@ const MentorshipTasks: FC = () => {
                                                         <Eye size={16} />
                                                         Details
                                                     </button>
-                                                    <button className="p-1.5 text-blue-400 border border-blue-200 rounded-lg hover:bg-blue-50 transition-colors">
-                                                        <MoreVertical size={16} />
-                                                    </button>
+                                                    <div className="relative action-dropdown-container">
+                                                        <button
+                                                            onClick={() => setOpenDropdownId(openDropdownId === task.id ? null : task.id)}
+                                                            className="p-1.5 text-blue-400 border border-blue-200 rounded-lg hover:bg-blue-50 transition-colors"
+                                                        >
+                                                            <MoreVertical size={16} />
+                                                        </button>
+
+                                                        {openDropdownId === task.id && (
+                                                            <div className="absolute right-0 mt-2 w-36 bg-white rounded-lg shadow-lg border border-gray-100 z-10 py-1 overflow-hidden">
+                                                                <button
+                                                                    onClick={() => handleEditTask(task)}
+                                                                    className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2 transition-colors"
+                                                                >
+                                                                    <Edit2 size={16} className="text-gray-400" />
+                                                                    Edit
+                                                                </button>
+                                                                <button
+                                                                    onClick={() => handleDeleteClick(task)}
+                                                                    className="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 flex items-center gap-2 transition-colors"
+                                                                >
+                                                                    <Trash2 size={16} className="text-red-400" />
+                                                                    Delete
+                                                                </button>
+                                                            </div>
+                                                        )}
+                                                    </div>
                                                 </div>
                                             </td>
                                         </tr>
@@ -340,7 +413,22 @@ const MentorshipTasks: FC = () => {
                     )}
                 </div>
             </div>
-        </DashLayout>
+
+            <EditTaskModal
+                isOpen={!!editTaskId}
+                onClose={() => setEditTaskId(null)}
+                taskId={editTaskId}
+                onSuccess={triggerRefresh}
+            />
+
+            <ConfirmDeleteTaskModal
+                isOpen={!!deleteTaskId}
+                onClose={() => setDeleteTaskId(null)}
+                onConfirm={handleConfirmDelete}
+                title={taskToDeleteTitle}
+                loading={isDeleting}
+            />
+        </DashLayout >
     );
 };
 

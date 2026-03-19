@@ -147,14 +147,14 @@ const QuizDetail: FC = () => {
                 </div>
 
                 {/* Students Table */}
-                <div className="overflow-x-auto">
+                <div className="overflow-x-auto ">
                     <table className="w-full text-left border-collapse">
                         <thead>
                             <tr className="bg-gray-50 text-gray-500 text-xs uppercase tracking-wider">
                                 <th className="px-6 py-4 font-medium rounded-tl-xl rounded-bl-xl">STUDENTS</th>
                                 <th className="px-6 py-4 font-medium">SCORE</th>
                                 <th className="px-6 py-4 font-medium">STATUS</th>
-                                <th className="px-6 py-4 font-medium text-right rounded-tr-xl rounded-br-xl">ACTIONS</th>
+                                {/* <th className="px-6 py-4 font-medium text-right rounded-tr-xl rounded-br-xl">ACTIONS</th> */}
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-100">
@@ -203,7 +203,7 @@ const QuizDetail: FC = () => {
                                             )}
                                         </td>
                                         <td className="px-6 py-4 text-right">
-                                            <button
+                                            {/* <button
                                                 disabled={sub.status === 'Not Submitted'}
                                                 className={`px-4 py-1.5 font-medium text-sm border rounded-lg transition-colors ${sub.status === 'Not Submitted'
                                                     ? 'text-gray-300 border-gray-200 cursor-not-allowed'
@@ -211,7 +211,7 @@ const QuizDetail: FC = () => {
                                                     }`}
                                             >
                                                 Review
-                                            </button>
+                                            </button> */}
                                         </td>
                                     </tr>
                                 ))

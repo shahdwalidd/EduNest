@@ -1,13 +1,13 @@
 import { useState, useMemo, useRef, useEffect, type FC, memo } from 'react';
-import { 
-  BarChart, 
-  Bar, 
-  XAxis, 
-  YAxis, 
-  CartesianGrid, 
-  Tooltip, 
-  ResponsiveContainer, 
-  Cell 
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  Cell
 } from 'recharts';
 import { Calendar, ChevronDown } from 'lucide-react';
 
@@ -64,13 +64,13 @@ const SalesChart: FC<SalesChartProps> = memo(({ title = 'Sales', data: externalD
   // Memoize chart data processing
   const chartData = useMemo(() => {
     const base = MOCK_DATA[selectedPeriod] || [];
-    const data = externalData.length > 0 
+    const data = externalData.length > 0
       ? base.map((b) => {
-          const match = externalData.find((e) => e.month.toLowerCase() === b.month.toLowerCase());
-          return match ? { ...b, value: match.value } : b;
-        })
+        const match = externalData.find((e) => e.month.toLowerCase() === b.month.toLowerCase());
+        return match ? { ...b, value: match.value } : b;
+      })
       : base;
-    
+
     return data.map(item => ({
       ...item,
       displayValue: item.value === 0 || item.value === null || item.value === undefined ? 1 : item.value,
@@ -106,8 +106,8 @@ const SalesChart: FC<SalesChartProps> = memo(({ title = 'Sales', data: externalD
       <div className="flex items-center justify-between mb-8">
         <h2 className="text-lg font-bold text-gray-900">{title}</h2>
         <div className="relative" ref={dropdownRef}>
-          <button 
-            onClick={toggleDropdown} 
+          <button
+            onClick={toggleDropdown}
             className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-gray-200 text-sm hover:bg-gray-50 transition"
           >
             <Calendar className="w-4 h-4 text-gray-500" />
@@ -117,9 +117,9 @@ const SalesChart: FC<SalesChartProps> = memo(({ title = 'Sales', data: externalD
           {isDropdownOpen && (
             <div className="absolute right-0 mt-2 w-40 bg-white rounded-xl shadow-xl border border-gray-100 z-50 overflow-hidden">
               {periods.map((p) => (
-                <button 
-                  key={p.value} 
-                  onClick={() => handlePeriodChange(p.value)} 
+                <button
+                  key={p.value}
+                  onClick={() => handlePeriodChange(p.value)}
                   className="w-full px-4 py-2.5 text-left text-sm hover:bg-gray-50 transition"
                 >
                   {p.label}
@@ -130,22 +130,24 @@ const SalesChart: FC<SalesChartProps> = memo(({ title = 'Sales', data: externalD
         </div>
       </div>
 
-      <ResponsiveContainer width="100%" height={280}>
-        <BarChart data={chartData} margin={{ top: 0, right: 0, left: -20, bottom: 0 }}>
-          <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f3f4f6" />
-          <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{ fill: '#9ca3af', fontSize: 12 }} />
-          <YAxis axisLine={false} tickLine={false} tick={{ fill: '#9ca3af', fontSize: 12 }} tickFormatter={(v) => `$${v / 1000}k`} />
-          <Tooltip cursor={{ fill: '#f9fafb' }} content={<CustomTooltip />} />
-          <Bar dataKey="displayValue" radius={[6, 6, 0, 0]} maxBarSize={45}>
-            {chartData.map((entry, i) => (
-              <Cell 
-                key={i} 
-                fill={entry.isEmpty ? "#e5e7eb" : "#154d71"} 
-              />
-            ))}
-          </Bar>
-        </BarChart>
-      </ResponsiveContainer>
+      <div style={{ width: '100%', height: 280 }}>
+        <ResponsiveContainer width="100%" height="100%">
+          <BarChart data={chartData} margin={{ top: 0, right: 0, left: -20, bottom: 0 }}>
+            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f3f4f6" />
+            <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{ fill: '#9ca3af', fontSize: 12 }} />
+            <YAxis axisLine={false} tickLine={false} tick={{ fill: '#9ca3af', fontSize: 12 }} tickFormatter={(v) => `$${v / 1000}k`} />
+            <Tooltip cursor={{ fill: '#f9fafb' }} content={<CustomTooltip />} />
+            <Bar dataKey="displayValue" radius={[6, 6, 0, 0]} maxBarSize={45}>
+              {chartData.map((entry, i) => (
+                <Cell
+                  key={i}
+                  fill={entry.isEmpty ? "#e5e7eb" : "#154d71"}
+                />
+              ))}
+            </Bar>
+          </BarChart>
+        </ResponsiveContainer>
+      </div>
     </div>
   );
 }, (prevProps, nextProps) => {
