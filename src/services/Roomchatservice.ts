@@ -10,7 +10,6 @@ const handleRequest = async <T>(req: Promise<{ data: T }>): Promise<T> => {
   }
 };
 
-//  Actual API response shape 
 export interface RoomApiDto {
   roomId:                 number;
   roomName:               string;
@@ -25,12 +24,21 @@ export interface RoomApiDto {
   lastMessageSenderName:  string | null;
 }
 
+export interface RoomMemberDto {
+  userId:       number;
+  email:        string;
+  firstName:    string;
+  lastName:     string;
+  role:         string;
+  userImageUrl: string | null;   // ← actual field from API
+}
+
 // GET /api/v1/chat-room/my-rooms
 export const getMyRooms = ():
   Promise<{ apiResponse: { Rooms: RoomApiDto[] } }> =>
   handleRequest(api.get('api/v1/chat-room/my-rooms'));
 
-// GET /api/v1/chat-room/{mid} — rooms by mentorship
+// GET /api/v1/chat-room/{mid}
 export const getRoomsByMentorship = (mentorshipId: number):
   Promise<{ apiResponse: { Rooms: RoomApiDto[] } }> =>
   handleRequest(api.get(`api/v1/chat-room/${mentorshipId}`));
@@ -43,13 +51,6 @@ export const getRoomMessages = (roomId: number, size = 20, beforeId?: number):
   }));
 
 // GET /api/v1/chat-room/{roomId}/members
-export interface RoomMemberDto {
-  userId:    number;
-  email:     string;
-  firstName: string;
-  lastName:  string;
-  role:      string;
-}
 export const getRoomMembers = (roomId: number):
   Promise<{ apiResponse: { members: RoomMemberDto[] } }> =>
   handleRequest(api.get(`api/v1/chat-room/${roomId}/members`));
@@ -70,3 +71,17 @@ export const updateRoomImage = (roomId: number, image: File) => {
     headers: { 'Content-Type': 'multipart/form-data' },
   }));
 };
+
+// PATCH /api/v1/chat-room/{roomId}/messages/{messageId}?content=xxx
+export const editRoomMessage = (roomId: number, messageId: number, content: string) =>
+  handleRequest(api.patch(`api/v1/chat-room/${roomId}/messages/${messageId}`, null, {
+    params: { content },
+  }));
+
+// DELETE /api/v1/chat-room/{roomId}/messages/{messageId}
+export const deleteRoomMessage = (roomId: number, messageId: number) =>
+  handleRequest(api.delete(`api/v1/chat-room/${roomId}/messages/${messageId}`));
+
+// DELETE /api/v1/chat-room/{roomId}   (creator only)
+export const deleteRoom = (roomId: number) =>
+  handleRequest(api.delete(`api/v1/chat-room/${roomId}`));
