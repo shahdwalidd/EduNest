@@ -109,7 +109,7 @@ export function mapSessions(raw: unknown): Session[] {
 
             return {
                 id,
-                mentorshipId: String(item.mentorshipId ?? item.mentorship_id ?? item.mentorship?.id ?? ''),
+                mentorshipId: String(item.mentorshipId ?? item.mentorship_id ?? (item.mentorship && typeof item.mentorship === 'object' && 'id' in item.mentorship ? (item.mentorship as Record<string, unknown>).id : undefined) ?? ''),
                 title,
                 startTime,
                 endTime,

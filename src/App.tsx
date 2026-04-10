@@ -51,6 +51,9 @@ const TaskDetail = lazy(() => import('./pages/mentor-pages/mentorship-tasks/Task
 const MentorshipProjects = lazy(() => import('./pages/mentor-pages/mentorship-projects/MentorshipProjects'));
 const ProjectDetail = lazy(() => import('./pages/mentor-pages/mentorship-projects/ProjectDetail'));
 
+// Student Dashboard
+const StudentDashboard = lazy(() => import('./pages/student-pages/StudentDashboard/StudentDashboard'));
+
 // Loading fallback component - minimal to avoid layout shift
 const PageLoader = () => (
   <div className="min-h-screen flex items-center justify-center bg-gray-50">
@@ -61,6 +64,24 @@ const PageLoader = () => (
   </div>
 );
 
+/**
+ * Determines the dashboard path based on user role
+ * @param role The user role
+ * @returns The appropriate dashboard path
+ */
+const getDashboardPath = (role: string): string => {
+  switch (role) {
+    case 'ROLE_MENTOR':
+      return '/mentor/dashboard';
+    case 'ROLE_STUDENT':
+      return '/student/dashboard';
+    case 'ROLE_ADMIN':
+      return '/admin/dashboard';
+    default:
+      return '/mentor/dashboard';
+  }
+};
+
 function App() {
   const location = useLocation();
   const navigate = useNavigate();
@@ -70,10 +91,12 @@ function App() {
     const token = useAuthStore.getState().token;
     const rememberMe = useAuthStore.getState().rememberMe;
     const lastEmail = useAuthStore.getState().lastEmail;
+    const userRole = useAuthStore.getState().userRole;
 
-    // If user has valid token and Remember Me is enabled, redirect to dashboard
+    // If user has valid token and Remember Me is enabled, redirect to role-based dashboard
     if (token && rememberMe && lastEmail) {
-      navigate('/mentor/dashboard', { replace: true });
+      const dashboardPath = getDashboardPath(userRole);
+      navigate(dashboardPath, { replace: true });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // Run only once on component mount
@@ -104,7 +127,7 @@ function App() {
           <Route path="/confirm-restore" element={<ConfirmRestore />} />
           
           {/* Protected Mentor Routes */}
-          <Route element={<ProtectedRoute />}>
+          <Route element={<ProtectedRoute allowedRoles={['ROLE_MENTOR', 'ROLE_ADMIN']} />}>
             <Route path="/mentor/dashboard" element={<MentorDash />} />
             <Route path="/mentor/mentorships" element={<MyMentorships />} />
             <Route path="/mentor/mentorships/create" element={<CreateMentorship />} />
@@ -125,6 +148,16 @@ function App() {
             <Route path="/mentor/profile" element={<ProfilePage />} />
             <Route path="/mentor/students/:id" element={<StudentProfile />} />
             <Route path="/mentor/settings" element={<Setting />} />
+          </Route>
+
+          {/* Protected Student Routes */}
+          <Route element={<ProtectedRoute allowedRoles={['ROLE_STUDENT']} />}>
+            <Route path="/student/dashboard" element={<StudentDashboard />} />
+          </Route>
+
+          {/* Protected Admin Routes */}
+          <Route element={<ProtectedRoute allowedRoles={['ROLE_ADMIN']} />}>
+            <Route path="/admin/dashboard" element={<div>Admin Dashboard - Coming Soon</div>} />
           </Route>
         </Routes>
       </Suspense>
