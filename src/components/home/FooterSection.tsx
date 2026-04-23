@@ -1,5 +1,6 @@
 import React, { memo } from "react";
 import { Mail, Phone, Instagram, Linkedin, Facebook, Twitter } from "lucide-react";
+import { Link } from "react-router-dom";
 
 const quickLinks = [
   { name: "Home", id: "home" },
@@ -38,12 +39,12 @@ const FooterSection: React.FC = memo(() => {
               The future belongs to the curious. Let's build yours together.
             </p>
 
-            <a
-              href="/register"
-              className="py-3 px-10 inline-block bg-primary dark:bg-blue-600 text-white rounded-2xl font-semibold hover:bg-blue-700 dark:hover:bg-blue-700 transition"
+            <Link
+              to="/register"
+              className="py-3 px-10 inline-block bg-primary hover:bg-[var(--primary-dark)] text-white rounded-2xl font-semibold"
             >
               Register Now
-            </a>
+            </Link>
           </div>
         </div>
       </div>
