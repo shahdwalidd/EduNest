@@ -29,22 +29,20 @@ const CourseCard: FC<CourseCardProps> = ({ course, onResume }) => {
           />
         )}
 
-        {/* Status badge */}
+        {/* IN PROGRESS badge */}
         <div className="absolute top-3 left-3 px-3 py-1 bg-yellow-400 text-yellow-900 text-xs font-bold rounded-full">
           IN PROGRESS
         </div>
 
-        {/* Play overlay */}
-        {!showPlaceholder && (
-          <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-            <button
-              onClick={() => onResume(course.id)}
-              className="w-16 h-16 bg-white rounded-full flex items-center justify-center hover:scale-110 transition-transform"
-            >
-              <Play className="w-8 h-8 text-blue-600 ml-1" fill="currentColor" />
-            </button>
-          </div>
-        )}
+        {/* Play overlay — always on hover regardless of image/placeholder */}
+        <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+          <button
+            onClick={() => onResume(course.id)}
+            className="w-16 h-16 bg-white rounded-full flex items-center justify-center hover:scale-110 transition-transform"
+          >
+            <Play className="w-8 h-8 text-blue-600 ml-1" fill="currentColor" />
+          </button>
+        </div>
       </div>
 
       {/* Content */}
@@ -56,7 +54,6 @@ const CourseCard: FC<CourseCardProps> = ({ course, onResume }) => {
           <span>{course.instructor}</span>
         </div>
 
-        {/* Progress */}
         <div className="space-y-2">
           <div className="flex items-center justify-between text-sm">
             <span className="text-gray-600">Course Progress</span>
@@ -64,7 +61,7 @@ const CourseCard: FC<CourseCardProps> = ({ course, onResume }) => {
           </div>
           <div className="w-full h-2 bg-gray-100 rounded-full overflow-hidden">
             <div
-              className="h-full bg-[var(--primary-500,#1d4ed8)] rounded-full transition-all duration-300"
+              className="h-full bg-[var(--primary-500)] rounded-full transition-all duration-300"
               style={{ width: `${course.progress}%` }}
             />
           </div>
@@ -72,7 +69,7 @@ const CourseCard: FC<CourseCardProps> = ({ course, onResume }) => {
 
         <button
           onClick={() => onResume(course.id)}
-          className="w-full mt-4 py-2.5 text-sm font-semibold text-[var(--primary-500,#1d4ed8)] border border-blue-200 rounded-lg hover:bg-blue-50 transition-colors flex items-center justify-center gap-2"
+          className="w-full mt-4 py-2.5 text-sm font-semibold text-[var(--primary-500)] border border-blue-200 rounded-lg hover:bg-blue-50 transition-colors flex items-center justify-center gap-2"
         >
           Resume Mentorship
           <ArrowRight className="w-4 h-4" />
