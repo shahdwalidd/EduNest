@@ -1,9 +1,9 @@
 import { type FC, useState, useMemo } from 'react';
 import ActivityItem from './ActivityItem';
-import Pagination from '../../shared/Pagination';
+import LedgerPagination from '../payment-com/LedgerPagination';
 import type { LiveActivityStreamProps } from '../../../types/admin-role-types/admin-dash.types';
 
-const ITEMS_PER_PAGE = 5;
+const ITEMS_PER_PAGE = 3;
 
 const LiveActivityStream: FC<LiveActivityStreamProps> = ({ events }) => {
   const [currentPage, setCurrentPage] = useState(1);
@@ -23,17 +23,23 @@ const LiveActivityStream: FC<LiveActivityStreamProps> = ({ events }) => {
       </div>
 
       {/* Events */}
-      <div className="flex flex-col gap-3">
-        {paginatedEvents.map(event => (
-          <ActivityItem key={event.id} event={event} />
-        ))}
+      <div className="flex flex-col gap-3 bg-white rounded-lg p-4 border border-gray-100">
+        {paginatedEvents.length > 0 ? (
+          paginatedEvents.map(event => (
+            <ActivityItem key={event.id} event={event} />
+          ))
+        ) : (
+          <p className="text-center text-gray-400 py-8">No activities yet</p>
+        )}
       </div>
 
       {/* Pagination */}
-      {totalPages > 1 && (
-        <Pagination
+      {events.length > 0 && (
+        <LedgerPagination
           currentPage={currentPage}
           totalPages={totalPages}
+          totalRecords={events.length}
+          perPage={ITEMS_PER_PAGE}
           onPageChange={setCurrentPage}
         />
       )}
