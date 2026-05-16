@@ -57,7 +57,7 @@ const StudentDashboard: FC = () => {
     <div className="min-h-screen bg-[#F7F7F8]">
       <Navbar />
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+      <main className=" mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
         {error && (
           <div className="bg-red-50 border border-red-200 text-red-700 rounded-xl px-5 py-3 text-sm font-medium">
             ⚠️ {error}

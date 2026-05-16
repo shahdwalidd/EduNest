@@ -1,7 +1,7 @@
 import { useEffect, useMemo } from 'react';
 import { useNavigate, useParams, Link, Outlet } from 'react-router-dom';
 import { ArrowLeft, AlertTriangle } from 'lucide-react';
-import { useMentorshipDetails } from '../../../services/student-roleService/mentorshipDetails.api';
+import { useMentorshipDetails, useMentorshipOverview } from '../../../services/student-roleService/mentorshipDetails.api';
 import HeroSection from './components/HeroSection';
 import MentorshipTabsNav from './components/MentorshipTabsNav';
 import ProgressSection from './components/ProgressSection';
@@ -28,11 +28,15 @@ const MentorshipDetailsPage = () => {
   console.log('[DEBUG] normalizedId:', normalizedId, 'hasValidId:', hasValidId, 'for raw:', mentorshipId);
 
   const { data, isLoading, isError, error } = useMentorshipDetails(normalizedId, hasValidId);
+  const { data: overviewData, isLoading: overviewLoading } = useMentorshipOverview(normalizedId, hasValidId);
 
   // 🔍 DEBUG LOG: Query status
   console.log('[DEBUG] useMentorshipDetails - isLoading:', isLoading, 'isError:', isError, error?.message);
+  console.log('[DEBUG] useMentorshipOverview - isLoading:', overviewLoading, 'isEnrolled:', overviewData?.isEnrolled);
 
   const mentorship = useMemo<MentorshipDetails | undefined>(() => data as MentorshipDetails | undefined, [data]);
+  const isEnrolled = overviewData?.isEnrolled ?? false;
+  const enrolledData = overviewData?.afterEnroll ?? null;
 
 
   return (
@@ -95,19 +99,21 @@ const MentorshipDetailsPage = () => {
           <>
             <div className="space-y-8 lg:space-y-4">
               
-              <HeroSection mentorship={mentorship} isLoading={isLoading} mentorshipId={normalizedId} />
+              <HeroSection mentorship={mentorship} isLoading={isLoading} mentorshipId={normalizedId} isEnrolled={isEnrolled} />
               
-              {/* Enrolled Sections */}
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                {/* Progress */}
-                <ProgressSection />
-                
-                {/* Upcoming Items */}
-                <UpcomingItemsSection />
-              </div>
+              {/* Enrolled Sections - Only show when user is enrolled */}
+              {isEnrolled && enrolledData && (
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                  {/* Progress */}
+                  <ProgressSection progress={enrolledData.progress} />
+                  
+                  {/* Upcoming Items */}
+                  <UpcomingItemsSection upcomingItems={enrolledData.upcomingItems} />
+                </div>
+              )}
               
               <MentorshipTabsNav />
-              <Outlet context={{ mentorship, isLoading, mentorshipId: normalizedId }} />
+              <Outlet context={{ mentorship, isLoading, mentorshipId: normalizedId, isEnrolled }} />
             </div>
           </>
         )}

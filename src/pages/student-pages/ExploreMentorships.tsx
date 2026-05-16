@@ -122,7 +122,8 @@ useEffect(() => {
 
       {/* Header Section */}
       <div className="bg-white border-b border-gray-200 px-4 sm:px-6 lg:px-8 py-8">
-        <div className="max-w-7xl mx-auto">
+       {/* i will add this class name if back end says no max-w-7xl */}
+        <div className=" mx-auto">
           <h1 className="text-2xl sm:text-4xl font-bold text-gray-900 mb-3">
             Discover Academic Mentorship
           </h1>
@@ -137,7 +138,8 @@ useEffect(() => {
 
 
       {/* Main Content Area */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+{ /* max-w-7xl  i will add this className if backend says no */}
+      <div className="mx-auto px-4 sm:px-6 lg:px-8 py-8">
 
 
         

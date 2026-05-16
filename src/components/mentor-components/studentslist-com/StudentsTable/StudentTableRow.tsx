@@ -58,7 +58,7 @@ const StudentTableRow: FC<StudentTableRowProps> = ({ student, onViewProfile }) =
       <td className="py-4 px-4 md:px-6 text-right">
         <button
           onClick={() => onViewProfile(student.id)}
-          className="inline-flex items-center justify-center p-2 md:px-4 md:py-2 rounded-lg border border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 hover:bg-blue-600 dark:hover:bg-blue-600 hover:text-white transition-all group/btn"
+          className="inline-flex items-center justify-center p-2 md:px-4 md:py-2 rounded-lg border border-blue-200 dark:border-blue-800 bg-[var(--primary-500)] hover:bg-[var(--primary-dark)] text-white transition-all group/btn"
         >
           <ExternalLink className="w-4 h-4 md:mr-2" />
           <span className="hidden md:inline text-xs font-bold">View Profile</span>

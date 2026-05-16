@@ -107,6 +107,10 @@ export const useDirectChat = () => {
       setMessages([]);
       return;
     }
+    // ── Optimistically clear the unread badge immediately ──
+    setChats(prev =>
+      prev.map(c => c.id === chat.id ? { ...c, unreadCount: 0 } : c)
+    );
     setActiveChat(chat);
     activeChatRef.current = chat;
     setMsgLoading(true);
@@ -199,7 +203,55 @@ export const useDirectChat = () => {
       });
     });
 
-    return () => { wsService.unsubscribe('/user/queue/messages'); };
+    const handlePrivateMessage = (data: unknown) => {
+      if (!mountedRef.current) return;
+      const event = data as ConversationRealtimeEvent;
+
+      if (event.type === 'DELETE' && event.messageId) {
+        setMessages(prev =>
+          prev.map(m => m.id === String(event.messageId)
+            ? { ...m, deleted: true, content: '' } : m
+          )
+        );
+        setTimeout(() => {
+          if (mountedRef.current)
+            setMessages(prev => prev.filter(m => m.id !== String(event.messageId)));
+        }, 800);
+        fetchConvsRef.current();
+        return;
+      }
+
+      if (event.id) {
+        setMessages(prev => {
+          const exists = prev.some(m => m.id === String(event.id));
+          if (exists) {
+            return prev.map(m =>
+              m.id === String(event.id)
+                ? { ...m, content: event.content ?? m.content, edited: true }
+                : m
+            );
+          }
+          return [...prev, {
+            id:           String(event.id),
+            chatId:       String(event.conversationId ?? ''),
+            senderId:     (event.senderEmail ?? '').toLowerCase().trim(),
+            senderName:   event.senderName  ?? '',
+            senderAvatar: fullUrl(event.senderProfileImageUrl ?? undefined),
+            content:      event.content ?? '',
+            timestamp:    toUtcTs(event.sentAt ?? new Date().toISOString()),
+            isRead:       false,
+          }];
+        });
+        fetchConvsRef.current();
+      }
+    };
+
+    wsService.connect(token, () => {
+      if (!mountedRef.current) return;
+      wsService.subscribeToPrivateMessages(handlePrivateMessage);
+    });
+
+    return () => { wsService.unsubscribe('/user/queue/messages', handlePrivateMessage); };
  
   }, [token, isHydrated]);
 

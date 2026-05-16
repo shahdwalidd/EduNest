@@ -116,7 +116,7 @@ const MentorshipQuizzes: FC = () => {
             triggerRefresh();
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } catch (err: any) {
-            toast.error(err?.message || 'Failed to delete quiz');
+            toast.error(err?.errorMessages.error || 'Failed to delete quiz');
         } finally {
             setIsDeleting(false);
         }
