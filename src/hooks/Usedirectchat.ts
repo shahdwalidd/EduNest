@@ -179,11 +179,13 @@ export const useDirectChat = () => {
 
         if (event.id) {
           setMessages(prev => {
-            const exists = prev.some(m => m.id === String(event.id));
-            if (exists) {
+            const existing = prev.find(m => m.id === String(event.id));
+            if (existing) {
+              const nextContent = event.content ?? existing.content;
+              if (nextContent === existing.content) return prev;
               return prev.map(m =>
                 m.id === String(event.id)
-                  ? { ...m, content: event.content ?? m.content, edited: true }
+                  ? { ...m, content: nextContent, edited: true }
                   : m
               );
             }
@@ -223,11 +225,13 @@ export const useDirectChat = () => {
 
       if (event.id) {
         setMessages(prev => {
-          const exists = prev.some(m => m.id === String(event.id));
-          if (exists) {
+          const existing = prev.find(m => m.id === String(event.id));
+          if (existing) {
+            const nextContent = event.content ?? existing.content;
+            if (nextContent === existing.content) return prev;
             return prev.map(m =>
               m.id === String(event.id)
-                ? { ...m, content: event.content ?? m.content, edited: true }
+                ? { ...m, content: nextContent, edited: true }
                 : m
             );
           }

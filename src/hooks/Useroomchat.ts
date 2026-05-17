@@ -130,9 +130,9 @@ export const useRoomChat = () => {
         const incoming = toMessage(dto);
 
         setMessages(prev => {
-          const exists = prev.some(m => m.id === incoming.id);
-          if (exists) {
-            // WS echo of an edit → update content
+          const existing = prev.find(m => m.id === incoming.id);
+          if (existing) {
+            if (incoming.content === existing.content) return prev;
             return prev.map(m => m.id === incoming.id
               ? { ...m, content: incoming.content, edited: true }
               : m
