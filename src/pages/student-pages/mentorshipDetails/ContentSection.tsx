@@ -38,7 +38,7 @@ const ContentSection: FC = () => {
   );
 
   const renderError = () => (
-    <div className="text-center py-6 text-red-500">{error instanceof Error ? error.message : 'An error occurred when loading content.'}</div>
+   <div className="text-center py-6 text-gray-500">{ 'No content found.'}</div>
   );
 
   const renderNotEnrolled = (message: string) => (
