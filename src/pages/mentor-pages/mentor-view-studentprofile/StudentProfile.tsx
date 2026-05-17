@@ -14,6 +14,10 @@ import AwardBadgesModal from '../../../components/mentor-components/viewstuudent
 import type { Student, Mentorship, Project, SocialMedia, AwardedBadge } from '../../../types/viewStudent.types';
 import { getStudentFullProfile, extractStudentFullProfile } from '../../../services/Studentprofileservice';
 
+// ── App primary color (matches rest of app) ───────────────────────────────────
+const PRIMARY = '#0f5e8b';
+
+// ── Skeleton ──────────────────────────────────────────────────────────────────
 const ProfileSkeleton: FC = () => (
   <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 animate-pulse">
     <div className="xl:col-span-1 bg-white rounded-2xl border border-gray-100 h-[650px]" />
@@ -23,46 +27,56 @@ const ProfileSkeleton: FC = () => (
           <div key={i} className="h-28 bg-white rounded-2xl border border-gray-100" />
         ))}
       </div>
-      <div className="h-80 bg-white rounded-2xl border border-gray-100" />
-      <div className="h-60 bg-white rounded-2xl border border-gray-100" />
+      <div className="h-80  bg-white rounded-2xl border border-gray-100" />
+      <div className="h-60  bg-white rounded-2xl border border-gray-100" />
     </div>
   </div>
 );
 
+// ── Fallback emoji + color pools ──────────────────────────────────────────────
+const ICON_POOL  = ['📚','📘','📙','📕','📗','📓'];
+const COLOR_POOL = ['#F59E0B','#3B82F6','#8B5CF6','#10B981','#EF4444','#EC4899'];
+
+// ── Page ──────────────────────────────────────────────────────────────────────
 const StudentProfile: FC = () => {
   const { id: studentId } = useParams<{ id: string }>();
   const navigate   = useNavigate();
   const token      = useAuthStore((s) => s.token);
   const isHydrated = useAuthStore((s) => s.isHydrated);
 
-  const [loading,       setLoading      ] = useState(true);
-  const [error,         setError        ] = useState<string | null>(null);
-  const [student,       setStudent      ] = useState<Student      | null>(null);
-  const [mentorships,   setMentorships  ] = useState<Mentorship[]>([]);
-  const [projects,      setProjects     ] = useState<Project[]>([]);
-  const [socialMedia,   setSocialMedia  ] = useState<SocialMedia[]>([]);
-  const [awardedBadges, setAwardedBadges] = useState<AwardedBadge[]>([]);  // ← NEW
-  const [showBadges,    setShowBadges   ] = useState(false);
+  const [loading,        setLoading      ] = useState(true);
+  const [error,          setError        ] = useState<string | null>(null);
+  const [student,        setStudent      ] = useState<Student       | null>(null);
+  const [mentorships,    setMentorships  ] = useState<Mentorship[]>([]);
+  const [projects,       setProjects     ] = useState<Project[]>([]);
+  const [socialMedia,    setSocialMedia  ] = useState<SocialMedia[]>([]);
+  const [awardedBadges,  setAwardedBadges] = useState<AwardedBadge[]>([]);
+  const [showBadges,     setShowBadges   ] = useState(false);
 
-  useEffect(() => {
-    if (!isHydrated || !token || !studentId) return;
-    let cancelled = false;
-    setLoading(true);
+  // pagination state
+  const [mentorshipsPage,       setMentorshipsPage      ] = useState(0);
+  const [mentorshipsTotalPages, setMentorshipsTotalPages ] = useState(1);
+  const [projectsPage,          setProjectsPage         ] = useState(0);
+  const [projectsTotalPages,    setProjectsTotalPages   ] = useState(1);
+
+  // ── Fetch ─────────────────────────────────────────────────────────────────
+  const fetchProfile = (mPage: number, pPage: number, spinner = true) => {
+    if (!studentId) return;
+    if (spinner) setLoading(true);
     setError(null);
 
-    getStudentFullProfile(studentId)
+    getStudentFullProfile(studentId, { mentorshipsPage: mPage, projectsPage: pPage })
       .then((res) => {
-        if (cancelled) return;
         const profile = extractStudentFullProfile(res);
-        if (!profile) { setError('Could not parse student profile data.'); return; }
-        const { info, mentorships: mPage, projects: pPage, awardedBadges: aBadges } = profile;
+        if (!profile) { setError('Could not parse student profile.'); return; }
+        const { info, mentorships: mData, projects: pData, awardedBadges: aBadges } = profile;
 
         setStudent({
           id:                   studentId,
           name:                 info.name,
           email:                info.email,
-          address:              info.address    ?? 'Address not set',
-          avatar:               info.avatar     ?? '',
+          address:              info.address ?? '',
+          avatar:               info.avatar  ?? '',
           coverImage:           info.coverImage ?? '',
           activeMentorships:    info.activeMentorships,
           completedMentorships: info.completedMentorships,
@@ -75,14 +89,13 @@ const StudentProfile: FC = () => {
           { platform: 'GitHub',   username: info.githubLink   ?? '', url: info.githubLink   ?? undefined },
         ]);
 
-        const iconPool  = ['📚','📘','📙','📕','📗'];
-        const colorPool = ['#F59E0B','#3B82F6','#8B5CF6','#10B981','#EF4444'];
         setMentorships(
-          mPage.content.map((m, idx): Mentorship => ({
+          mData.content.map((m, idx): Mentorship => ({
             id:               String(m.mentorshipId),
             name:             m.title,
-            icon:             iconPool[idx  % iconPool.length],
-            iconColor:        colorPool[idx % colorPool.length],
+            imageUrl:         m.imageUrl,                          // ← real cover from API
+            icon:             ICON_POOL[idx  % ICON_POOL.length],  // fallback
+            iconColor:        COLOR_POOL[idx % COLOR_POOL.length], // fallback
             startDate:        '',
             totalPoints:      m.totalPoints,
             quizzes:          m.totalQuizzes,
@@ -92,28 +105,30 @@ const StudentProfile: FC = () => {
             status:           m.status === 'COMPLETED' ? 'Completed' : 'In progress',
           }))
         );
+        setMentorshipsTotalPages(mData.totalPages || 1);
 
-        const rawProjects = pPage.content as unknown as Array<{
-          id: string | number; title: string; mentorship: string; status: string;
-          submissionDate: string; filesCount?: number; feedback?: string;
-          submissionLink?: string; gradedAt?: string | null;
-          rawScore?: number | null; finalScore?: number | null;
-        }>;
-        setProjects(rawProjects.map((p): Project => ({
-          projectSubmissionId: p.id,
-          projectTitle:        p.title,
-          mentorshipTitle:     p.mentorship,
-          status:              p.status as Project['status'],
-          submittedAt:         p.submissionDate,
-          gradedAt:            p.gradedAt    ?? null,
-          submissionLink:      p.submissionLink,
-          filesCount:          p.filesCount  ?? 0,
-          feedback:            p.feedback    ?? null,
-          rawScore:            p.rawScore    ?? null,
-          finalScore:          p.finalScore  ?? null,
-        })));
+        setProjects(
+          (pData.content as unknown as Array<{
+            id: string | number; title: string; mentorship: string; status: string;
+            submissionDate: string; filesCount?: number; feedback?: string;
+            submissionLink?: string; gradedAt?: string | null;
+            rawScore?: number | null; finalScore?: number | null;
+          }>).map((p): Project => ({
+            projectSubmissionId: p.id,
+            projectTitle:        p.title,
+            mentorshipTitle:     p.mentorship,
+            status:              p.status as Project['status'],
+            submittedAt:         p.submissionDate,
+            gradedAt:            p.gradedAt     ?? null,
+            submissionLink:      p.submissionLink,
+            filesCount:          p.filesCount   ?? 0,
+            feedback:            p.feedback     ?? null,
+            rawScore:            p.rawScore     ?? null,
+            finalScore:          p.finalScore   ?? null,
+          }))
+        );
+        setProjectsTotalPages(pData.totalPages || 1);
 
-        // ── Map awarded badges to UI type ─────────────────────────────────
         setAwardedBadges(aBadges.map((b): AwardedBadge => ({
           id:              b.id,
           badgeId:         b.badgeId,
@@ -126,28 +141,23 @@ const StudentProfile: FC = () => {
           badgePoints:     b.badgePoints,
         })));
       })
-      .catch((err: unknown) => {
-        if (!cancelled) setError((err as { message?: string })?.message ?? 'Failed to load');
-      })
-      .finally(() => { if (!cancelled) setLoading(false); });
-
-    return () => { cancelled = true; };
-  }, [isHydrated, token, studentId]);
-
-  const handleChat = () => {
-    if (!student) return;
-    navigate('/mentor/messages', {
-      state: {
-        openDirectChatWith: {
-          email:  student.email,
-          name:   student.name,
-          avatar: student.avatar || undefined,
-        },
-      },
-    });
+      .catch((err: unknown) => setError((err as { message?: string })?.message ?? 'Failed to load'))
+      .finally(() => setLoading(false));
   };
 
-  // earnedBadgeIds = the badgeId (badge definition) that this student was awarded
+  useEffect(() => {
+    if (!isHydrated || !token || !studentId) return;
+    fetchProfile(0, 0, true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isHydrated, token, studentId]);
+
+  const handleMentorshipsPage = (p: number) => { setMentorshipsPage(p); fetchProfile(p, projectsPage, false); };
+  const handleProjectsPage    = (p: number) => { setProjectsPage(p);    fetchProfile(mentorshipsPage, p, false); };
+  const handleChat = () => {
+    if (!student) return;
+    navigate('/mentor/messages', { state: { openDirectChatWith: { email: student.email, name: student.name, avatar: student.avatar || undefined } } });
+  };
+
   const earnedBadgeIds = awardedBadges.map(b => b.badgeId);
 
   if (error) return (
@@ -155,7 +165,7 @@ const StudentProfile: FC = () => {
       <div className="flex items-center justify-center min-h-[60vh] flex-col gap-4">
         <p className="text-red-500 font-semibold">{error}</p>
         <button onClick={() => window.location.reload()}
-          className="px-4 py-2 bg-blue-500 text-white rounded-xl text-sm hover:bg-blue-600 transition">
+          className="px-4 py-2 rounded-xl text-sm text-white" style={{ backgroundColor: PRIMARY }}>
           Retry
         </button>
       </div>
@@ -168,25 +178,24 @@ const StudentProfile: FC = () => {
         {loading ? <ProfileSkeleton /> : student && (
           <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 items-stretch">
 
+            {/* ── Sidebar ── */}
             <div className="xl:col-span-1 bg-white rounded-2xl border border-gray-100 shadow-sm flex flex-col overflow-hidden min-h-[600px]">
-              <ProfileHeader
-                student={student}
-                onMail={() => { window.location.href = `mailto:${student.email}`; }}
-                onChat={handleChat}
-              />
+              <ProfileHeader student={student} onMail={() => { window.location.href = `mailto:${student.email}`; }} onChat={handleChat} />
               <div className="px-6"><hr className="border-gray-50" /></div>
-              <ContactSection email={student.email} address={student.address} />
+              <ContactSection email={student.email} />
               <div className="px-6"><hr className="border-gray-50" /></div>
               <SocialMediaSection socialMedia={socialMedia} />
+
               <div className="mt-auto p-6">
                 <button
                   onClick={() => setShowBadges(true)}
-                  className="w-full py-3 bg-amber-50 dark:bg-amber-900/20 text-amber-600 dark:text-amber-400 rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-amber-100 dark:hover:bg-amber-900/30 transition-colors"
+                  className="w-full py-3 rounded-xl font-bold flex items-center justify-center gap-2 transition-opacity hover:opacity-90 text-white"
+                  style={{ backgroundColor: PRIMARY }}
                 >
                   <span>🏆</span>
-                  Award badges
+                  Award Badges
                   {awardedBadges.length > 0 && (
-                    <span className="ml-1 bg-amber-500 text-white text-xs font-bold px-2 py-0.5 rounded-full">
+                    <span className="ml-1 bg-white text-xs font-bold px-2 py-0.5 rounded-full" style={{ color: PRIMARY }}>
                       {awardedBadges.length}
                     </span>
                   )}
@@ -194,24 +203,28 @@ const StudentProfile: FC = () => {
               </div>
             </div>
 
+            {/* ── Content ── */}
             <div className="xl:col-span-2 space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <StatsCard
-                  icon={<div className="w-6 h-6 flex items-center justify-center">📚</div>}
-                  label="Active Mentorship" value={student.activeMentorships} iconBgColor="bg-blue-50" />
-                <StatsCard
-                  icon={<div className="w-6 h-6 flex items-center justify-center">✅</div>}
-                  label="Completed Mentorship" value={student.completedMentorships} iconBgColor="bg-green-50" />
-                <StatsCard
-                  icon={<div className="w-6 h-6 flex items-center justify-center">✨</div>}
-                  label="Total Points" value={student.totalPoints.toLocaleString()} iconBgColor="bg-orange-50" />
+                <StatsCard icon={<span>📚</span>} label="Active Mentorships"    value={student.activeMentorships}               iconBgColor="bg-blue-50" />
+                <StatsCard icon={<span>✅</span>} label="Completed Mentorships" value={student.completedMentorships}            iconBgColor="bg-green-50" />
+                <StatsCard icon={<span>✨</span>} label="Total Points"          value={student.totalPoints.toLocaleString()}    iconBgColor="bg-orange-50" />
               </div>
-              <EnrolledMentorshipsTable mentorships={mentorships} />
+
+              <EnrolledMentorshipsTable
+                mentorships={mentorships}
+                currentPage={mentorshipsPage}
+                totalPages={mentorshipsTotalPages}
+                onPageChange={handleMentorshipsPage}
+              />
+
               <ProjectsList
-  projects={projects}
-  badgesCount={awardedBadges.length}
-  awardedBadges={awardedBadges}
-/>
+                projects={projects}
+                projectsPage={projectsPage}
+                projectsTotalPages={projectsTotalPages}
+                onProjectsPageChange={handleProjectsPage}
+                awardedBadges={awardedBadges}
+              />
             </div>
           </div>
         )}
@@ -224,22 +237,7 @@ const StudentProfile: FC = () => {
           mentorships={mentorships.map(m => ({ id: m.id, name: m.name }))}
           earnedBadgeIds={earnedBadgeIds}
           onClose={() => setShowBadges(false)}
-          onAwarded={() => {
-            // Refresh profile to get updated awarded badges list
-            setLoading(true);
-            getStudentFullProfile(studentId!)
-              .then(res => {
-                const profile = extractStudentFullProfile(res);
-                if (!profile) return;
-                setAwardedBadges(profile.awardedBadges.map(b => ({
-                  id: b.id, badgeId: b.badgeId, badgeTitle: b.badgeTitle,
-                  studentId: b.studentId, studentFullName: b.studentFullName,
-                  awardedById: b.awardedById, awardedAt: b.awardedAt,
-                  note: b.note, badgePoints: b.badgePoints,
-                })));
-              })
-              .finally(() => setLoading(false));
-          }}
+          onAwarded={() => fetchProfile(mentorshipsPage, projectsPage, false)}
         />
       )}
     </DashLayout>
