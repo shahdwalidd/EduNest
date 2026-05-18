@@ -9,10 +9,12 @@ interface MentorshipFiltersProps {
 
 const CATEGORIES = [
   'All Mentors',
-  'Academic Writing',
-  'Tech & Engineering',
-  'Business Strategy',
-  'Design & Creative',
+  'Programming',
+  'Marketing',
+  'Business',
+  'Design',
+  'Data & AI',
+  'Personal Development',
   'Other',
 ];
 
@@ -25,7 +27,7 @@ const MentorshipFilters: FC<MentorshipFiltersProps> = ({
   categories = CATEGORIES,
 }) => {
   const [keyword, setKeyword] = useState('');
-  const [selectedCategories, setSelectedCategories] = useState<Set<string>>(new Set(['All Mentors']));
+  const [selectedCategory, setSelectedCategory] = useState('All Mentors');
   const [minPrice, setMinPrice] = useState(0);
   const [maxPrice, setMaxPrice] = useState(2000);
   const debounceTimer = useRef<number | null>(null);
@@ -42,30 +44,10 @@ const MentorshipFilters: FC<MentorshipFiltersProps> = ({
     }, 500);
   };
 
-  // Handle category checkbox
-  const handleCategoryToggle = (category: string) => {
-    const newCategories = new Set(selectedCategories);
-    
-    if (category === 'All Mentors') {
-      if (newCategories.has('All Mentors')) {
-        newCategories.delete('All Mentors');
-      } else {
-        newCategories.clear();
-        newCategories.add('All Mentors');
-      }
-    } else {
-      newCategories.delete('All Mentors');
-      if (newCategories.has(category)) {
-        newCategories.delete(category);
-      } else {
-        newCategories.add(category);
-      }
-    }
-
-    setSelectedCategories(newCategories);
-    triggerFilterUpdate({ 
-      category: Array.from(newCategories).filter(c => c !== 'All Mentors')[0] || undefined 
-    });
+  // Handle category selection
+  const handleCategorySelect = (category: string) => {
+    setSelectedCategory(category);
+    triggerFilterUpdate({ category: category === 'All Mentors' ? undefined : category });
   };
 
   // Handle price range change
@@ -84,9 +66,7 @@ const MentorshipFilters: FC<MentorshipFiltersProps> = ({
     const filters: MentorshipFiltersType = {
       page: 0,
       ...(keyword && { keyword }),
-      ...(selectedCategories.size > 0 && !selectedCategories.has('All Mentors') && {
-        category: Array.from(selectedCategories)[0],
-      }),
+      ...(selectedCategory !== 'All Mentors' && { category: selectedCategory }),
       ...(minPrice > 0 && { minPrice }),
       ...(maxPrice < 2000 && { maxPrice }),
       ...overrides,
@@ -97,7 +77,7 @@ const MentorshipFilters: FC<MentorshipFiltersProps> = ({
   // Handle reset
   const handleReset = () => {
     setKeyword('');
-    setSelectedCategories(new Set(['All Mentors']));
+    setSelectedCategory('All Mentors');
     setMinPrice(0);
     setMaxPrice(2000);
     onFiltersChange({});
@@ -130,10 +110,12 @@ const MentorshipFilters: FC<MentorshipFiltersProps> = ({
           {categories.map((category) => (
             <label key={category} className="flex items-center gap-3 cursor-pointer group">
               <input
-                type="checkbox"
-                checked={selectedCategories.has(category)}
-                onChange={() => handleCategoryToggle(category)}
-                className="w-4 h-4 rounded border-gray-300 text-primary focus:ring-blue-500 cursor-pointer"
+                type="radio"
+                name="mentorship-category"
+                value={category}
+                checked={selectedCategory === category}
+                onChange={() => handleCategorySelect(category)}
+                className="w-4 h-4 rounded-full border-gray-300 text-primary focus:ring-blue-500 cursor-pointer"
               />
               <span className="text-sm text-gray-700 group-hover:[color:var(--primary-500)] transition-colors">
                 {category}

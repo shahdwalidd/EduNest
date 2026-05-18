@@ -1,6 +1,7 @@
 
 import type { FC } from 'react';
 import { useState, useMemo } from 'react';
+import { Bell, CalendarDays, ClipboardList, MessageCircle } from 'lucide-react';
 import Navbar from '../../../components/student-components/common/Navbar/Navbar';
 import Footer from '../../../components/student-components/common/Footer/Footer';
 import { useNotifications } from '../../../hooks/Usenotifications';
@@ -9,10 +10,10 @@ import type { Notification } from '../../../types/mentornotification.types';
 // ── Icon helper 
 const NotifIcon: FC<{ type: Notification['type']; isRead: boolean }> = ({ type, isRead }) => {
   const configs = {
-    session:    { bg: 'bg-blue-100',   text: 'text-blue-600',   icon: '📅' },
-    assignment: { bg: 'bg-yellow-100', text: 'text-yellow-600', icon: '📋' },
-    message:    { bg: 'bg-green-100',  text: 'text-green-600',  icon: '💬' },
-    general:    { bg: 'bg-gray-100',   text: 'text-gray-600',   icon: '🔔' },
+    session:    { bg: 'bg-blue-100',   text: 'text-blue-600',   icon: <CalendarDays className="w-5 h-5" /> },
+    assignment: { bg: 'bg-yellow-100', text: 'text-yellow-600', icon: <ClipboardList className="w-5 h-5" /> },
+    message:    { bg: 'bg-green-100',  text: 'text-green-600',  icon: <MessageCircle className="w-5 h-5" /> },
+    general:    { bg: 'bg-gray-100',   text: 'text-gray-600',   icon: <Bell className="w-5 h-5" /> },
   };
   const c = configs[type] ?? configs.general;
   return (
@@ -195,8 +196,8 @@ const Notifications: FC = () => {
                 ))
               ) : (
                 <div className="flex flex-col items-center justify-center py-16 text-center">
-                  <div className="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center mb-4 text-2xl">
-                    🔔
+                  <div className="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center mb-4">
+                    <Bell className="w-8 h-8 text-gray-400" />
                   </div>
                   <h3 className="text-sm font-semibold text-gray-700 mb-1">No notifications</h3>
                   <p className="text-xs text-gray-400">

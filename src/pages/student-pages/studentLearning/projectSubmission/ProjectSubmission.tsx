@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import toast from 'react-hot-toast';
 import { getStudentProjectDetails, type StudentProjectDetails, submitProject } from '../../../../services/student-roleService/submitProject';
 import { AxiosError } from 'axios';
@@ -17,7 +17,7 @@ const ProjectSubmission = ({ projectId }: ProjectSubmissionProps) => {
   const [projectDetails, setProjectDetails] = useState<StudentProjectDetails | null>(null);
   const [isLoadingProject, setIsLoadingProject] = useState(true);
 
-  const loadProjectDetails = async () => {
+  const loadProjectDetails = useCallback(async () => {
     try {
       setIsLoadingProject(true);
       const details = await getStudentProjectDetails(projectId);
@@ -28,11 +28,11 @@ const ProjectSubmission = ({ projectId }: ProjectSubmissionProps) => {
     } finally {
       setIsLoadingProject(false);
     }
-  };
+  }, [projectId]);
 
   useEffect(() => {
     loadProjectDetails();
-  }, [projectId]);
+  }, [loadProjectDetails]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0];

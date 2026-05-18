@@ -9,5 +9,4 @@ export interface AcademicAchievementsProps {
   currentPage:  number;
   totalPages:   number;
   onPageChange: (page: number) => void;
-  onViewAll:    () => void;
 }

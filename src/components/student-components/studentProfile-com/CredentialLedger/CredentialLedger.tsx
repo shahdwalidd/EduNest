@@ -1,9 +1,24 @@
-import type { FC } from 'react';
-import { ShieldCheck } from 'lucide-react';
+import { type FC, useMemo, useState } from 'react';
+import { ShieldCheck, ChevronLeft, ChevronRight } from 'lucide-react';
 import type { CredentialLedgerProps } from './CredentialLedger.types';
 
-const CredentialLedger: FC<CredentialLedgerProps> = ({ credentials }) => (
-  <div className="flex flex-col gap-3">
+const CredentialLedger: FC<CredentialLedgerProps> = ({ credentials }) => {
+  const [currentPage, setCurrentPage] = useState(1);
+  const certificatesPerPage = 2;
+  const totalPages = Math.max(1, Math.ceil(credentials.length / certificatesPerPage));
+
+  const paginatedCredentials = useMemo(() => {
+    const start = (currentPage - 1) * certificatesPerPage;
+    return credentials.slice(start, start + certificatesPerPage);
+  }, [currentPage, credentials]);
+
+  const handlePageChange = (page: number) => {
+    if (page < 1 || page > totalPages) return;
+    setCurrentPage(page);
+  };
+
+  return (
+    <div className="flex flex-col gap-3">
     <h2 className="text-xl font-bold text-gray-900">Credential Ledger</h2>
 
     <div className="bg-[#0c2d48] rounded-2xl overflow-hidden">
@@ -33,7 +48,7 @@ const CredentialLedger: FC<CredentialLedgerProps> = ({ credentials }) => (
         </div>
 
         {/* Rows */}
-        {credentials.map((cred) => (
+        {paginatedCredentials.map((cred) => (
           <div key={cred.id} className="grid grid-cols-3 px-4 py-3.5 border-b border-gray-100 last:border-b-0 items-center">
             <div className="flex items-center gap-2">
               <ShieldCheck className="w-4 h-4 text-[#0c2d48]" />
@@ -48,6 +63,48 @@ const CredentialLedger: FC<CredentialLedgerProps> = ({ credentials }) => (
           </div>
         ))}
 
+        {totalPages > 1 && (
+          <div className="flex items-center justify-between gap-2 px-4 py-3">
+            <span className="text-xs text-gray-500 font-medium uppercase tracking-wider">
+              Page {currentPage} of {totalPages}
+            </span>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => handlePageChange(currentPage - 1)}
+                disabled={currentPage === 1}
+                className="flex items-center gap-1 px-3 py-1.5 text-xs font-semibold text-gray-600 border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+              >
+                <ChevronLeft className="w-3.5 h-3.5" />
+                PREV
+              </button>
+              {Array.from({ length: totalPages }).map((_, index) => {
+                const page = index + 1;
+                return (
+                  <button
+                    key={page}
+                    onClick={() => handlePageChange(page)}
+                    className={`w-8 h-8 flex items-center justify-center rounded-lg text-xs font-bold transition-all ${
+                      page === currentPage
+                        ? 'bg-[#0c2d48] text-white shadow-md'
+                        : 'text-gray-600 hover:bg-gray-100 border border-gray-200'
+                    }`}
+                  >
+                    {page}
+                  </button>
+                );
+              })}
+              <button
+                onClick={() => handlePageChange(currentPage + 1)}
+                disabled={currentPage === totalPages}
+                className="flex items-center gap-1 px-3 py-1.5 text-xs font-semibold text-gray-600 border border-gray-200 rounded-lg hover:bg-gray-50 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+              >
+                NEXT
+                <ChevronRight className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          </div>
+        )}
+
         {/* Footer note */}
         <div className="px-4 py-3 bg-gray-50">
           <p className="text-[11px] text-gray-400 text-center">
@@ -57,6 +114,7 @@ const CredentialLedger: FC<CredentialLedgerProps> = ({ credentials }) => (
       </div>
     </div>
   </div>
-);
+  );
+};
 
 export default CredentialLedger;

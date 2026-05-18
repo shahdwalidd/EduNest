@@ -8,21 +8,12 @@ const AcademicAchievements: FC<AcademicAchievementsProps> = ({
   currentPage,
   totalPages,
   onPageChange,
-  onViewAll,
 }) => (
   <div>
     {/* Header */}
-    <div className="flex items-start justify-between mb-4">
-      <div>
-        <h2 className="text-xl font-bold text-gray-900">Academic Achievements</h2>
-        <p className="text-xs text-gray-500 mt-0.5">Verified milestones and behavioral badges.</p>
-      </div>
-      <button
-        onClick={onViewAll}
-        className="text-sm font-semibold text-[#0c2d48] hover:underline"
-      >
-        View All Badges
-      </button>
+    <div className="mb-4">
+      <h2 className="text-xl font-bold text-gray-900">Academic Achievements</h2>
+      <p className="text-xs text-gray-500 mt-0.5">Verified milestones and behavioral badges.</p>
     </div>
 
     {/* Badge Cards */}

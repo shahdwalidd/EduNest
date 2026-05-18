@@ -1,6 +1,17 @@
-import type { FC } from 'react';
-import { Lock } from 'lucide-react';
+import type { ComponentType, FC } from 'react';
+import { Award, Brain, Lightbulb, Lock, Star, Target, Trophy, Users, Zap } from 'lucide-react';
 import type { BadgeCardProps } from './AcademicAchievements.types';
+
+const ICON_MAP: Record<string, ComponentType<{ className?: string }>> = {
+  award: Award,
+  zap: Zap,
+  target: Target,
+  users: Users,
+  trophy: Trophy,
+  brain: Brain,
+  lightbulb: Lightbulb,
+  star: Star,
+};
 
 const BadgeCard: FC<BadgeCardProps> = ({ badge }) => {
   if (!badge.unlocked) {
@@ -15,11 +26,13 @@ const BadgeCard: FC<BadgeCardProps> = ({ badge }) => {
     );
   }
 
+  const BadgeIcon = ICON_MAP[badge.icon] ?? Award;
+
   return (
     <div className="flex-1 min-w-[180px] bg-white border border-gray-200 rounded-2xl p-5 flex flex-col gap-3">
       {/* Icon */}
       <div className="w-12 h-12 bg-yellow-100 rounded-xl flex items-center justify-center">
-        <span className="text-2xl">{badge.icon}</span>
+        <BadgeIcon className="w-6 h-6 text-yellow-700" />
       </div>
 
       {/* Title & Description */}

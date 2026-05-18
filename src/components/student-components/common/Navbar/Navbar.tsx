@@ -1,7 +1,7 @@
 
 import type { FC } from 'react';
 import { useState, useEffect, useRef } from 'react';
-import { Search, Bell, Menu, X, ChevronDown, LogOut, User, Settings } from 'lucide-react';
+import { Bell, Menu, X, ChevronDown, LogOut, User, Settings } from 'lucide-react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../../../../store/authStore';
 import { theme } from '../../../../theme/colors';
@@ -112,17 +112,6 @@ const Navbar: FC<NavbarProps> = ({ userName: nameProp, userAvatar: avatarProp })
 
           {/* Right Controls */}
           <div className="flex items-center gap-4">
-            {/* Search */}
-            <div className="hidden md:block relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-              <input
-                type="text"
-                placeholder="Search resources..."
-                className="pl-10 pr-4 py-2 w-64 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2"
-                style={{ '--tw-ring-color': theme.primary[500] } as React.CSSProperties}
-              />
-            </div>
-
             {/* Notification Bell */}
             <button
               onClick={() => navigate('/student/notifications')}

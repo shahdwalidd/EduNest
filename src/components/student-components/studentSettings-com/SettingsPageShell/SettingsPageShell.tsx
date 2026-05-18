@@ -53,7 +53,8 @@ export const ModalInput: FC<ModalInputProps> = ({
           readOnly={readOnly}
           className={`
             w-full px-4 py-2.5 border rounded-xl text-sm focus:outline-none focus:ring-2
-            focus:ring-[#0c2d48]/30 pr-10 transition-colors
+            pr-10 transition-colors native-password-toggle-hidden
+            focus:ring-[#0c2d48]/30
             ${readOnly
               ? 'bg-gray-50 border-gray-100 text-gray-500 cursor-not-allowed'
               : 'border-gray-200 bg-white'
@@ -66,7 +67,7 @@ export const ModalInput: FC<ModalInputProps> = ({
             onClick={() => setShow(!show)}
             className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
           >
-            {show ? <EyeOff size={15} /> : <Eye size={15} />}
+            {show ? <Eye size={15} /> : <EyeOff size={15} />}
           </button>
         )}
       </div>

@@ -27,7 +27,7 @@ const StudentMentorshipContent = () => {
 
   
   const [selectedWeekId, setSelectedWeekId] = useState<number | null>(null);
-  const [selectedItemId, setSelectedItemId] = useState<number | null>(null);
+  const [selectedItemKey, setSelectedItemKey] = useState<string | null>(null);
   const [showIframe, setShowIframe] = useState(false);
   const [meetingUrl, setMeetingUrl] = useState<string>('');
   const [isJoining, setIsJoining] = useState(false);
@@ -69,7 +69,7 @@ const StudentMentorshipContent = () => {
   };
 
   const location = useLocation();
-  const locationState = location.state as { weekId?: number; itemId?: number } | null;
+  const locationState = location.state as { weekId?: number | string; itemId?: number | string; itemKey?: string } | null;
 
   const weeks: Week[] = useMemo(() => {
     if (isWeekView && data) {
@@ -85,20 +85,64 @@ const StudentMentorshipContent = () => {
   useEffect(() => {
     if (weeks.length === 0) return;
 
-    if (locationState?.weekId != null && locationState?.itemId != null) {
-      setSelectedWeekId(locationState.weekId);
-      setSelectedItemId(locationState.itemId);
-      return;
+    if (locationState?.itemKey) {
+      const foundWeek = weeks.find(week => week.items.some(item => `${item.type}-${item.id}` === locationState.itemKey));
+      if (foundWeek) {
+        setSelectedWeekId(foundWeek.weekId);
+        setSelectedItemKey(locationState.itemKey);
+        return;
+      }
+    }
+
+    if (locationState?.itemId != null) {
+      const parsedItemId = typeof locationState.itemId === 'string'
+        ? Number(locationState.itemId)
+        : locationState.itemId;
+
+      const parsedWeekId = typeof locationState.weekId === 'string'
+        ? Number(locationState.weekId)
+        : locationState.weekId ?? null;
+
+      if (!Number.isNaN(parsedItemId)) {
+        const foundWeek = weeks.find(week => week.items.some(item => item.id === parsedItemId));
+
+        if (foundWeek) {
+          setSelectedWeekId(foundWeek.weekId);
+          setSelectedItemKey(`${foundWeek.items.find(item => item.id === parsedItemId)?.type ?? ''}-${parsedItemId}`);
+          return;
+        }
+      }
+
+      if (parsedWeekId != null && !Number.isNaN(parsedWeekId) && !Number.isNaN(parsedItemId)) {
+        const week = weeks.find(w => w.weekId === parsedWeekId);
+        if (week?.items.some(item => item.id === parsedItemId)) {
+          const foundItem = week.items.find(item => item.id === parsedItemId);
+          setSelectedWeekId(parsedWeekId);
+          setSelectedItemKey(foundItem ? `${foundItem.type}-${foundItem.id}` : null);
+          return;
+        }
+      }
     }
 
     if (selectedWeekId === null) {
       setSelectedWeekId(weeks[0].weekId);
-      setSelectedItemId(weeks[0].items[0]?.id ?? null);
+      setSelectedItemKey(weeks[0].items[0] ? `${weeks[0].items[0].type}-${weeks[0].items[0].id}` : null);
     }
-  }, [weeks, selectedWeekId, locationState?.weekId, locationState?.itemId]);
+  }, [weeks, selectedWeekId, locationState?.weekId, locationState?.itemId, locationState?.itemKey]);
 
-  const selectedWeek = useMemo(() => weeks.find(w => w.weekId === selectedWeekId), [weeks, selectedWeekId]);
-  const selectedItem = useMemo(() => selectedWeek?.items.find(i => i.id === selectedItemId), [selectedWeek, selectedItemId]);
+  const selectedWeek = useMemo(
+    () => weeks.find(w => w.items.some(item => `${item.type}-${item.id}` === selectedItemKey)),
+    [weeks, selectedItemKey]
+  );
+
+  const selectedItem = useMemo(() => {
+    if (!selectedItemKey) return null;
+    for (const week of weeks) {
+      const item = week.items.find(i => `${i.type}-${i.id}` === selectedItemKey);
+      if (item) return item;
+    }
+    return null;
+  }, [weeks, selectedItemKey]);
 
   if (isLoading) return <div className="p-20 text-center">Loading...</div>;
 
@@ -115,8 +159,11 @@ const StudentMentorshipContent = () => {
             weeks={weeks} 
             mentorshipId={mentorshipId || ''}
             selectedWeekId={selectedWeekId} 
-            selectedItemId={selectedItemId} 
-            onSelect={(w, i) => { setSelectedWeekId(w); setSelectedItemId(i); }} 
+            selectedItemKey={selectedItemKey} 
+            onSelect={(w, i, type) => {
+              setSelectedWeekId(w);
+              setSelectedItemKey(`${type}-${i}`);
+            }} 
           />
           {/* Right Content */}
           <section className="flex-1 min-w-0">

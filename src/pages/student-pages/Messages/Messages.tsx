@@ -17,6 +17,7 @@ import type { Chat, ChatTab } from '../../../types/mentor-meaasges.types';
 
 interface OpenChatState {
   openDirectChatWith?: { email: string; name: string; avatar?: string };
+  openRoomById?: { roomId: number; roomName: string; coverImage?: string };
 }
 
 const Messages: FC = () => {
@@ -34,6 +35,38 @@ const Messages: FC = () => {
 
   useEffect(() => {
     const state = location.state as OpenChatState | null;
+    // --- Open room by id (groups) ---
+    if (state?.openRoomById) {
+      if (room.loading) return;
+      const { roomId, roomName, coverImage } = state.openRoomById;
+      const roomIdStr = `room-${roomId}`;
+      const existing = room.rooms.find(r => r.id === roomIdStr || r.roomId === roomId);
+
+      setActiveTab('groups');
+      if (existing) {
+        setSelectedChatId(existing.id);
+        room.openRoom(existing);
+      } else {
+        // create a virtual room entry and open it
+        const virtualRoom = {
+          id: roomIdStr,
+          mode: 'room' as const,
+          userId: String(roomId),
+          userName: roomName,
+          userAvatar: coverImage ?? undefined,
+          lastMessage: '',
+          timestamp: '',
+          unreadCount: 0,
+          roomId,
+        } as Chat;
+        setSelectedChatId(roomIdStr);
+        room.openRoom(virtualRoom);
+      }
+      window.history.replaceState({}, '');
+      return;
+    }
+
+    // --- Open direct chat if requested ---
     if (!state?.openDirectChatWith) return;
     if (direct.loading) return;
 
@@ -64,7 +97,7 @@ const Messages: FC = () => {
 
     window.history.replaceState({}, '');
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [location.state, direct.loading]);
+  }, [location.state, direct.loading, room.loading]);
 
   useEffect(() => {
     const targetEmail = virtualTargetEmailRef.current;

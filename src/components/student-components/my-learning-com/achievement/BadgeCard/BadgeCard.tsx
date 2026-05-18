@@ -1,7 +1,19 @@
 
-import type { FC } from 'react';
+import type { ComponentType, FC } from 'react';
+import { Award, Brain, Lightbulb, Star, Target, Trophy, Users, Zap } from 'lucide-react';
 import type { BadgeCardProps } from './BadgeCard.types';
 import type { BadgeColor } from '../../../../../types/student-role-types/achievement.types';
+
+const ICON_MAP: Record<string, ComponentType<{ className?: string }>> = {
+  award: Award,
+  zap: Zap,
+  target: Target,
+  users: Users,
+  trophy: Trophy,
+  brain: Brain,
+  lightbulb: Lightbulb,
+  star: Star,
+};
 
 const COLOR_MAP: Record<BadgeColor, { bg: string; icon: string }> = {
   blue:   { bg: 'bg-blue-100',   icon: 'text-blue-600'   },
@@ -22,12 +34,13 @@ const POINTS_BG: Record<BadgeColor, string> = {
 const BadgeCard: FC<BadgeCardProps> = ({ badge }) => {
   const { title, description, points, icon, color } = badge;
   const colors = COLOR_MAP[color];
+  const BadgeIcon = ICON_MAP[icon] ?? Award;
 
   return (
     <div className="flex-1 min-w-0 bg-white border border-gray-200 rounded-2xl p-6 flex flex-col items-center text-center gap-3">
       {/* Icon Circle */}
       <div className={`w-16 h-16 rounded-full ${colors.bg} flex items-center justify-center`}>
-        <span className={`text-3xl ${colors.icon}`}>{icon}</span>
+        <BadgeIcon className={`w-8 h-8 ${colors.icon}`} />
       </div>
 
       {/* Title & Description */}

@@ -1,4 +1,5 @@
 import type { FC } from 'react';
+import { Inbox } from 'lucide-react';
 import MentorshipCard from './MentorshipCard';
 import type { MentorshipData } from '../../../types/mentorship';
 
@@ -55,9 +56,7 @@ const MentorshipGrid: FC<MentorshipGridProps> = ({
     return (
       <div className="flex flex-col items-center justify-center py-20 text-center w-full bg-gray-50 rounded-3xl border-2 border-dashed border-gray-200">
         <div className="p-4 bg-white rounded-full shadow-sm mb-4">
-            <svg className="w-10 h-10 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M6 18L18 6M6 6l12 12" />
-            </svg>
+            <Inbox className="w-10 h-10 text-gray-300" />
         </div>
         <h3 className="text-xl font-bold text-gray-800">No mentorships found</h3>
         <p className="text-gray-500 mt-1">Try adjusting your filters to find what you're looking for.</p>

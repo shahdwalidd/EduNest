@@ -1,5 +1,6 @@
 
 import { type FC, useState, useMemo } from 'react';
+import { Mail } from 'lucide-react';
 import Navbar               from '../../../components/student-components/common/Navbar/Navbar';
 import Footer               from '../../../components/student-components/common/Footer/Footer';
 import ProfileHeader        from '../../../components/student-components/studentProfile-com/ProfileHeader/ProfileHeader';
@@ -108,7 +109,6 @@ const StudentProfile: FC = () => {
                     currentPage={badgePage}
                     totalPages={badgeTotalPages}
                     onPageChange={setBadgePage}
-                    onViewAll={() => {}}
                   />
                 )}
 
@@ -132,10 +132,12 @@ const StudentProfile: FC = () => {
                 </div>
               </>
             ) : (
-              <div className="py-20 text-center text-gray-400">
-                <p className="text-4xl mb-3">📭</p>
-                <p>Could not load profile. Please refresh.</p>
-              </div>
+                <div className="py-20 text-center text-gray-400">
+                  <div className="mx-auto mb-3 w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center">
+                    <Mail className="w-8 h-8 text-gray-400" />
+                  </div>
+                  <p>Could not load profile. Please refresh.</p>
+                </div>
             )}
           </div>
         </div>

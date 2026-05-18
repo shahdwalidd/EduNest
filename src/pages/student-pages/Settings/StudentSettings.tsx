@@ -1,7 +1,7 @@
 
 import { type FC, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Mail, Lock } from 'lucide-react';
+import { Mail, Lock, Pause, Trash, AlertTriangle } from 'lucide-react';
 import Navbar from '../../../components/student-components/common/Navbar/Navbar';
 import Footer from '../../../components/student-components/common/Footer/Footer';
 import SectionHeading from '../../../components/student-components/studentSettings-com/SectionHeading/SectionHeading';
@@ -254,12 +254,17 @@ const StudentSettings: FC = () => {
         <SettingsModal title="Request Deactivation" onClose={closeModal}>
           <div className="space-y-4">
             <div className="w-12 h-12 bg-yellow-50 rounded-full flex items-center justify-center mx-auto">
-              <span className="text-2xl">⏸️</span>
+              <Pause className="w-6 h-6 text-yellow-600" />
             </div>
             <p className="text-sm text-gray-500 text-center">
               Confirm your password to temporarily suspend your account.
             </p>
-            <ModalInput label="Password" value={deactivatePassword} onChange={setDeactivatePassword} showToggle />
+            <ModalInput
+              label="Password"
+              type="password"
+              value={deactivatePassword}
+              onChange={setDeactivatePassword}
+            />
             {error && <p className="text-xs text-red-500">{error}</p>}
             <ModalActions
               onCancel={closeModal}
@@ -277,7 +282,7 @@ const StudentSettings: FC = () => {
         <SettingsModal title="Request Deletion" onClose={closeModal}>
           <div className="text-center space-y-4">
             <div className="w-12 h-12 bg-red-50 rounded-full flex items-center justify-center mx-auto">
-              <span className="text-2xl">🗑️</span>
+              <Trash className="w-6 h-6 text-red-500" />
             </div>
             <p className="text-sm text-gray-500">
               We'll send an OTP to{' '}
@@ -305,8 +310,9 @@ const StudentSettings: FC = () => {
               <span className="font-semibold text-gray-800">{userEmail}</span>
             </p>
             <OtpInput value={deleteOtp} onChange={setDeleteOtp} color="red" />
-            <p className="text-xs text-red-400 text-center font-medium">
-              ⚠️ This action cannot be undone.
+            <p className="text-xs text-red-400 text-center font-medium inline-flex items-center justify-center gap-2">
+              <AlertTriangle className="w-4 h-4 text-red-400" />
+              <span>This action cannot be undone.</span>
             </p>
             {error && <p className="text-xs text-red-500 text-center">{error}</p>}
             <ModalActions

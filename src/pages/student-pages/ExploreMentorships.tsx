@@ -18,7 +18,7 @@ const ExploreMentorships: FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const [filters, setFilters] = useState<MentorshipFiltersType>({
     page: parseInt(searchParams.get('page') || '0'),
-    size: 5,
+    size: 6,
     keyword: searchParams.get('keyword') || undefined,
     category: searchParams.get('category') || undefined,
   });

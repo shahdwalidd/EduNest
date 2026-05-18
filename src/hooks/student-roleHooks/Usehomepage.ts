@@ -63,7 +63,9 @@ const mapTimelineEvent = (dto: UpcomingItemDto): TimelineEvent & { mentorshipId:
   date:         dto.dueDate ?? dto.startTime ?? '',
   status:       dto.status as TimelineEvent['status'],
   icon:         '',
-  mentorshipId: (dto as { mentorshipId?: number }).mentorshipId ?? 0,
+  mentorshipId: dto.mentorshipId ?? 0,
+  weekId:       dto.weekId,
+  itemId:       typeof dto.id === 'number' ? dto.id : Number(dto.id),
 });
 
 //  stats from items 

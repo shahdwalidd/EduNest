@@ -1,6 +1,7 @@
 
 import type { FC }    from 'react';
 import { useRef }     from 'react';
+import { BookOpen, AlertTriangle }   from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import Navbar           from '../../../components/student-components/common/Navbar/Navbar';
 import Footer           from '../../../components/student-components/common/Footer/Footer';
@@ -60,7 +61,7 @@ const StudentDashboard: FC = () => {
       <main className=" mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8 max-w-full">
         {error && (
           <div className="bg-red-50 border border-red-200 text-red-700 rounded-xl px-5 py-3 text-sm font-medium">
-            ⚠️ {error}
+            <AlertTriangle className="inline w-4 h-4 mr-2 text-red-600 align-middle" /> {error}
           </div>
         )}
 
@@ -89,7 +90,7 @@ const StudentDashboard: FC = () => {
               />
             ) : (
               <div className="bg-white rounded-2xl border border-gray-200 p-10 text-center">
-                <p className="text-4xl mb-3">📚</p>
+                <BookOpen className="mx-auto mb-3 h-14 w-14 text-blue-500" />
                 <p className="font-semibold text-gray-700">No active courses yet</p>
                 <p className="text-sm text-gray-400 mt-1">Enroll in a mentorship to get started</p>
               </div>

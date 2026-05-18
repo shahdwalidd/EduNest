@@ -9,7 +9,7 @@ interface TimelineItemProps {
 }
 
 const TimelineItem: FC<TimelineItemProps> = ({ event }) => {
-  const iconBgColors = {
+  const iconBgColors: Record<string, string> = {
     MENTORSHIP: 'bg-blue-100',
     ASSIGNMENT: 'bg-orange-100',
     PROJECT: 'bg-purple-100',
@@ -32,7 +32,7 @@ const TimelineItem: FC<TimelineItemProps> = ({ event }) => {
     <Link to={`/student/learning/${event.id}`} className="block">
       <div className="flex gap-3 p-4 hover:bg-gray-50 rounded-lg transition-colors group">
         {/* Icon */}
-        <div className={`w-10 h-10 rounded-full ${iconBgColors[event.type]} flex items-center justify-center flex-shrink-0`}>
+        <div className={`w-10 h-10 rounded-full ${iconBgColors[event.type] ?? 'bg-gray-100'} flex items-center justify-center flex-shrink-0`}>
           {getIcon(event.type)}
         </div>
 

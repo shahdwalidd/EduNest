@@ -58,7 +58,7 @@ const Input: FC<InputProps> = ({ label, value, onChange, type = 'text', placehol
         {showToggle && (
           <button type="button" onClick={() => setShow(!show)}
             className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400">
-            {show ? <EyeOff size={15} /> : <Eye size={15} />}
+            {show ? <Eye size={15} /> : <EyeOff size={15} />}
           </button>
         )}
       </div>

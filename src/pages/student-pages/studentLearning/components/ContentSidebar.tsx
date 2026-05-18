@@ -18,15 +18,15 @@ interface ContentSidebarProps {
   weeks: Week[];
   mentorshipId: string;
   selectedWeekId: number | null;
-  selectedItemId: number | null;
-  onSelect: (wId: number, iId: number) => void;
+  selectedItemKey: string | null;
+  onSelect: (wId: number, iId: number, type: string) => void;
 }
 
 const ContentSidebar = ({ 
   weeks, 
   mentorshipId,
   selectedWeekId, 
-  selectedItemId, 
+  selectedItemKey, 
   onSelect 
 }: ContentSidebarProps) => {
   const [expandedWeeks, setExpandedWeeks] = useState<Record<number, boolean>>({});
@@ -67,10 +67,8 @@ const ContentSidebar = ({
             return (
               <div key={week.weekId} className="mb-2 ">
                 <button
+                  type="button"
                   onClick={() => {
-                    if (!isExpanded) {
-                      onSelect(week.weekId, week.items[0]?.id ?? 0);
-                    }
                     toggleWeek(week.weekId);
                   }}
                   className={`w-full flex items-center justify-between p-4 rounded-2xl transition-all duration-200 ${
@@ -98,11 +96,12 @@ const ContentSidebar = ({
                   <div className="space-y-1 mt-3 pl-6 lg:pl-2">
                     {week.items.map((item, itemIndex) => {
                       const Icon = getItemIcon(item.type);
-                      const isSelected = item.id === selectedItemId;
+                      const itemKey = `${item.type}-${item.id}`;
+                      const isSelected = itemKey === selectedItemKey;
                       return (
                         <button
                           key={`${week.weekId}-${item.id}-${itemIndex}`}
-                          onClick={() => onSelect(week.weekId, item.id)}
+                          onClick={() => onSelect(week.weekId, item.id, item.type)}
                           className={`w-full flex items-center gap-3 p-3 rounded-xl text-sm transition-all duration-200 ${
                             isSelected 
                               ? 'bg-[var(--primary-500)]/10 text-[var(--primary-500)] ring-1 ring-[var(--primary-500)]/30' 

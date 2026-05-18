@@ -64,7 +64,19 @@ function mapMentorship(m: MentorshipApi): Mentorship {
 
 // ── Badge mapper 
 const BADGE_COLORS: BadgeColor[] = ['blue', 'yellow', 'purple', 'green'];
-const BADGE_ICONS = ['🏅', '⚡', '🎯', '👥', '🏆', '🧠', '💡', '🌟'];
+const BADGE_ICON_KEYS = ['award', 'zap', 'target', 'users', 'trophy', 'brain', 'lightbulb', 'star'] as const;
+
+function selectBadgeIcon(title: string, idx: number): string {
+  const normalized = title.toLowerCase();
+
+  if (normalized.includes('quiz') || normalized.includes('exam') || normalized.includes('goal')) return 'target';
+  if (normalized.includes('team') || normalized.includes('group') || normalized.includes('collab')) return 'users';
+  if (normalized.includes('brain') || normalized.includes('learning') || normalized.includes('knowledge')) return 'brain';
+  if (normalized.includes('spark') || normalized.includes('fast') || normalized.includes('speed')) return 'zap';
+  if (normalized.includes('award') || normalized.includes('achievement')) return 'award';
+
+  return BADGE_ICON_KEYS[idx % BADGE_ICON_KEYS.length];
+}
 
 function mapBadge(b: BadgeApi, idx: number): Badge {
   return {
@@ -72,7 +84,7 @@ function mapBadge(b: BadgeApi, idx: number): Badge {
     title:           b.title,
     description:     b.description || `Awarded for: ${b.mentorshipTitle}`,
     points:          b.points,
-    icon:            BADGE_ICONS[idx % BADGE_ICONS.length],
+    icon:            selectBadgeIcon(b.title, idx),
     color:           BADGE_COLORS[idx % BADGE_COLORS.length],
     mentorshipTitle: b.mentorshipTitle,
     awardedBy:       b.awardedByFullName,

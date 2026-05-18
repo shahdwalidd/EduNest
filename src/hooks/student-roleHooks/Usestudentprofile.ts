@@ -42,13 +42,27 @@ function mapProfile(raw: StudentProfileApi): ProfileData {
   };
 }
 
+const BADGE_ICON_KEYS = ['award', 'zap', 'target', 'users', 'trophy', 'brain', 'lightbulb', 'star'] as const;
+
+function selectBadgeIcon(title: string, idx: number): string {
+  const normalized = title.toLowerCase();
+
+  if (normalized.includes('quiz') || normalized.includes('exam') || normalized.includes('goal')) return 'target';
+  if (normalized.includes('team') || normalized.includes('group') || normalized.includes('collab')) return 'users';
+  if (normalized.includes('brain') || normalized.includes('learning') || normalized.includes('knowledge')) return 'brain';
+  if (normalized.includes('spark') || normalized.includes('fast') || normalized.includes('speed')) return 'zap';
+  if (normalized.includes('award') || normalized.includes('achievement')) return 'award';
+
+  return BADGE_ICON_KEYS[idx % BADGE_ICON_KEYS.length];
+}
+
 function mapBadges(raw: StudentProfileApi): AchievementBadge[] {
   if (!Array.isArray(raw.badges)) {
     console.warn('Badges data is not an array:', raw.badges);
     return [];
   }
 
-  return raw.badges.map(b => ({
+  return raw.badges.map((b, idx) => ({
     id:              String(b?.id || 'unknown'),
     title:           b?.title || 'Unknown Badge',
     description:     b?.description || '',
@@ -56,7 +70,7 @@ function mapBadges(raw: StudentProfileApi): AchievementBadge[] {
     awardedBy:       b?.awardedByFullName || 'Unknown',
     mentorshipTitle: b?.mentorshipTitle || '',
     awardedAt:       b?.awardedAt || '',
-    icon:            '🏅',
+    icon:            selectBadgeIcon(String(b?.title || ''), idx),
     unlocked:        true,
   }));
 }

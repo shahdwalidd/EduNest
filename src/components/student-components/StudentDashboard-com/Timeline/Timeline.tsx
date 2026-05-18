@@ -76,14 +76,17 @@ const TimelineItem: FC<{ event: TimelineEvent }> = ({ event }) => {
   const navigate = useNavigate();
   const cfg = TYPE_CONFIG[event.type] ?? FALLBACK_CONFIG;
 
-  // Navigate to the mentorship content page
-  // event.id = item id (task/session/project id)
-  // We store mentorshipId in chatId field or derive from event
   const handleClick = () => {
-    // If the event carries mentorshipId (mapped in useHomepage), navigate there
-    // Fallback: use event.id as mentorshipId
-    const mid = (event as { mentorshipId?: number }).mentorshipId ?? event.id;
-    navigate(`/student/learning/${mid}`);
+    const mentorshipId = (event as { mentorshipId?: number }).mentorshipId ?? Number(event.id);
+    const weekId = (event as { weekId?: number }).weekId;
+    const itemId = (event as { itemId?: number }).itemId ?? Number(event.id);
+
+    navigate(`/student/learning/${mentorshipId}`, {
+      state: {
+        weekId,
+        itemId,
+      },
+    });
   };
 
   return (

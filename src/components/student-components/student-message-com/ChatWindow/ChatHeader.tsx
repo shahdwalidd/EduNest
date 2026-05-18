@@ -1,4 +1,5 @@
 
+import { ArrowLeft, Users } from 'lucide-react';
 import type { FC } from 'react';
 import type { Chat } from '../../../../types/mentor-meaasges.types';
 
@@ -41,9 +42,7 @@ const ChatHeader: FC<ChatHeaderProps> = ({
       {showBackButton && onBack && (
         <button onClick={onBack}
           className="lg:hidden w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 transition">
-          <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-          </svg>
+          <ArrowLeft className="w-5 h-5 text-gray-600" />
         </button>
       )}
 
@@ -70,10 +69,7 @@ const ChatHeader: FC<ChatHeaderProps> = ({
               isMembersOpen ? 'bg-[#E8F3FF] text-[#0c2d48]' : 'hover:bg-gray-100'
             }`}
           >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
-            </svg>
+            <Users className="w-5 h-5" />
           </button>
         )}
       </div>

@@ -1,5 +1,6 @@
 
 import { type FC, useState, useMemo } from 'react';
+import { BookOpen, Award, ClipboardList } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import Navbar            from '../../../components/student-components/common/Navbar/Navbar';
 import Footer            from '../../../components/student-components/common/Footer/Footer';
@@ -16,7 +17,7 @@ import type { TabKey } from '../../../types/student-role-types/learning.types';
 
 const MENTORSHIPS_PER_PAGE = 3;
 const BADGES_PER_PAGE      = 3;
-const PROJECTS_PER_PAGE    = 2;
+const PROJECTS_PER_PAGE    = 1;
 const CERTS_PER_PAGE       = 5;
 
 const Skel: FC<{ className?: string }> = ({ className = '' }) => (
@@ -122,7 +123,7 @@ const MyLearning: FC = () => {
               />
             ) : (
               <div className="bg-white rounded-2xl border border-gray-200 p-16 text-center">
-                <p className="text-4xl mb-3">📚</p>
+                <BookOpen className="mx-auto mb-3 h-14 w-14 text-blue-500" />
                 <h3 className="text-lg font-semibold text-gray-700 mb-1">No active mentorships</h3>
                 <p className="text-sm text-gray-400">Enroll in a mentorship to get started.</p>
               </div>
@@ -154,7 +155,7 @@ const MyLearning: FC = () => {
                 onNext={() => setBadgePage(p => Math.min(badgeTotalPagesDisplay - 1, p + 1))} />
             ) : (
               <div className="bg-white rounded-2xl border border-gray-200 p-10 text-center">
-                <p className="text-3xl mb-2">🏅</p>
+                <Award className="mx-auto mb-2 h-12 w-12 text-yellow-500" />
                 <p className="text-sm text-gray-400">No badges earned yet. Keep going!</p>
               </div>
             )}
@@ -173,7 +174,7 @@ const MyLearning: FC = () => {
               </>
             ) : (
               <div className="bg-white rounded-2xl border border-gray-200 p-10 text-center">
-                <p className="text-3xl mb-2">📋</p>
+                <ClipboardList className="mx-auto mb-2 h-12 w-12 text-slate-400" />
                 <p className="text-sm text-gray-400">No project submissions yet.</p>
               </div>
             )}

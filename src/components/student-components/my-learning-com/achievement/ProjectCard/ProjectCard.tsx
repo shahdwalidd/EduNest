@@ -10,8 +10,9 @@ const STATUS_STYLES: Record<ProjectStatus, { dot: string; label: string; text: s
 };
 
 const ProjectCard: FC<ProjectCardProps> = ({ project, onViewDetails }) => {
-  const { id, status, category, title, mentorQuote, mentorName, mentorRole } = project;
+  const { id, status, category, title, mentorQuote, mentorName, mentorRole, fileUrl } = project;
   const st = STATUS_STYLES[status];
+  const hasSubmission = !!fileUrl;
 
   return (
     <div className="bg-white border border-gray-200 rounded-2xl p-6 flex flex-col gap-4">
@@ -47,13 +48,19 @@ const ProjectCard: FC<ProjectCardProps> = ({ project, onViewDetails }) => {
 
       {/* CTA */}
       <div>
-        <button
-          onClick={() => onViewDetails(id)}
-          className="flex items-center gap-2 px-5 py-2.5 bg-[#0c2d48] text-white text-sm font-bold rounded-xl hover:bg-[#0a2438] transition-colors"
-        >
-          View Details
-          <ArrowRight className="w-4 h-4" />
-        </button>
+        {hasSubmission ? (
+          <button
+            onClick={() => onViewDetails(id)}
+            className="flex items-center gap-2 px-5 py-2.5 bg-[#0c2d48] text-white text-sm font-bold rounded-xl hover:bg-[#0a2438] transition-colors"
+          >
+            View Submission
+            <ArrowRight className="w-4 h-4" />
+          </button>
+        ) : (
+          <div className="px-5 py-2.5 bg-gray-100 text-gray-500 text-sm font-semibold rounded-xl text-center">
+            You haven't submitted a link
+          </div>
+        )}
       </div>
     </div>
   );

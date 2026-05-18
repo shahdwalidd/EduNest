@@ -1,13 +1,7 @@
 import { type FC } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import {
-  faVideo,
-  faQuestionCircle,
-  faFileAlt,
-  faCalendarAlt,
-  faFolderOpen,
-} from "@fortawesome/free-solid-svg-icons";
+import { CalendarDays, FileText, FolderOpen, HelpCircle, Video } from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
 import { useMentorshipContent } from '../../../services/student-roleService/mentorshipDetails.api';
 
 const ContentSection: FC = () => {
@@ -15,16 +9,16 @@ const ContentSection: FC = () => {
   const { mentorshipId } = useParams<{ mentorshipId: string }>();
   const { data, isLoading, error } = useMentorshipContent(mentorshipId ?? '');
 
-  const getIconForType = (type?: string) => {
+  const getIconForType = (type?: string): LucideIcon => {
     const value = (type ?? "CONTENT").toUpperCase();
 
-    if (value.includes("LECTURE")) return faVideo;
-    if (value.includes("QUIZ")) return faQuestionCircle;
-    if (value.includes("PROJECT")) return faFolderOpen;
-    if (value.includes("SESSION") || value.includes("LIVE")) return faCalendarAlt;
-    if (value.includes("ASSIGNMENT") || value.includes("TASK")) return faFileAlt;
+    if (value.includes("LECTURE")) return Video;
+    if (value.includes("QUIZ")) return HelpCircle;
+    if (value.includes("PROJECT")) return FolderOpen;
+    if (value.includes("SESSION") || value.includes("LIVE")) return CalendarDays;
+    if (value.includes("ASSIGNMENT") || value.includes("TASK")) return FileText;
 
-    return faFileAlt;
+    return FileText;
   };
 
   const renderEmpty = () => (
@@ -121,10 +115,10 @@ const ContentSection: FC = () => {
                           {/* icon + connector */}
                           <div className="flex flex-col items-center">
                             <div className="w-6 h-6 rounded-full bg-blue-50 flex items-center justify-center text-blue-500">
-                              <FontAwesomeIcon
-                                icon={getIconForType(item.type)}
-                                className="w-3 h-3"
-                              />
+                              {(() => {
+                                const Icon = getIconForType(item.type);
+                                return <Icon className="w-3.5 h-3.5" />;
+                              })()}
                             </div>
 
                             {idx !== items.length - 1 && (

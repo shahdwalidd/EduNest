@@ -116,6 +116,19 @@ img {
   aspect-ratio: 1024 / 1034;
 }
 
+.native-password-toggle-hidden::-ms-clear,
+.native-password-toggle-hidden::-ms-reveal,
+.native-password-toggle-hidden::-webkit-textfield-decoration-button,
+.native-password-toggle-hidden::-webkit-textfield-decoration-container,
+.native-password-toggle-hidden::-webkit-contacts-auto-fill-button {
+  display: none !important;
+  visibility: hidden !important;
+  width: 0 !important;
+  height: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
 .text-primary { color: var(--primary-500); }
 .bg-primary   { background-color: var(--primary-500); }
 .btn-primary  { background-color: var(--primary-500); }

@@ -17,12 +17,15 @@ export interface Course {
 
 export interface TimelineEvent {
   id: string;
-  type: 'MENTORSHIP' | 'ASSIGNMENT' | 'PROJECT';
+  type: 'MENTORSHIP' | 'ASSIGNMENT' | 'PROJECT' | 'SESSION' | 'QUIZ' | 'TASK';
   title: string;
   description?: string;
   time: string;
   date: string;
   status: 'UPCOMING' | 'COMPLETED' | 'IN_PROGRESS';
   icon?: string;
+  mentorshipId?: number;
+  weekId?: number;
+  itemId?: number;
 }
 
