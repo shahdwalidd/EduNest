@@ -4,7 +4,7 @@ import StatCard from './StatCard';
 import type { StatsCardsProps } from './StatsCards.types';
 
 const StatsCards: FC<StatsCardsProps> = ({ data }) => {
-  const { completedCount, averageProgress, progressDelta, totalPoints } = data;
+  const { completedCount, averageProgress,  totalPoints } = data;
 
   return (
     <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -18,7 +18,7 @@ const StatsCards: FC<StatsCardsProps> = ({ data }) => {
       <StatCard label="Average Progress">
         <span>{averageProgress}%</span>
         <span className="text-sm font-semibold text-yellow-500">
-          +{progressDelta}% this wk
+        
         </span>
       </StatCard>
 

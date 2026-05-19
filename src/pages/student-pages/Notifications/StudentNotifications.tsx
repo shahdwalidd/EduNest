@@ -1,7 +1,19 @@
 
 import type { FC } from 'react';
 import { useState, useMemo } from 'react';
-import { Bell, CalendarDays, ClipboardList, MessageCircle } from 'lucide-react';
+import {
+  Bell,
+  CalendarDays,
+  MessageCircle,
+  Megaphone,
+  CheckSquare,
+  FolderOpen,
+  HelpCircle,
+  Award,
+  Scroll,
+  Video,
+  BookOpen,
+} from 'lucide-react';
 import Navbar from '../../../components/student-components/common/Navbar/Navbar';
 import Footer from '../../../components/student-components/common/Footer/Footer';
 import { useNotifications } from '../../../hooks/Usenotifications';
@@ -10,10 +22,17 @@ import type { Notification } from '../../../types/mentornotification.types';
 // ── Icon helper 
 const NotifIcon: FC<{ type: Notification['type']; isRead: boolean }> = ({ type, isRead }) => {
   const configs = {
-    session:    { bg: 'bg-blue-100',   text: 'text-blue-600',   icon: <CalendarDays className="w-5 h-5" /> },
-    assignment: { bg: 'bg-yellow-100', text: 'text-yellow-600', icon: <ClipboardList className="w-5 h-5" /> },
-    message:    { bg: 'bg-green-100',  text: 'text-green-600',  icon: <MessageCircle className="w-5 h-5" /> },
-    general:    { bg: 'bg-gray-100',   text: 'text-gray-600',   icon: <Bell className="w-5 h-5" /> },
+    announcement: { bg: 'bg-blue-100',   text: 'text-blue-600',  icon: <Megaphone className="w-5 h-5" /> },
+    quiz:         { bg: 'bg-amber-100',  text: 'text-amber-600', icon: <BookOpen className="w-5 h-5" /> },
+    session:      { bg: 'bg-sky-100',   text: 'text-sky-600',   icon: <CalendarDays className="w-5 h-5" /> },
+    task:         { bg: 'bg-amber-100',  text: 'text-amber-700', icon: <CheckSquare className="w-5 h-5" /> },
+    project:      { bg: 'bg-violet-100', text: 'text-violet-600', icon: <FolderOpen className="w-5 h-5" /> },
+    support:      { bg: 'bg-emerald-100',text: 'text-emerald-600',icon: <HelpCircle className="w-5 h-5" /> },
+    badge:        { bg: 'bg-fuchsia-100',text: 'text-fuchsia-600',icon: <Award className="w-5 h-5" /> },
+    certificate:  { bg: 'bg-cyan-100',   text: 'text-cyan-600',   icon: <Scroll className="w-5 h-5" /> },
+    live_session: { bg: 'bg-red-100',    text: 'text-red-600',    icon: <Video className="w-5 h-5" /> },
+    message:      { bg: 'bg-green-100',  text: 'text-green-600',  icon: <MessageCircle className="w-5 h-5" /> },
+    general:      { bg: 'bg-gray-100',   text: 'text-gray-600',   icon: <Bell className="w-5 h-5" /> },
   };
   const c = configs[type] ?? configs.general;
   return (
@@ -105,7 +124,7 @@ const Notifications: FC = () => {
     <div className="min-h-screen bg-[#F7F7F8] flex flex-col">
       <Navbar />
 
-      <main className="flex-1 max-w-3xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-8">
+      <main className="flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-8">
         <div className="bg-white border border-gray-200 rounded-2xl overflow-hidden">
 
           {/* ── Frame Header ── */}

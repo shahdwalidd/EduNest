@@ -1,5 +1,5 @@
 import type { FC } from 'react';
-import { MoreHorizontal } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import type { ProjectItemProps } from './ActiveProjects.types';
 import type { ProjectStatus } from '../../../../types/student-role-types/profile.types';
 
@@ -12,8 +12,19 @@ const STATUS_STYLES: Record<ProjectStatus, string> = {
   REJECTED:    'bg-red-50  text-red-700  border-red-200',
 };
 
-const ProjectItem: FC<ProjectItemProps> = ({ project, onViewSubmission, onMoreOptions }) => {
-  const { id, title, mentorship, completion, status } = project;
+const ProjectItem: FC<ProjectItemProps> = ({ project }) => {
+  const navigate = useNavigate();
+  const { id, mentorshipId, title, mentorship, completion, status } = project;
+
+  const handleViewSubmission = () => {
+    if (!mentorshipId) return;
+    navigate(`/student/learning/${mentorshipId}`, {
+      state: {
+        itemId:  id,
+        itemKey: `PROJECT-${id}`,
+      },
+    });
+  };
 
   return (
     <div className="bg-white border border-gray-200 rounded-2xl p-5 flex flex-col gap-4">
@@ -47,16 +58,10 @@ const ProjectItem: FC<ProjectItemProps> = ({ project, onViewSubmission, onMoreOp
       {/* Actions */}
       <div className="flex items-center gap-2">
         <button
-          onClick={() => onViewSubmission(id)}
+          onClick={handleViewSubmission}
           className="flex-1 py-2.5 text-sm font-semibold text-gray-700 border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors"
         >
-          View Submission
-        </button>
-        <button
-          onClick={() => onMoreOptions(id)}
-          className="w-10 h-10 flex items-center justify-center border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors"
-        >
-          <MoreHorizontal className="w-4 h-4 text-gray-500" />
+          View Details
         </button>
       </div>
     </div>

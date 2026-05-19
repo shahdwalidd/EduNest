@@ -66,6 +66,8 @@ const ChatWindow: FC<ChatWindowProps> = ({
     setEditingContent('');
   };
 
+  const visibleMessages = messages.filter(m => !m.deleted && m.content !== '');
+
   return (
     <div className="flex flex-col  overflow-hidden bg-white relative min-h-[60vh]">
       <div className="flex-shrink-0">
@@ -83,13 +85,13 @@ const ChatWindow: FC<ChatWindowProps> = ({
         className="flex-1 min-h-0 overflow-y-auto px-5 py-4 bg-[#FAFAFA] space-y-1"
         style={{ scrollbarWidth: 'thin', scrollbarColor: '#e5e7eb transparent', maxHeight: 'calc(100vh - 200px)' }}
       >
-        {messages.length === 0 ? (
+        {visibleMessages.length === 0 ? (
           <div className="flex items-center justify-center h-full gap-2 text-center">
             <MessageCircle className="w-5 h-5 text-gray-400" />
             <p className="text-sm text-gray-400">No messages yet. Say hello!</p>
           </div>
         ) : (
-          messages.map(message => {
+          visibleMessages.map(message => {
             const own = isOwn(message);
 
             if (editingId === message.id) {

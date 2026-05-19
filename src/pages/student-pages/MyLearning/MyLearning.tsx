@@ -17,7 +17,7 @@ import type { TabKey } from '../../../types/student-role-types/learning.types';
 
 const MENTORSHIPS_PER_PAGE = 3;
 const BADGES_PER_PAGE      = 3;
-const PROJECTS_PER_PAGE    = 1;
+const PROJECTS_PER_PAGE    = 2;
 const CERTS_PER_PAGE       = 5;
 
 const Skel: FC<{ className?: string }> = ({ className = '' }) => (
@@ -75,11 +75,6 @@ const MyLearning: FC = () => {
   const handleTabChange = (tab: TabKey) => {
     setActiveTab(tab);
     setEnrollPage(0); setBadgePage(0); setProjectPage(0); setCertPage(0);
-  };
-
-  const handleViewDetails = (id: string) => {
-    const proj = achievements.projects.find(p => p.id === id);
-    if (proj?.fileUrl) window.open(proj.fileUrl, '_blank');
   };
 
   const enrollPageUi    = enrollPage + 1;
@@ -167,7 +162,7 @@ const MyLearning: FC = () => {
             ) : achievements.projects.length > 0 ? (
               <>
                 <ProjectsSection projects={displayedProjects} currentPage={projectPage + 1} totalPages={projectTotalPagesDisplay}
-                  onViewDetails={handleViewDetails} onPageChange={p => setProjectPage(p - 1)} />
+                  onPageChange={p => setProjectPage(p - 1)} />
                 {projectTotalPagesDisplay > 1 && (
                   <Pagination currentPage={projectPage + 1} totalPages={projectTotalPagesDisplay} onPageChange={p => setProjectPage(p - 1)} />
                 )}

@@ -8,8 +8,6 @@ const ActiveProjects: FC<ActiveProjectsProps> = ({
   currentPage,
   totalPages,
   onPageChange,
-  onViewSubmission,
-  onMoreOptions,
 }) => (
   <div className="flex flex-col gap-4">
     {/* Header */}
@@ -21,8 +19,6 @@ const ActiveProjects: FC<ActiveProjectsProps> = ({
         <ProjectItem
           key={p.id}
           project={p}
-          onViewSubmission={onViewSubmission}
-          onMoreOptions={onMoreOptions}
         />
       ))}
     </div>

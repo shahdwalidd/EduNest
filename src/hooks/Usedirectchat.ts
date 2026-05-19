@@ -143,14 +143,14 @@ export const useDirectChat = () => {
   const handleDeleteMessage = useCallback(async (messageId: string): Promise<void> => {
     const recipientEmail = activeChatRef.current?.userId;
     if (!recipientEmail) return;
-    setMessages(prev =>
-      prev.map(m => m.id === messageId ? { ...m, deleted: true, content: '' } : m)
-    );
+    setMessages(prev => prev.filter(m => m.id !== messageId));
     try {
       await deleteMessage(Number(messageId), recipientEmail);
-      setMessages(prev => prev.filter(m => m.id !== messageId));
+    } catch {
+      /* silent */
+    } finally {
       fetchConvsRef.current();
-    } catch { /* silent */ }
+    }
   }, []);
 
   useEffect(() => {
@@ -164,15 +164,7 @@ export const useDirectChat = () => {
         const event = data as ConversationRealtimeEvent;
 
         if (event.type === 'DELETE' && event.messageId) {
-          setMessages(prev =>
-            prev.map(m => m.id === String(event.messageId)
-              ? { ...m, deleted: true, content: '' } : m
-            )
-          );
-          setTimeout(() => {
-            if (mountedRef.current)
-              setMessages(prev => prev.filter(m => m.id !== String(event.messageId)));
-          }, 800);
+          setMessages(prev => prev.filter(m => m.id !== String(event.messageId)));
           fetchConvsRef.current();
           return;
         }
@@ -210,15 +202,7 @@ export const useDirectChat = () => {
       const event = data as ConversationRealtimeEvent;
 
       if (event.type === 'DELETE' && event.messageId) {
-        setMessages(prev =>
-          prev.map(m => m.id === String(event.messageId)
-            ? { ...m, deleted: true, content: '' } : m
-          )
-        );
-        setTimeout(() => {
-          if (mountedRef.current)
-            setMessages(prev => prev.filter(m => m.id !== String(event.messageId)));
-        }, 800);
+        setMessages(prev => prev.filter(m => m.id !== String(event.messageId)));
         fetchConvsRef.current();
         return;
       }

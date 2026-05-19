@@ -22,7 +22,8 @@ export interface BadgeApi {
 }
 
 export interface ProjectSubmissionApi {
-  id:               number;
+  projectId:        number;
+  submissionId:     number;
   projectTitle:     string;
   mentorshipId:     number;
   mentorshipTitle:  string;
@@ -66,12 +67,14 @@ export interface Badge {
 }
 
 export interface ProjectSubmission {
-  id:          string;
-  status:      ProjectStatus;
-  category:    string;
-  title:       string;
-  mentorQuote: string;
-  mentorName:  string;
-  mentorRole:  string;
-  fileUrl?:    string;
+  id:           string;
+  submissionId?: string;
+  mentorshipId: string;
+  status:       ProjectStatus;
+  category:     string;
+  title:        string;
+  mentorQuote:  string;
+  mentorName:   string;
+  mentorRole:   string;
+  fileUrl?:     string;
 }

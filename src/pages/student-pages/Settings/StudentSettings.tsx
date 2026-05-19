@@ -88,7 +88,7 @@ const StudentSettings: FC = () => {
     <div className="min-h-screen bg-[#F7F7F8] flex flex-col">
       <Navbar />
 
-      <main className="flex-1 max-w-5xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-8">
+      <main className="flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-8">
 
         {/* ── Frame Container ── */}
         <div className="bg-white border border-gray-200 rounded-2xl overflow-hidden">

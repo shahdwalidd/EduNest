@@ -1,6 +1,6 @@
 
 import { type FC, useState, useRef, useEffect } from 'react';
-import { Ban, Edit3, Trash2 } from 'lucide-react';
+import { Edit3, Trash2 } from 'lucide-react';
 import type { Message } from '../../../../types/mentor-meaasges.types';
 
 interface MessageBubbleProps {
@@ -74,25 +74,7 @@ const MessageBubble: FC<MessageBubbleProps> = ({
     return () => document.removeEventListener('mousedown', handler);
   }, [menuOpen]);
 
-  if (message.deleted) {
-    return (
-      <div className={`flex items-end gap-1.5 mb-2 ${isOwn ? 'flex-row-reverse' : 'flex-row'}`}>
-        <MiniAvatar name={displayName} src={message.senderAvatar} />
-        <div className={`flex flex-col ${isOwn ? 'items-end' : 'items-start'}`}>
-          {isGroupChat && (
-            <span className={`text-xs font-semibold mb-1 ${isOwn ? 'mr-1 text-gray-400' : 'ml-1 text-[#0c2d48]'}`}>
-              {isOwn ? 'You' : displayName}
-            </span>
-          )}
-          <div className="px-4 py-2.5 rounded-2xl text-sm italic text-gray-400 border border-gray-200 bg-gray-50 flex items-center gap-2">
-            <Ban className="w-4 h-4" />
-            You deleted this message
-          </div>
-          <span className="text-[10px] text-gray-400 mt-0.5 mx-1">{formatTime(message.timestamp)}</span>
-        </div>
-      </div>
-    );
-  }
+  if (message.deleted || message.content === '') return null;
 
   return (
     <div className={`flex items-end gap-1.5 mb-2 ${isOwn ? 'flex-row-reverse' : 'flex-row'}`}>

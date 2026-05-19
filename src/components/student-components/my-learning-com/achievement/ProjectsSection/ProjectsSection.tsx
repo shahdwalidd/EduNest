@@ -8,7 +8,6 @@ const ProjectsSection: FC<ProjectsSectionProps> = ({
   projects,
   currentPage,
   totalPages,
-  onViewDetails,
 }) => {
   return (
     <div>
@@ -43,7 +42,6 @@ const ProjectsSection: FC<ProjectsSectionProps> = ({
           <ProjectCard
             key={project.id}
             project={project}
-            onViewDetails={onViewDetails}
           />
         ))}
       </div>

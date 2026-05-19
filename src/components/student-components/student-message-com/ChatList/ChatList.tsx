@@ -23,6 +23,7 @@ const ChatList: FC<ChatListProps> = ({
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [activeMentorship, setActiveMentorship] = useState<string | null>(null);
+  const [showFilters, setShowFilters] = useState(false);
   const searchRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -93,33 +94,52 @@ const ChatList: FC<ChatListProps> = ({
 
         {/* Mentorship Filters (Groups only) */}
         {activeTab === 'groups' && mentorshipTags.length > 0 && (
-          <div className="space-y-2">
-            <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">Filter by Mentorship</p>
-            <div className="flex flex-wrap gap-2">
+          <div>
+            <button
+              onClick={() => setShowFilters(!showFilters)}
+              className="w-full flex items-center justify-between px-3 py-2 text-xs font-medium text-gray-500 uppercase tracking-wide hover:bg-gray-50 rounded-lg transition-colors"
+            >
+              Filter by Mentorship
+              <span className={`text-gray-400 transition-transform ${
+                showFilters ? 'rotate-180' : ''
+              }`}>
+                ▼
+              </span>
+            </button>
+            {showFilters && (
+              <div className="max-h-48 overflow-y-auto space-y-1 pr-1 mt-1"
+                style={{ scrollbarWidth: 'thin', scrollbarColor: '#e5e7eb transparent' }}>
+            <button
+              onClick={() => { setActiveMentorship(null); setShowFilters(false); }}
+              className={`w-full flex items-center gap-2 px-3 py-2 text-sm rounded-lg transition-colors text-left ${
+                activeMentorship === null
+                  ? 'bg-[#0c2d48] text-white'
+                  : 'text-gray-600 hover:bg-gray-100'
+              }`}
+            >
+              <span className={`w-2 h-2 rounded-full flex-shrink-0 ${
+                activeMentorship === null ? 'bg-white' : 'bg-gray-300'
+              }`} />
+              All Mentorships
+            </button>
+            {mentorshipTags.map(tag => (
               <button
-                onClick={() => setActiveMentorship(null)}
-                className={`px-3 py-1 text-xs rounded-full transition-colors ${
-                  activeMentorship === null
+                key={tag}
+                onClick={() => { setActiveMentorship(tag); setShowFilters(false); }}
+                className={`w-full flex items-center gap-2 px-3 py-2 text-sm rounded-lg transition-colors text-left ${
+                  activeMentorship === tag
                     ? 'bg-[#0c2d48] text-white'
-                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                    : 'text-gray-600 hover:bg-gray-100'
                 }`}
               >
-                All
+                <span className={`w-2 h-2 rounded-full flex-shrink-0 ${
+                  activeMentorship === tag ? 'bg-white' : 'bg-gray-300'
+                }`} />
+                <span className="truncate">{tag}</span>
               </button>
-              {mentorshipTags.map(tag => (
-                <button
-                  key={tag}
-                  onClick={() => setActiveMentorship(tag)}
-                  className={`px-3 py-1 text-xs rounded-full transition-colors ${
-                    activeMentorship === tag
-                      ? 'bg-[#0c2d48] text-white'
-                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                  }`}
-                >
-                  {tag}
-                </button>
-              ))}
-            </div>
+            ))}
+              </div>
+            )}
           </div>
         )}
       </div>

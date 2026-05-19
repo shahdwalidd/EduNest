@@ -82,7 +82,8 @@ function mapProjects(raw: StudentProfileApi): ActiveProject[] {
   }
 
   return raw.projects.map(p => ({
-    id:             String(p?.projectSubmissionId || 'unknown'),
+    id:             String(p?.projectId || p?.projectSubmissionId || 'unknown'),
+    mentorshipId:   String(p?.mentorshipId || ''),
     title:          p?.projectTitle || 'Unknown Project',
     mentorship:     p?.mentorshipTitle || 'Unknown Mentorship',
     completion:     ['SUBMITTED', 'GRADED', 'APPROVED'].includes(p?.status) ? 100

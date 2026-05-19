@@ -43,6 +43,12 @@ const notifTypeToActivityType = (type: string): ActivityType => {
   const map: Record<string, ActivityType> = {
     SESSION:      'session',
     TASK:         'task',
+    QUIZ:         'quiz',
+    PROJECT:      'project',
+    SUPPORT:      'support',
+    BADGE:        'badge',
+    CERTIFICATE:  'certificate',
+    LIVE_SESSION: 'live_session',
     ANNOUNCEMENT: 'announcement',
     PAYMENT:      'payment',
     ALERT:        'alert',

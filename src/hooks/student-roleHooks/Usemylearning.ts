@@ -102,14 +102,16 @@ function mapProject(p: ProjectSubmissionApi): ProjectSubmission {
   };
 
   return {
-    id:          String(p.id),
-    status:      statusMap[p.submissionStatus] ?? 'PENDING',
-    category:    p.mentorshipTitle.toUpperCase(),
-    title:       p.projectTitle,
-    mentorQuote: p.feedback ?? 'No feedback provided yet.',
-    mentorName:  p.mentorFullName,
-    mentorRole:  'Mentor',
-    fileUrl:     p.fileUrl ?? undefined,
+    id:           String(p.projectId),
+    submissionId: String(p.submissionId),
+    mentorshipId: String(p.mentorshipId),
+    status:       statusMap[p.submissionStatus] ?? 'PENDING',
+    category:     p.mentorshipTitle.toUpperCase(),
+    title:        p.projectTitle,
+    mentorQuote:  p.feedback ?? 'No feedback provided yet.',
+    mentorName:   p.mentorFullName,
+    mentorRole:   'Mentor',
+    fileUrl:      p.fileUrl ?? undefined,
   };
 }
 

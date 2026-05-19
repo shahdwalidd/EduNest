@@ -16,7 +16,9 @@ export interface ProfileBadgeApi {
 }
 
 export interface ProfileProjectApi {
+  projectId:           number;
   projectSubmissionId: number;
+  mentorshipId:        number;
   projectTitle:        string;
   mentorshipTitle:     string;
   status:              ProjectStatus;
@@ -82,8 +84,7 @@ export interface AchievementBadge {
 }
 
 export interface ActiveProject {
-  id:               string;
-  title:            string;
+  id:               string;  mentorshipId:     string;  title:            string;
   mentorship:       string;
   completion:       number;
   status:           ProjectStatus;

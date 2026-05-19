@@ -13,8 +13,8 @@ import EditProfileModal     from '../../../components/student-components/student
 import { useStudentProfile } from '../../../hooks/student-roleHooks/Usestudentprofile';
 import type { ProfileData } from '../../../types/student-role-types/profile.types';
 
-const BADGES_PER_PAGE   = 2;
-const PROJECTS_PER_PAGE = 1;
+const BADGES_PER_PAGE   = 3;
+const PROJECTS_PER_PAGE = 2;
 
 // ── Skeleton placeholder ──────────────────────────────────────────────────────
 const Skeleton: FC<{ className?: string }> = ({ className = '' }) => (
@@ -75,7 +75,7 @@ const StudentProfile: FC = () => {
     <div className="min-h-screen bg-[#F0F2F5] flex flex-col">
       <Navbar />
 
-      <main className="flex-1 max-w-5xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-8">
+      <main className="flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-8">
         {/* ── Framed container ──────────────────────────────────────────────── */}
         <div className="bg-white border border-gray-200 rounded-2xl shadow-sm overflow-hidden">
 
@@ -122,11 +122,6 @@ const StudentProfile: FC = () => {
                     currentPage={projectPage}
                     totalPages={projectTotalPages}
                     onPageChange={setProjectPage}
-                    onViewSubmission={(id) => {
-                      const p = projects.find(x => x.id === id);
-                      if (p?.submissionLink) window.open(p.submissionLink, '_blank');
-                    }}
-                    onMoreOptions={() => {}}
                   />
                   <CredentialLedger credentials={credentials} />
                 </div>

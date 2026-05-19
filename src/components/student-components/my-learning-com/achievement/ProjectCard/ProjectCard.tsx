@@ -1,4 +1,5 @@
 import type { FC } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { ArrowRight } from 'lucide-react';
 import type { ProjectCardProps } from './ProjectCard.types';
 import type { ProjectStatus } from '../../../../../types/student-role-types/achievement.types';
@@ -9,10 +10,20 @@ const STATUS_STYLES: Record<ProjectStatus, { dot: string; label: string; text: s
   REVISION: { dot: 'bg-red-500',    label: 'REVISION', text: 'text-red-700'    },
 };
 
-const ProjectCard: FC<ProjectCardProps> = ({ project, onViewDetails }) => {
-  const { id, status, category, title, mentorQuote, mentorName, mentorRole, fileUrl } = project;
+const ProjectCard: FC<ProjectCardProps> = ({ project }) => {
+  const navigate = useNavigate();
+  const { id, mentorshipId, status, category, title, mentorQuote, mentorName, mentorRole } = project;
   const st = STATUS_STYLES[status];
-  const hasSubmission = !!fileUrl;
+
+  const handleViewDetails = () => {
+    if (!mentorshipId) return;
+    navigate(`/student/learning/${mentorshipId}`, {
+      state: {
+        itemId:  id,
+        itemKey: `PROJECT-${id}`,
+      },
+    });
+  };
 
   return (
     <div className="bg-white border border-gray-200 rounded-2xl p-6 flex flex-col gap-4">
@@ -48,19 +59,13 @@ const ProjectCard: FC<ProjectCardProps> = ({ project, onViewDetails }) => {
 
       {/* CTA */}
       <div>
-        {hasSubmission ? (
-          <button
-            onClick={() => onViewDetails(id)}
-            className="flex items-center gap-2 px-5 py-2.5 bg-[#0c2d48] text-white text-sm font-bold rounded-xl hover:bg-[#0a2438] transition-colors"
-          >
-            View Submission
-            <ArrowRight className="w-4 h-4" />
-          </button>
-        ) : (
-          <div className="px-5 py-2.5 bg-gray-100 text-gray-500 text-sm font-semibold rounded-xl text-center">
-            You haven't submitted a link
-          </div>
-        )}
+        <button
+          onClick={handleViewDetails}
+          className="flex items-center gap-2 px-5 py-2.5 bg-[#0c2d48] text-white text-sm font-bold rounded-xl hover:bg-[#0a2438] transition-colors"
+        >
+          View Details
+          <ArrowRight className="w-4 h-4" />
+        </button>
       </div>
     </div>
   );

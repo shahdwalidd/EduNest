@@ -71,7 +71,20 @@ export interface TopMentor {
   profileImageUrl: string | null;
 }
 
-export type ActivityType = 'mentorship' | 'verified' | 'alert' | 'payment' | 'session' | 'task' | 'announcement';
+export type ActivityType =
+  | 'mentorship'
+  | 'verified'
+  | 'alert'
+  | 'payment'
+  | 'session'
+  | 'task'
+  | 'announcement'
+  | 'quiz'
+  | 'project'
+  | 'support'
+  | 'badge'
+  | 'certificate'
+  | 'live_session';
 
 export interface ActivityEvent {
   id:          number;

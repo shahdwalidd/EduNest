@@ -3,7 +3,6 @@ import { useState, useEffect, useRef } from 'react';
 import type { FC } from 'react';
 import { useLocation } from 'react-router-dom';
 import Navbar from '../../../components/student-components/common/Navbar/Navbar';
-import Footer from '../../../components/student-components/common/Footer/Footer';
 import {
   ChatList,
   ChatWindow,
@@ -35,6 +34,7 @@ const Messages: FC = () => {
 
   useEffect(() => {
     const state = location.state as OpenChatState | null;
+
     // --- Open room by id (groups) ---
     if (state?.openRoomById) {
       if (room.loading) return;
@@ -47,7 +47,6 @@ const Messages: FC = () => {
         setSelectedChatId(existing.id);
         room.openRoom(existing);
       } else {
-        // create a virtual room entry and open it
         const virtualRoom = {
           id: roomIdStr,
           mode: 'room' as const,
@@ -113,15 +112,14 @@ const Messages: FC = () => {
 
   const rawChatList: Chat[] = isRoomTab ? room.rooms : direct.chats;
 
-  // ── Mentorship filter tags (groups only) ─────────────────────────────────
   const mentorshipTags = isRoomTab
     ? Array.from(
-      new Set(
-        room.rooms
-          .map(r => r.mentorshipName ?? (r.mentorshipId ? `#${r.mentorshipId}` : null))
-          .filter(Boolean) as string[]
+        new Set(
+          room.rooms
+            .map(r => r.mentorshipName ?? (r.mentorshipId ? `#${r.mentorshipId}` : null))
+            .filter(Boolean) as string[]
+        )
       )
-    )
     : [];
 
   const activeItem: Chat | null = (() => {
@@ -197,14 +195,14 @@ const Messages: FC = () => {
   const handleToggleMembers = () => setShowMembers(prev => !prev);
 
   return (
-    <div className="min-h-screen bg-[#F7F7F8] flex flex-col">
+    <div className="h-screen bg-[#F7F7F8] flex flex-col overflow-hidden">
       <Navbar />
 
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 overflow-hidden ">
-        <div className="bg-white border border-gray-200 rounded-2xl overflow-hidden shadow-sm h-full flex flex-col">
+      <main className="flex-1 min-h-0 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-10 overflow-hidden">
+       <div className="bg-white border border-gray-200 rounded-2xl overflow-hidden shadow-sm h-full flex flex-col">
 
           {/* ── Frame Header ── */}
-          <div className="bg-[#0c2d48] px-6 py-4">
+          <div className="bg-[#0c2d48] px-6 py-3 flex-shrink-0">
             <p className="text-[10px] font-semibold text-white/50 uppercase tracking-widest mb-0.5">
               Student Portal
             </p>
@@ -215,13 +213,12 @@ const Messages: FC = () => {
           </div>
 
           {/* ── Content Layout ── */}
-          <div className="flex-1 flex overflow-hidden ">
+          <div className="flex-1 flex overflow-hidden min-h-0">
 
             {/* ── Chat List Sidebar ── */}
             <div
-              className={`flex-shrink-0 w-full lg:w-80 xl:w-96 flex flex-col border-r border-gray-200 
+              className={`flex-shrink-0 w-full lg:w-80 xl:w-96 flex flex-col border-r border-gray-200
                 ${selectedChatId ? 'hidden lg:flex' : 'flex'}`}
-              style={{ height: '100%', minHeight: 0 }}
             >
               <ChatList
                 chats={rawChatList}
@@ -235,9 +232,8 @@ const Messages: FC = () => {
 
             {/* ── Chat Window ── */}
             <div
-              className={`flex-1 min-w-0 flex flex-col relative 
+              className={`flex-1 min-w-0 flex flex-col relative
                 ${!selectedChatId ? 'hidden lg:flex' : 'flex'}`}
-              style={{ height: '100%', minHeight: 0 }}
             >
               {activeItem ? (
                 <>
@@ -287,8 +283,6 @@ const Messages: FC = () => {
           onCreated={room.refetchRooms}
         />
       )}
-
-      <Footer />
     </div>
   );
 };

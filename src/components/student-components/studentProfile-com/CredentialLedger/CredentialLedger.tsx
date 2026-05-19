@@ -4,7 +4,7 @@ import type { CredentialLedgerProps } from './CredentialLedger.types';
 
 const CredentialLedger: FC<CredentialLedgerProps> = ({ credentials }) => {
   const [currentPage, setCurrentPage] = useState(1);
-  const certificatesPerPage = 2;
+  const certificatesPerPage = 4;
   const totalPages = Math.max(1, Math.ceil(credentials.length / certificatesPerPage));
 
   const paginatedCredentials = useMemo(() => {
