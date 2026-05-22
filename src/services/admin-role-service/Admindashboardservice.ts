@@ -46,6 +46,7 @@ export interface UserDetailsResponse {
       totalCompletedMentorships: number;
       totalBadgesEarned: number;
       socialMedia: Array<{ name: string; url: string }>;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       adminBadges: any[];
     };
   };
