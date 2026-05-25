@@ -23,6 +23,96 @@ function buildUrl(path: string | null | undefined): string | undefined {
   return path.startsWith('http') ? path : `${BASE_URL}${path}`;
 }
 
+// Helper: Extract error message from Axios error response safely
+const extractErrorMessage = (err: unknown): string => {
+  if (!err || typeof err !== 'object') {
+    // Handle string errors directly
+    if (typeof err === 'string') {
+      return err;
+    }
+    return 'An error occurred';
+  }
+
+  const error = err as Record<string, unknown>;
+
+  // First check if it's already the response data (from service error handling)
+  // Check errorMessages.error from backend
+  if (error.errorMessages && typeof error.errorMessages === 'object') {
+    const msgs = error.errorMessages as Record<string, unknown>;
+    if (typeof msgs.error === 'string') {
+      return msgs.error;
+    }
+  }
+  
+  // Check apiResponse.message
+  if (error.apiResponse && typeof error.apiResponse === 'object') {
+    const apiResp = error.apiResponse as Record<string, unknown>;
+    if (typeof apiResp.message === 'string') {
+      return apiResp.message;
+    }
+  }
+
+  // Try Axios error structure: error.response.data
+  if (error.response && typeof error.response === 'object') {
+    const response = error.response as Record<string, unknown>;
+    const data = response.data;
+    
+    if (data && typeof data === 'object') {
+      const dataObj = data as Record<string, unknown>;
+      
+      // Check errorMessages.error from backend
+      if (dataObj.errorMessages && typeof dataObj.errorMessages === 'object') {
+        const msgs = dataObj.errorMessages as Record<string, unknown>;
+        if (typeof msgs.error === 'string') {
+          return msgs.error;
+        }
+      }
+      
+      // Check apiResponse.message
+      if (dataObj.apiResponse && typeof dataObj.apiResponse === 'object') {
+        const apiResp = dataObj.apiResponse as Record<string, unknown>;
+        if (typeof apiResp.message === 'string') {
+          return apiResp.message;
+        }
+      }
+    }
+    
+    // Check HTTP status code
+    if (typeof response.status === 'number') {
+      return `Request failed with status code ${response.status}`;
+    }
+  }
+
+  // Fallback to error.message
+  if (typeof error.message === 'string') {
+    return error.message;
+  }
+
+  return 'An error occurred';
+};
+
+// Helper: Extract success message from response
+const extractSuccessMessage = (data: unknown, fallback: string): string => {
+  if (!data || typeof data !== 'object') {
+    return fallback;
+  }
+
+  const resp = data as Record<string, unknown>;
+
+  // Check apiResponse.message
+  if (resp.apiResponse && typeof resp.apiResponse === 'object') {
+    const apiResp = resp.apiResponse as Record<string, unknown>;
+    if (typeof apiResp.message === 'string') {
+      return apiResp.message;
+    }
+    if (typeof apiResp.Status === 'string') {
+      return apiResp.Status;
+    }
+  }
+
+  return fallback;
+};
+
 // Query keys 
 export const ADMIN_PROFILE_KEY  = ['admin-profile']  as const;
 export const ADMIN_COMMISSION_KEY = ['admin-commission'] as const;
@@ -64,56 +154,84 @@ export const useAdminSettings = () => {
   //  Update profile 
   const updateProfileM = useMutation({
     mutationFn: updateAdminProfile,
-    onSuccess: () => {
+    onSuccess: (data) => {
       qc.invalidateQueries({ queryKey: ADMIN_PROFILE_KEY });
-      toast.success('Profile updated');
+      const message = extractSuccessMessage(data, 'Profile updated successfully');
+      toast.success(message);
     },
-    onError: () => toast.error('Failed to update profile'),
+    onError: (err) => {
+      const message = extractErrorMessage(err);
+      toast.error(message);
+    },
   });
 
   //  Update image 
   const updateImageM = useMutation({
     mutationFn: updateAdminImage,
-    onSuccess: () => {
+    onSuccess: (data) => {
       qc.invalidateQueries({ queryKey: ADMIN_PROFILE_KEY });
       updateStore({ userAvatar: undefined }); 
-      toast.success('Profile image updated');
+      const message = extractSuccessMessage(data, 'Profile image updated successfully');
+      toast.success(message);
     },
-    onError: () => toast.error('Failed to update image'),
+    onError: (err) => {
+      const message = extractErrorMessage(err);
+      toast.error(message);
+    },
   });
 
   //  Request email change
   const requestEmailM = useMutation({
     mutationFn: (newEmail: string) => requestEmailChange(newEmail),
-    onSuccess:  () => toast.success('OTP sent to new email'),
-    onError:    () => toast.error('Failed to request email change'),
+    onSuccess: (data) => {
+      const message = extractSuccessMessage(data, 'OTP sent to your email');
+      toast.success(message);
+    },
+    onError: (err) => {
+      const message = extractErrorMessage(err);
+      toast.error(message);
+    },
   });
 
   //  Confirm email change
   const confirmEmailM = useMutation({
     mutationFn: (otpCode: string) => confirmEmailChange(otpCode),
-    onSuccess: () => {
+    onSuccess: (data) => {
       qc.invalidateQueries({ queryKey: ADMIN_PROFILE_KEY });
-      toast.success('Email changed successfully — please log in again');
+      const message = extractSuccessMessage(data, 'Email changed successfully');
+      toast.success(message);
     },
-    onError: () => toast.error('Invalid OTP'),
+    onError: (err) => {
+      const message = extractErrorMessage(err);
+      toast.error(message);
+    },
   });
 
   //  Change password
   const changePasswordM = useMutation({
     mutationFn: changePassword,
-    onSuccess:  () => toast.success('Password changed'),
-    onError:    () => toast.error('Failed to change password'),
+    onSuccess: (data) => {
+      const message = extractSuccessMessage(data, 'Password changed successfully');
+      toast.success(message);
+    },
+    onError: (err) => {
+      const message = extractErrorMessage(err);
+      toast.error(message);
+    },
   });
 
   // Commission update
   const updateCommissionM = useMutation({
     mutationFn: (rate: number) => updateCommission(rate),
-    onSuccess: (_, rate) => {
+    onSuccess: (data, rate) => {
       qc.setQueryData(ADMIN_COMMISSION_KEY, { apiResponse: { commissionRate: rate } });
-      toast.success(`Commission updated to ${rate}%`);
+      const message = extractSuccessMessage(data, `Commission updated to ${rate}%`);
+      toast.success(message);
     },
-    onError: () => toast.error('Failed to update commission'),
+    onError: (err) => {
+      const message = extractErrorMessage(err);
+      toast.error(message);
+    },
   });
 
   return {

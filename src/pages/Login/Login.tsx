@@ -27,6 +27,7 @@ const Login: React.FC = () => {
       handleInputChange('email', lastEmail);
       handleInputChange('rememberMe', true);
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
 
@@ -86,7 +87,7 @@ const Login: React.FC = () => {
               value={formData.password}
               onChange={(e) => handleInputChange("password", e.target.value)}
               placeholder="Enter your password"
-              className={`w-full h-[55px] border rounded-[12px] px-3 focus:outline-none focus:ring-2 
+              className={`w-full h-[55px] border rounded-[12px] px-3 focus:outline-none focus:ring-2 [&::-ms-reveal]:hidden [&::-ms-clear]:hidden
                 ${errors.password ? "border-red-500 focus:ring-red-200" : "border-gray-300 focus:ring-primary"}`}
               required
             />

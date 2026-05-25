@@ -18,12 +18,33 @@ export const ISSUES_KEY = ['contact-messages'] as const;
 // Helper: Extract error message from Axios error response safely
 const extractErrorMessage = (err: unknown): string => {
   if (!err || typeof err !== 'object') {
+    // Handle string errors directly
+    if (typeof err === 'string') {
+      return err;
+    }
     return 'An error occurred while sending notification';
   }
 
   const error = err as Record<string, unknown>;
 
-  // Try Axios error structure first: error.response.data.errorMessages.error
+  // First check if it's already the response data (from service error handling)
+  // Check errorMessages.error from backend
+  if (error.errorMessages && typeof error.errorMessages === 'object') {
+    const msgs = error.errorMessages as Record<string, unknown>;
+    if (typeof msgs.error === 'string') {
+      return msgs.error;
+    }
+  }
+  
+  // Check apiResponse.Status
+  if (error.apiResponse && typeof error.apiResponse === 'object') {
+    const apiResp = error.apiResponse as Record<string, unknown>;
+    if (typeof apiResp.Status === 'string') {
+      return apiResp.Status;
+    }
+  }
+
+  // Try Axios error structure: error.response.data
   if (error.response && typeof error.response === 'object') {
     const response = error.response as Record<string, unknown>;
     const data = response.data;
