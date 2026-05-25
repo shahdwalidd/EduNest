@@ -54,16 +54,18 @@ const NotificationTabs: FC<NotificationTabsProps> = ({
         </button>
       </div>
 
-      {unreadCount > 0 && (
+      {(unreadCount > 0 || onDeleteAll) && (
         <div className="flex flex-wrap items-center justify-end gap-4 pr-2">
-          <button
-            onClick={onMarkAllRead}
-            className="flex shrink-0 items-center gap-1.5 text-green-600 dark:text-green-400 text-[13px] font-bold hover:opacity-80 transition-all group"
-          >
-            <div className="px-3 py-1 border-[1.5px]  border-green-600 dark:border-green-400 rounded-xl flex items-center justify-center gap-2 group-hover:bg-green-600/10 whitespace-nowrap">
-              Mark All as Read
-            </div>
-          </button>
+          {unreadCount > 0 && (
+            <button
+              onClick={onMarkAllRead}
+              className="flex shrink-0 items-center gap-1.5 text-green-600 dark:text-green-400 text-[13px] font-bold hover:opacity-80 transition-all group"
+            >
+              <div className="px-3 py-1 border-[1.5px]  border-green-600 dark:border-green-400 rounded-xl flex items-center justify-center gap-2 group-hover:bg-green-600/10 whitespace-nowrap">
+                Mark All as Read
+              </div>
+            </button>
+          )}
 
           {onDeleteAll && (
             <button

@@ -7,7 +7,7 @@ import { useAuthStore } from '../../../../store/authStore';
 import { theme } from '../../../../theme/colors';
 import edunestLogo from '../../../../assets/edunestlogo.png';
 import { useStudentProfile } from '../../../../hooks/student-roleHooks/Usestudentprofile';
-import { useNotifications } from '../../../../hooks/Usenotifications';
+import { useNotificationsContext } from '../../../../context/NotificationsContext';
 import { useDirectChatUnreadCount } from '../../../../hooks/useDirectChatUnreadCount';
 
 interface NavbarProps {
@@ -30,7 +30,7 @@ const Navbar: FC<NavbarProps> = ({ userName: nameProp, userAvatar: avatarProp })
   const { profile: profileData } = useStudentProfile();
 
   // ── Notifications ──────────────────────────────────────────────────────
-  const { unreadCount } = useNotifications();
+  const { unreadCount } = useNotificationsContext();
   const { unreadCount: unreadMessagesCount } = useDirectChatUnreadCount();
 
   const userName   = nameProp   || storeUserName   || 'Student';

@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import MentorSidebar from "../common/common-dash/MentorSidebar";
 import { MentorNavbar } from "../common/common-dash";
-import { useNotifications } from "../../hooks/Usenotifications";
+import { useNotificationsContext } from "../../context/NotificationsContext";
 import { useAuthStore } from "../../store/authStore";
 import { getMentorProfile, extractMentorProfile } from "../../services/Mentorprofileservice";
 import api from "../../services/api";
@@ -32,7 +32,7 @@ export default function DashLayout({ children, pageTitle }: DashLayoutProps) {
     }
   }, [token, userName, setAuth]);
 
-  const { unreadCount } = useNotifications();
+  const { unreadCount } = useNotificationsContext();
 
   useEffect(() => {
     if (!token) {

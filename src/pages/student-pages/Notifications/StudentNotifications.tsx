@@ -19,7 +19,7 @@ import {
 } from 'lucide-react';
 import Navbar from '../../../components/student-components/common/Navbar/Navbar';
 import Footer from '../../../components/student-components/common/Footer/Footer';
-import { useNotifications } from '../../../hooks/Usenotifications';
+import { useNotificationsContext } from '../../../context/NotificationsContext';
 import type { Notification, NotificationType } from '../../../types/mentornotification.types';
 
 //Icon configuration (matches NotificationType)
@@ -159,7 +159,7 @@ const Notifications: FC = () => {
     handleMarkAllRead,
     handleDismiss,
     handleDeleteAll,
-  } = useNotifications();
+  } = useNotificationsContext();
 
   const filtered = useMemo(() => {
     if (activeTab === 'unread') return notifications.filter(n => !n.isRead);
@@ -172,7 +172,8 @@ const Notifications: FC = () => {
   };
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
-  const paginated = filtered.slice(currentPage * PAGE_SIZE, (currentPage + 1) * PAGE_SIZE);
+  const safePage = Math.min(currentPage, Math.max(0, totalPages - 1));
+  const paginated = filtered.slice(safePage * PAGE_SIZE, (safePage + 1) * PAGE_SIZE);
 
   return (
     <div className="min-h-screen bg-[#F7F7F8] flex flex-col">
@@ -283,7 +284,7 @@ const Notifications: FC = () => {
             </div>
 
             <Pagination
-              current={currentPage}
+              current={safePage}
               total={totalPages}
               onChange={setCurrentPage}
             />
