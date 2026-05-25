@@ -21,6 +21,7 @@ import Navbar from '../../../components/student-components/common/Navbar/Navbar'
 import Footer from '../../../components/student-components/common/Footer/Footer';
 import { useNotificationsContext } from '../../../context/NotificationsContext';
 import type { Notification, NotificationType } from '../../../types/mentornotification.types';
+import RelativeTime from '../../../components/common/RelativeTime';
 
 //Icon configuration (matches NotificationType)
 const NOTIF_CONFIGS: Record<NotificationType, {
@@ -93,7 +94,7 @@ const NotifCard: FC<{
   onMarkRead:  (id: string) => void;
   onDismiss:   (id: string) => void;
 }> = ({ notification, onMarkRead, onDismiss }) => {
-  const { id, type, title, message, isRead, isNew, timestamp } = notification;
+  const { id, type, title, message, isRead, isNew, rawTime } = notification;
 
   return (
     <div
@@ -117,9 +118,10 @@ const NotifCard: FC<{
               </span>
             )}
           </div>
-          <span className="text-[11px] text-gray-400 whitespace-nowrap flex-shrink-0">
-            {timestamp}
-          </span>
+          <RelativeTime
+            isoDate={rawTime}
+            className="text-[11px] text-gray-400 whitespace-nowrap flex-shrink-0"
+          />
         </div>
 
         <p className="text-xs text-gray-500 mt-0.5 leading-relaxed">{message}</p>

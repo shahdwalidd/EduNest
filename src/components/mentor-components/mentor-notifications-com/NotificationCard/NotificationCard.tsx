@@ -2,6 +2,7 @@
 import type { FC } from 'react';
 import { Calendar, MessageCircle, X, Clock, Play, Eye, Bell, Megaphone, CheckSquare, FolderOpen, HelpCircle, Award, Scroll, Video, BookOpen, GraduationCap } from 'lucide-react';
 import type { Notification } from '../../../../types/mentornotification.types';
+import RelativeTime from '../../../common/RelativeTime';
 
 interface NotificationCardProps {
   notification: Notification;
@@ -90,7 +91,10 @@ const NotificationCard: FC<NotificationCardProps> = ({
           <div className="flex items-center md:flex-row-reverse gap-4 sm:gap-6 shrink-0 mt-2 md:mt-0 md:ml-auto">
             <div className="flex items-center gap-1.5 text-gray-400 min-w-[80px] justify-end">
               <Clock className="w-4 h-4" />
-              <span className="text-[12px] font-medium whitespace-nowrap">{notification.timestamp}</span>
+              <RelativeTime
+                isoDate={notification.rawTime}
+                className="text-[12px] font-medium whitespace-nowrap"
+              />
             </div>
 
             {notification.actionLabel && (

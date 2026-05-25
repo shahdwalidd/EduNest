@@ -1,6 +1,6 @@
 
 import type { FC } from 'react';
-import { ArrowLeft, Camera, Users, MoreHorizontal } from 'lucide-react';
+import { ArrowLeft, Camera, Users } from 'lucide-react';
 import type { Chat } from '../../../../types/mentor-meaasges.types';
 
 interface ChatHeaderProps {
@@ -103,11 +103,7 @@ const ChatHeader: FC<ChatHeaderProps> = ({
           >
             <Users className="w-5 h-5" />
           </button>
-        ) : (
-          <button className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 transition text-gray-500">
-            <MoreHorizontal className="w-5 h-5" />
-          </button>
-        )}
+        ) : null}
       </div>
     </div>
   );
