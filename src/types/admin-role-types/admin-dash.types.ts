@@ -116,8 +116,7 @@ export interface ActivityEvent {
   title: string;
   description: string;
   linkText?: string;
-  timeLabel: string;
-  isAlert: boolean;
+  timeLabel: string;  rawTime?: string;  isAlert: boolean;
 }
 
 // ─────────────────────────── Component Props ──────────────────────────────

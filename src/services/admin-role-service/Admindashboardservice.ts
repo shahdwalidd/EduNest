@@ -140,6 +140,7 @@ const transformDashboardData = (raw: AdminDashboardApiResponse) => {
     title: n.title,
     description: n.content,
     timeLabel: timeAgo(n.createdAt),
+    rawTime: n.createdAt,
     isAlert: n.type?.toUpperCase() === 'ALERT',
   }));
 
