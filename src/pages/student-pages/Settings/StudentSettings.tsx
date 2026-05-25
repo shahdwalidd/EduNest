@@ -29,7 +29,7 @@ const StudentSettings: FC = () => {
   const navigate = useNavigate();
 
   const {
-    loading, error, success,
+    loading, error, clear,
     handleRequestEmailChange,
     handleConfirmEmailChange,
     handleChangePassword,
@@ -50,6 +50,7 @@ const StudentSettings: FC = () => {
 
   const closeModal = () => {
     setModal(null);
+    clear();
     setNewEmail(''); setEmailOtp('');
     setOldPassword(''); setNewPassword(''); setConfirmPassword('');
     setDeleteOtp(''); setDeactivatePassword('');
@@ -57,7 +58,7 @@ const StudentSettings: FC = () => {
 
   const submitEmail = async () => {
     const ok = await handleRequestEmailChange({ newEmail });
-    if (ok) { setModal('email-otp'); setEmailOtp(''); }
+    if (ok) { clear(); setModal('email-otp'); setEmailOtp(''); }
   };
 
   const submitConfirmEmail = async () => {
@@ -76,7 +77,7 @@ const StudentSettings: FC = () => {
 
   const submitRequestDelete = async () => {
     const ok = await handleRequestDelete();
-    if (ok) { setModal('delete-otp'); setDeleteOtp(''); }
+    if (ok) { clear(); setModal('delete-otp'); setDeleteOtp(''); }
   };
 
   const submitConfirmDelete = async () => {
@@ -106,16 +107,7 @@ const StudentSettings: FC = () => {
           {/* ── Content ── */}
           <div className="px-7 py-6 space-y-6">
 
-            {/* Toast Messages */}
-            {(success || error) && (
-              <div className={`px-4 py-3 rounded-xl text-sm font-semibold text-center ${
-                success
-                  ? 'bg-green-50 text-green-700 border border-green-200'
-                  : 'bg-red-50 text-red-700 border border-red-200'
-              }`}>
-                {success || error}
-              </div>
-            )}
+            {/* Toast messages are handled via transient toasts (react-hot-toast) */}
 
             {/* ── Primary Credentials ── */}
             <div className="space-y-3">
@@ -127,7 +119,7 @@ const StudentSettings: FC = () => {
                 mainValue={userEmail ?? 'user@email.edu'}
                 description="Used for official communications and course updates."
                 actionLabel="Request Email Change"
-                onAction={() => { setNewEmail(userEmail ?? ''); setModal('email'); }}
+                onAction={() => { clear(); setNewEmail(userEmail ?? ''); setModal('email'); }}
               />
             </div>
 
@@ -141,7 +133,7 @@ const StudentSettings: FC = () => {
                 mainValue="••••••••••"
                 description="Last updated 45 days ago. We recommend regular rotation."
                 actionLabel="Request Password Reset"
-                onAction={() => setModal('password')}
+                onAction={() => { clear(); setModal('password'); }}
               />
             </div>
 
@@ -158,7 +150,7 @@ const StudentSettings: FC = () => {
                   </span>
                 }
                 actionLabel="Request Deactivation"
-                onAction={() => setModal('deactivate')}
+                onAction={() => { clear(); setModal('deactivate'); }}
               />
               <SensitiveActionCard
                 variant="delete"
@@ -171,7 +163,7 @@ const StudentSettings: FC = () => {
                   </>
                 }
                 actionLabel="Request Deletion"
-                onAction={() => setModal('delete')}
+                onAction={() => { clear(); setModal('delete'); }}
               />
             </div>
 

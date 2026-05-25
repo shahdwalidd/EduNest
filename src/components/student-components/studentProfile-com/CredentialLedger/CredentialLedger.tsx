@@ -35,27 +35,27 @@ const CredentialLedger: FC<CredentialLedgerProps> = ({ credentials }) => {
       {/* Table */}
       <div className="bg-white mx-3 mb-3 rounded-xl overflow-hidden">
         {/* Table Header */}
-        <div className="grid grid-cols-3 px-4 py-2.5 bg-gray-50 border-b border-gray-100">
+        <div className="grid grid-cols-1 gap-y-2 gap-x-4 sm:grid-cols-[1fr_2fr_1fr] px-4 py-2.5 bg-gray-50 border-b border-gray-100">
           <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">
             Credential Type
           </span>
           <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">
             Mentorship
           </span>
-          <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">
+          <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider sm:text-right text-center">
             Rank
           </span>
         </div>
 
         {/* Rows */}
         {paginatedCredentials.map((cred) => (
-          <div key={cred.id} className="grid grid-cols-3 px-4 py-3.5 border-b border-gray-100 last:border-b-0 items-center">
+          <div key={cred.id} className="grid grid-cols-1 gap-y-2 gap-x-4 sm:grid-cols-[1fr_2fr_1fr] px-4 py-3.5 border-b border-gray-100 last:border-b-0 items-center min-w-0">
             <div className="flex items-center gap-2">
               <ShieldCheck className="w-4 h-4 text-[#0c2d48]" />
-              <span className="text-sm font-medium text-gray-800">{cred.type}</span>
+              <span className="text-sm font-medium text-gray-800 break-words whitespace-normal">{cred.type}</span>
             </div>
-            <span className="text-sm text-gray-600">{cred.mentorship}</span>
-            <span className="inline-flex">
+            <span className="text-sm text-gray-600 break-words whitespace-normal min-w-0">{cred.mentorship}</span>
+            <span className="flex w-full sm:justify-end justify-center">
               <span className="px-2.5 py-1 text-[10px] font-bold text-yellow-700 bg-yellow-100 rounded-full uppercase">
                 {cred.rank}
               </span>
