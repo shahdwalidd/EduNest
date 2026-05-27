@@ -49,6 +49,8 @@ class WebSocketService {
 
       onStompError: (f) => {
         this.isConnecting_ = false;
+        this.isConnected_  = false;
+        this.subscriptions.clear();
         console.error('❌ STOMP error:', f.headers['message']);
       },
 

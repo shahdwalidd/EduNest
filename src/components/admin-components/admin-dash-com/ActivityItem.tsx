@@ -18,6 +18,7 @@ import {
   MoreHorizontal,
   X,
 } from 'lucide-react';
+import RelativeTime from '../../common/RelativeTime';
 import type { ActivityEvent, ActivityType } from '../../../types/admin-role-types/admin-dash.types';
 
 const ICON_CONFIG: Record<ActivityType, {
@@ -92,7 +93,11 @@ const ActivityItem: FC<ActivityItemProps> = ({ event, onDelete, isDeleting }) =>
       {/* Time + Delete */}
       <div className="flex items-center gap-2 flex-shrink-0 mt-0.5">
         <span className={`text-[10px] font-bold uppercase tracking-wider ${isAlert ? 'text-red-500' : 'text-gray-400'}`}>
-          {timeLabel}
+          {event.rawTime ? (
+            <RelativeTime isoDate={event.rawTime} />
+          ) : (
+            timeLabel
+          )}
         </span>
 
         {onDelete && (

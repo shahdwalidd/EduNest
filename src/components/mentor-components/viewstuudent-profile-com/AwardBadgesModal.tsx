@@ -3,11 +3,11 @@ import { useState, useEffect, useRef, type FC } from 'react';
 import {
   AlertTriangle,
   Check,
-
+  ChevronLeft,
+  ChevronRight,
   Crown,
   Edit2,
   Flame,
-
   Palette,
   Puzzle,
   Plus,
@@ -44,6 +44,7 @@ interface Props {
   studentName:     string;
   studentId:       number;    // ← needed for award API
   mentorships:     MentorshipInfo[];
+  mentorshipsLoading?: boolean;
   earnedBadgeIds?: number[];
   onClose:         () => void;
   onAwarded?:      () => void; // ← optional callback to refresh parent after award
@@ -74,9 +75,10 @@ const BadgeFormModal: FC<{
   mentorshipName: string;
   initial?:       CreateBadgeInput;
   saving:         boolean;
+  fieldErrors:    Record<string, string>;
   onCancel:       () => void;
   onSave:         (data: CreateBadgeInput) => void;
-}> = ({ mode, mentorshipName, initial, saving, onCancel, onSave }) => {
+}> = ({ mode, mentorshipName, initial, saving, fieldErrors, onCancel, onSave }) => {
   const [form,       setForm      ] = useState<CreateBadgeInput>(initial ?? emptyForm());
   const [formError,  setFormError ] = useState<string | null>(null);
   const cat = getCat(form.category);
@@ -113,9 +115,12 @@ const BadgeFormModal: FC<{
 
         <div className="px-6 py-5 space-y-4">
           {/* Validation error */}
-          {formError && (
-            <div className="flex items-center gap-2 px-4 py-3 bg-red-50 border border-red-100 rounded-xl text-sm text-red-600 font-medium">
-              <AlertTriangle size={16} className="flex-shrink-0" /> {formError}
+          {(formError || fieldErrors.title || fieldErrors.points || fieldErrors.description) && (
+            <div className="flex items-start gap-2 px-4 py-3 bg-red-50 border border-red-100 rounded-xl text-sm text-red-600 font-medium">
+              <AlertTriangle size={16} className="flex-shrink-0 mt-0.5" />
+              <div>
+                {formError ? formError : 'Please fix the highlighted fields below.'}
+              </div>
             </div>
           )}
           {/* Category */}
@@ -140,14 +145,20 @@ const BadgeFormModal: FC<{
               <input type="text" value={form.title}
                 onChange={e => setForm(p => ({ ...p, title: e.target.value }))}
                 placeholder="e.g. Fast Learner"
-                className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-white text-sm font-medium focus:outline-none focus:ring-2 focus:ring-[#0f5e8b]"
+                className={`w-full px-4 py-3 rounded-xl border ${fieldErrors.title ? 'border-red-300 focus:ring-red-100' : 'border-gray-200 focus:ring-[#0f5e8b]'} bg-white text-sm font-medium focus:outline-none focus:ring-2`}
                 autoFocus />
+              {fieldErrors.title && (
+                <p className="text-red-500 text-xs mt-2">{fieldErrors.title}</p>
+              )}
             </div>
             <div>
               <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Points Value</label>
               <input type="number" value={form.points} min={50} max={1000} step={50}
                 onChange={e => setForm(p => ({ ...p, points: Number(e.target.value) }))}
-                className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-white text-sm font-medium focus:outline-none focus:ring-2 focus:ring-[#0f5e8b]" />
+                className={`w-full px-4 py-3 rounded-xl border ${fieldErrors.points ? 'border-red-300 focus:ring-red-100' : 'border-gray-200 focus:ring-[#0f5e8b]'} bg-white text-sm font-medium focus:outline-none focus:ring-2`} />
+              {fieldErrors.points && (
+                <p className="text-red-500 text-xs mt-2">{fieldErrors.points}</p>
+              )}
             </div>
           </div>
 
@@ -158,7 +169,10 @@ const BadgeFormModal: FC<{
               onChange={e => setForm(p => ({ ...p, description: e.target.value }))}
               placeholder="Describe what this badge represents..."
               rows={3}
-                className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-white text-sm resize-none focus:outline-none focus:ring-2 focus:ring-[#0f5e8b]" />
+              className={`w-full px-4 py-3 rounded-xl border ${fieldErrors.description ? 'border-red-300 focus:ring-red-100' : 'border-gray-200 focus:ring-[#0f5e8b]'} bg-white text-sm resize-none focus:outline-none focus:ring-2`} />
+            {fieldErrors.description && (
+              <p className="text-red-500 text-xs mt-2">{fieldErrors.description}</p>
+            )}
           </div>
 
           {/* Icon preview */}
@@ -234,10 +248,49 @@ const DeleteConfirmModal: FC<{
 
 // ── Main Modal ────────────────────────────────────────────────────────────────
 const AwardBadgesModal: FC<Props> = ({
-  studentName, studentId, mentorships, earnedBadgeIds = [], onClose, onAwarded,
+  studentName, studentId, mentorships, mentorshipsLoading, earnedBadgeIds = [], onClose, onAwarded,
 }) => {
   const [activeMid,  setActiveMid ] = useState(mentorships[0]?.id ?? '');
   const hook = useBadges(activeMid);
+  const mentorshipScrollRef = useRef<HTMLDivElement>(null);
+
+  const activeIndex = mentorships.findIndex(m => m.id === activeMid);
+  const canGoPrev = activeIndex > 0;
+  const canGoNext = activeIndex >= 0 && activeIndex < mentorships.length - 1;
+
+  const scrollActiveIntoView = () => {
+    const container = mentorshipScrollRef.current;
+    const activeButton = container?.querySelector<HTMLButtonElement>('button[data-active="true"]');
+    activeButton?.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+  };
+
+  useEffect(() => {
+    if (!mentorships.length) return;
+    if (!activeMid || !mentorships.some(m => m.id === activeMid)) {
+      setActiveMid(mentorships[0].id);
+    }
+  }, [mentorships, activeMid]);
+
+  useEffect(() => {
+    scrollActiveIntoView();
+  }, [activeMid, mentorships.length]);
+
+  const handleSelectMentorship = (id: string) => {
+    setActiveMid(id);
+    setSelectedId(null);
+  };
+
+  const handlePrevMentorship = () => {
+    if (!canGoPrev) return;
+    const prevMentorship = mentorships[activeIndex - 1];
+    if (prevMentorship) handleSelectMentorship(prevMentorship.id);
+  };
+
+  const handleNextMentorship = () => {
+    if (!canGoNext) return;
+    const nextMentorship = mentorships[activeIndex + 1];
+    if (nextMentorship) handleSelectMentorship(nextMentorship.id);
+  };
 
   const [search,     setSearch    ] = useState('');
   const [selectedId, setSelectedId] = useState<number | null>(null);
@@ -327,17 +380,37 @@ const AwardBadgesModal: FC<Props> = ({
 
             <div className="mt-5">
               <p className="text-[11px] font-bold text-gray-400 uppercase tracking-widest mb-2.5">Choose Mentorship</p>
-              <div className="flex gap-2 overflow-x-auto pb-1" style={{ scrollbarWidth: 'none' }}>
-                {mentorships.map(m => (
-                  <button key={m.id} onClick={() => { setActiveMid(m.id); setSelectedId(null); }}
-                    className={`flex-shrink-0 flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold border transition-all ${
-                      activeMid === m.id
-                        ? 'bg-[#0f5e8b] text-white border-[#0f5e8b] shadow-sm'
-                        : 'text-gray-600 border-gray-200 hover:border-[#0c4a6d] hover:text-[#0c4a6d] bg-white'
-                    }`}>
-                    {m.name}
-                  </button>
-                ))}
+              <div className="flex items-center gap-2">
+                <button onClick={handlePrevMentorship}
+                  disabled={!canGoPrev}
+                  className="p-2 rounded-full border border-gray-200 bg-white text-gray-500 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition">
+                  <ChevronLeft size={16} />
+                </button>
+
+                <div ref={mentorshipScrollRef} className="flex gap-2 overflow-x-auto flex-1 pb-1" style={{ scrollbarWidth: 'none' }}>
+                  {mentorshipsLoading && mentorships.length === 0 ? (
+                    <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-gray-100 text-sm text-gray-500">
+                      <span className="w-2.5 h-2.5 rounded-full bg-[#0f5e8b] animate-pulse" />
+                      Loading mentorships...
+                    </div>
+                  ) : mentorships.map(m => (
+                    <button key={m.id} onClick={() => handleSelectMentorship(m.id)}
+                      data-active={activeMid === m.id ? 'true' : 'false'}
+                      className={`flex-shrink-0 flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold border transition-all ${
+                        activeMid === m.id
+                          ? 'bg-[#0f5e8b] text-white border-[#0f5e8b] shadow-sm'
+                          : 'text-gray-600 border-gray-200 hover:border-[#0c4a6d] hover:text-[#0c4a6d] bg-white'
+                      }`}>
+                      {m.name}
+                    </button>
+                  ))}
+                </div>
+
+                <button onClick={handleNextMentorship}
+                  disabled={!canGoNext}
+                  className="p-2 rounded-full border border-gray-200 bg-white text-gray-500 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition">
+                  <ChevronRight size={16} />
+                </button>
               </div>
             </div>
           </div>
@@ -367,24 +440,17 @@ const AwardBadgesModal: FC<Props> = ({
           <div className="h-px bg-gray-100 flex-shrink-0" />
 
           {/* Badge list */}
-          <div className="flex-1 overflow-y-auto px-6 py-4"
+          <div className="relative flex-1 overflow-y-auto px-6 py-4"
             style={{ scrollbarWidth: 'thin', scrollbarColor: '#e5e7eb transparent' }}>
 
-            {hook.loading && (
-              <div className="flex items-center justify-center h-40">
-                <span className="w-6 h-6 border-2 border-[#0f5e8b] border-t-transparent rounded-full animate-spin" />
-              </div>
-            )}
+            <div className={`grid grid-cols-1 sm:grid-cols-2 gap-3 transition-opacity duration-200 ${hook.loading ? 'opacity-40' : 'opacity-100'}`}>
+              {filtered.map(badge => {
+                const cat      = getCat(badge.category);
+                const isSelected = selectedId === badge.id;
+                const isEarned   = earnedBadgeIds.includes(badge.id);
 
-            {!hook.loading && (
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                {filtered.map(badge => {
-                  const cat      = getCat(badge.category);
-                  const isSelected = selectedId === badge.id;
-                  const isEarned   = earnedBadgeIds.includes(badge.id);
-
-                  return (
-                    <div key={badge.id}
+                return (
+                  <div key={badge.id}
                       onClick={() => setSelectedId(isSelected ? null : badge.id)}
                       className={`relative flex items-center gap-3 p-4 rounded-2xl border-2 cursor-pointer transition-all group overflow-hidden ${
                         isSelected
@@ -432,6 +498,7 @@ const AwardBadgesModal: FC<Props> = ({
                         <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                           <button
                             onClick={() => {
+                              hook.clearFieldErrors();
                               setEditBadge({
                                 id:   badge.id,
                                 data: { title: badge.title, category: badge.category, description: badge.description, points: badge.points },
@@ -454,7 +521,7 @@ const AwardBadgesModal: FC<Props> = ({
                 {/* ── Create new badge card — full width at bottom ── */}
                 {!search && hook.badges.length < MAX_BADGES && (
                   <button
-                    onClick={() => { setFormMode('create'); setEditBadge(null); }}
+                    onClick={() => { hook.clearFieldErrors(); setFormMode('create'); setEditBadge(null); }}
                     className="col-span-1 sm:col-span-2 flex items-center justify-center gap-3 p-4 rounded-2xl border-2 border-dashed border-[#0f5e8b] bg-[#f0f9ff] hover:bg-[#e0f2fe] hover:border-[#0c4a6d] transition-all cursor-pointer group">
                     <div className="w-9 h-9 rounded-full bg-[#eff6ff] group-hover:bg-[#dbeafe] flex items-center justify-center text-[#0f5e8b] transition flex-shrink-0">
                       <Plus size={18} />
@@ -486,7 +553,12 @@ const AwardBadgesModal: FC<Props> = ({
                   </div>
                 )}
               </div>
-            )}
+
+              {hook.loading && (
+                <div className="absolute inset-0 z-10 flex items-center justify-center bg-white/80 backdrop-blur-sm">
+                  <span className="w-6 h-6 border-2 border-[#0f5e8b] border-t-transparent rounded-full animate-spin" />
+                </div>
+              )}
           </div>
 
           {/* Footer */}
@@ -546,6 +618,7 @@ const AwardBadgesModal: FC<Props> = ({
           mentorshipName={activeName}
           initial={formMode === 'edit' ? editBadge?.data : undefined}
           saving={hook.saving}
+          fieldErrors={hook.fieldErrors}
           onCancel={() => { setFormMode(null); setEditBadge(null); }}
           onSave={formMode === 'edit' ? handleEdit : handleCreate}
         />

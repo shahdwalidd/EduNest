@@ -52,6 +52,8 @@ const StudentProfile: FC = () => {
   const [socialMedia,    setSocialMedia  ] = useState<SocialMedia[]>([]);
   const [awardedBadges,  setAwardedBadges] = useState<AwardedBadge[]>([]);
   const [showBadges,     setShowBadges   ] = useState(false);
+  const [allMentorships, setAllMentorships] = useState<{ id: string; name: string }[]>([]);
+  const [allMentorshipsLoading, setAllMentorshipsLoading] = useState(false);
 
   // pagination state
   const [mentorshipsPage,       setMentorshipsPage      ] = useState(0);
@@ -154,6 +156,34 @@ const StudentProfile: FC = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isHydrated, token, studentId]);
 
+  const fetchAllMentorships = () => {
+    if (!studentId) return;
+    setAllMentorshipsLoading(true);
+    getStudentFullProfile(studentId, { mentorshipsPage: 0, mentorshipsSize: 999 })
+      .then((res) => {
+        const profile = extractStudentFullProfile(res);
+        if (!profile) return;
+        const seen = new Set<string>();
+        setAllMentorships(profile.mentorships.content.flatMap((mentorship) => {
+          const id = String(mentorship.mentorshipId);
+          if (seen.has(id)) return [];
+          seen.add(id);
+          return [{ id, name: mentorship.title }];
+        }));
+      })
+      .catch(() => {
+        // Keep the paginated mentorship list as fallback when full list cannot be loaded.
+      })
+      .finally(() => setAllMentorshipsLoading(false));
+  };
+
+  useEffect(() => {
+    if (showBadges && !allMentorshipsLoading && allMentorships.length === 0) {
+      fetchAllMentorships();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [showBadges, studentId, allMentorships.length, allMentorshipsLoading]);
+
   const handleMentorshipsPage = (p: number) => { setMentorshipsPage(p); fetchProfile(p, projectsPage, false); };
   const handleProjectsPage    = (p: number) => { setProjectsPage(p);    fetchProfile(mentorshipsPage, p, false); };
   const handleChat = () => {
@@ -238,7 +268,8 @@ const StudentProfile: FC = () => {
         <AwardBadgesModal
           studentName={student.name}
           studentId={Number(studentId)}
-          mentorships={mentorships.map(m => ({ id: m.id, name: m.name }))}
+          mentorships={allMentorships.length > 0 ? allMentorships : mentorships.map(m => ({ id: m.id, name: m.name }))}
+          mentorshipsLoading={allMentorshipsLoading}
           earnedBadgeIds={earnedBadgeIds}
           onClose={() => setShowBadges(false)}
           onAwarded={() => fetchProfile(mentorshipsPage, projectsPage, false)}

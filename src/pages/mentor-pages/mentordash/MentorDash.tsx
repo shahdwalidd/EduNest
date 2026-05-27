@@ -199,7 +199,7 @@ const MentorDash: React.FC = () => {
                       studentName: n.title || 'Notification',
                       action: n.message || '',
                       mentorshipTitle: '',
-                      timestamp: n.timestamp,
+                      timestamp: n.timestamp ?? (n.rawTime ?? new Date().toISOString()),
                       type: 'completion',
                     }))}
                     currentPage={notificationPagination.page}

@@ -20,7 +20,7 @@ const STATUS_COLORS: Record<string, string> = {
 };
 
 const MentorshipCard: FC<MentorshipCardProps> = ({ mentorship, onContinue }) => {
-  const { id, title, subtitle, thumbnail, level, category, progress, stats, currentWeek, statusLabel, statusType } = mentorship;
+  const { id, title, subtitle, thumbnail, level, category, progress, stats, statusLabel, statusType } = mentorship;
   const [imgError, setImgError] = useState(false);
 
   const showPlaceholder = !thumbnail || imgError;
@@ -92,14 +92,10 @@ const MentorshipCard: FC<MentorshipCardProps> = ({ mentorship, onContinue }) => 
         </div>
 
         {/* Footer Row */}
-        <div className="flex items-end justify-between border-t border-gray-100 pt-2 mt-auto">
-          <div>
-            <p className="text-[9px] font-semibold text-gray-400 uppercase tracking-wider">CURRENT</p>
-            <p className="text-sm font-bold text-gray-800">Week {String(currentWeek).padStart(2, '0')}</p>
-          </div>
+        <div className="flex items-end justify-end border-t border-gray-100 pt-2 mt-auto">
           <div className="text-right">
             <p className={`text-[9px] font-semibold uppercase tracking-wider ${STATUS_COLORS[statusType] ?? 'text-gray-400'}`}>
-              {statusType.replace('_', ' ')}
+              STATUS
             </p>
             <p className="text-xs font-medium text-gray-700">{statusLabel}</p>
           </div>

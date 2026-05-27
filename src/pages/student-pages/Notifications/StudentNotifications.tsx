@@ -18,9 +18,9 @@ import {
   ChevronRight,
 } from 'lucide-react';
 import Navbar from '../../../components/student-components/common/Navbar/Navbar';
-import Footer from '../../../components/student-components/common/Footer/Footer';
-import { useNotifications } from '../../../hooks/Usenotifications';
+import { useNotificationsContext } from '../../../context/NotificationsContext';
 import type { Notification, NotificationType } from '../../../types/mentornotification.types';
+import RelativeTime from '../../../components/common/RelativeTime';
 
 //Icon configuration (matches NotificationType)
 const NOTIF_CONFIGS: Record<NotificationType, {
@@ -93,7 +93,7 @@ const NotifCard: FC<{
   onMarkRead:  (id: string) => void;
   onDismiss:   (id: string) => void;
 }> = ({ notification, onMarkRead, onDismiss }) => {
-  const { id, type, title, message, isRead, isNew, timestamp } = notification;
+  const { id, type, title, message, isRead, isNew, rawTime } = notification;
 
   return (
     <div
@@ -117,9 +117,10 @@ const NotifCard: FC<{
               </span>
             )}
           </div>
-          <span className="text-[11px] text-gray-400 whitespace-nowrap flex-shrink-0">
-            {timestamp}
-          </span>
+          <RelativeTime
+            isoDate={rawTime}
+            className="text-[11px] text-gray-400 whitespace-nowrap flex-shrink-0"
+          />
         </div>
 
         <p className="text-xs text-gray-500 mt-0.5 leading-relaxed">{message}</p>
@@ -159,7 +160,7 @@ const Notifications: FC = () => {
     handleMarkAllRead,
     handleDismiss,
     handleDeleteAll,
-  } = useNotifications();
+  } = useNotificationsContext();
 
   const filtered = useMemo(() => {
     if (activeTab === 'unread') return notifications.filter(n => !n.isRead);
@@ -172,7 +173,8 @@ const Notifications: FC = () => {
   };
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
-  const paginated = filtered.slice(currentPage * PAGE_SIZE, (currentPage + 1) * PAGE_SIZE);
+  const safePage = Math.min(currentPage, Math.max(0, totalPages - 1));
+  const paginated = filtered.slice(safePage * PAGE_SIZE, (safePage + 1) * PAGE_SIZE);
 
   return (
     <div className="min-h-screen bg-[#F7F7F8] flex flex-col">
@@ -283,7 +285,7 @@ const Notifications: FC = () => {
             </div>
 
             <Pagination
-              current={currentPage}
+              current={safePage}
               total={totalPages}
               onChange={setCurrentPage}
             />
@@ -291,7 +293,6 @@ const Notifications: FC = () => {
         </div>
       </main>
 
-      <Footer />
     </div>
   );
 };

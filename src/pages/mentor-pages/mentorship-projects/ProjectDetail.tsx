@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import DashLayout from '../../../components/layout/Dash-layout';
 import toast from 'react-hot-toast';
-import { getProjectStatistics, gradeProjectSubmission, type ProjectStatistics, type TaskSubmission } from '../../../services/projectService';
+import { getProjectStatistics, getProjectDashboard, gradeProjectSubmission, type ProjectStatistics, type TaskSubmission, type ProjectResponse } from '../../../services/projectService';
 import { Download, CheckCircle, Clock, AlertCircle, Award, ArrowLeft, Edit } from 'lucide-react';
 import { EditProjectModal } from './components/ProjectModals';
 
@@ -17,7 +17,7 @@ const ProjectDetail: React.FC = () => {
   const [page, setPage] = useState(0);
 
   // Edit modal state
-  const [projectToEdit, setProjectToEdit] = useState<import('../../../services/projectService').ProjectResponse | null>(null);
+  const [projectToEdit, setProjectToEdit] = useState<ProjectResponse | null>(null);
   const [isEditOpen, setIsEditOpen] = useState(false);
 
   // Modal state
@@ -33,24 +33,7 @@ const ProjectDetail: React.FC = () => {
     try {
       setLoading(true);
       const res = await getProjectStatistics(projectId, { page, size: 10 });
-      // Note: EditProjectModal يحتاج ProjectResponse كاملة، و api الحالية هنا ترجع statistics فقط.
-      // لذلك سنبني object ProjectResponse جزئياً قدر الإمكان.
       setStats(res.projectStatistics);
-      setProjectToEdit({
-        id: Number(projectId),
-        title: res.projectStatistics.projectTitle,
-        goal: '',
-        brief: '',
-        descriptionUrl: null,
-        uploadedAttachmentPath: null,
-        startAt: new Date().toISOString(),
-        endAt: new Date().toISOString(),
-        points: res.projectStatistics.totalPoints || 100,
-        status: 'DRAFT',
-        weekId: 0,
-        createdAt: new Date().toISOString(),
-      });
-      setIsEditOpen(false);
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Failed to load project details';
       setError(message);
@@ -72,6 +55,26 @@ const ProjectDetail: React.FC = () => {
     setScore(submission.finalScore ?? submission.rawScore ?? '');
     setFeedback(submission.feedback || '');
     setIsGradeModalOpen(true);
+  };
+
+  // Fetch full project from dashboard and open edit modal
+  const openEditModal = async () => {
+    if (!id || !projectId) return;
+    try {
+      // try to fetch a large page so the project is included
+      const res = await getProjectDashboard(id, { page: 0, size: 200 });
+      const projects = res.fullDashboard?.projectResponsePageResponse?.content || [];
+      const found = projects.find((it: { project: ProjectResponse }) => it.project.id === Number(projectId));
+      if (found) {
+        setProjectToEdit(found.project);
+        setIsEditOpen(true);
+      } else {
+        toast.error('Failed to load full project data for editing');
+      }
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Failed to load project for edit';
+      toast.error(message);
+    }
   };
 
   const closeGradeModal = () => {
@@ -141,8 +144,7 @@ const ProjectDetail: React.FC = () => {
               <button
                 type="button"
                 onClick={() => {
-                  if (!projectToEdit) return;
-                  setIsEditOpen(true);
+                  openEditModal();
                 }}
                 className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-indigo-600 bg-indigo-50 hover:bg-indigo-100 rounded-lg transition-colors"
               >
@@ -290,7 +292,7 @@ const ProjectDetail: React.FC = () => {
       <EditProjectModal
         project={projectToEdit}
         isOpen={isEditOpen}
-        onClose={() => setIsEditOpen(false)}
+        onClose={() => { setIsEditOpen(false); setProjectToEdit(null); }}
         onSuccess={fetchStats}
       />
 

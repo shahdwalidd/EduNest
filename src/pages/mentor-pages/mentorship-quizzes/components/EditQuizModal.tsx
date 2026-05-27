@@ -70,7 +70,7 @@ const EditQuizModal: React.FC<EditQuizModalProps> = ({ isOpen, onClose, quizId, 
             onClose();
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } catch (err: any) {
-            toast.error(err?.message || 'Failed to update quiz');
+            toast.error(err?.errorMessages.error || 'Failed to update quiz');
         } finally {
             setSubmitting(false);
         }

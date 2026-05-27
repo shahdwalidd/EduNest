@@ -1,77 +1,88 @@
-import { type FC } from 'react';
+import type { FC } from 'react';
 import type { StudentActivity } from './RecentActivity.types';
 
-const AVATAR_COLORS: Record<string, string> = {
-  submission: 'bg-emerald-500',
-  question: 'bg-blue-500',
-  completion: 'bg-purple-500',
-  default: 'bg-gray-400 dark:bg-zinc-600',
-};
-
-// دالة لحساب الوقت النسبي (Relative Time)
-const getRelativeTime = (timestamp: string) => {
-  // 1. تأكد من إضافة Z إذا لم تكن موجودة ليتم التعامل مع الوقت كـ UTC
-  const dateString = timestamp.endsWith('Z') ? timestamp : timestamp + 'Z';
-  const date = new Date(dateString);
-  const now = new Date();
-
-  // 2. حساب الفرق بالملي ثانية
-  const diffInMs = now.getTime() - date.getTime();
-  const seconds = Math.floor(diffInMs / 1000);
-
-  if (seconds < 60) return 'Just now';
-  
-  const minutes = Math.floor(seconds / 60);
-  if (minutes < 60) return `${minutes}m ago`;
-  
-  const hours = Math.floor(minutes / 60);
-  if (hours < 24) return `${hours}h ago`;
-  
-  const days = Math.floor(hours / 24);
-  return `${days}d ago`;
-};
+import { ACTIVITY_CONFIG, detectActivityType, getRelativeTime } from './activityItemUtils';
 
 interface ActivityItemProps {
   activity: StudentActivity;
   onView?: (id: string) => void;
 }
 
+/**
+ * =========================================================
+ * Component
+ * =========================================================
+ */
+
 const ActivityItem: FC<ActivityItemProps> = ({ activity }) => {
-  const colorClass = AVATAR_COLORS[activity.type?.toLowerCase()] || AVATAR_COLORS.default;
-  const initial = activity.studentName?.charAt(0).toUpperCase() || '?';
-  
-  // استخدام دالة الوقت النسبي
-  const displayTime = activity.timestamp ? getRelativeTime(activity.timestamp) : '';
+  const detectedType = detectActivityType(activity);
+
+  const config =
+    ACTIVITY_CONFIG[detectedType] ||
+    ACTIVITY_CONFIG.default;
+
+  const IconComponent = config.icon;
+
+  const displayTime = activity.timestamp
+    ? getRelativeTime(activity.timestamp)
+    : '';
 
   return (
-    <div className="flex items-start gap-3 py-3 border-b border-gray-100 dark:border-zinc-800/60 last:border-b-0 hover:bg-gray-50/80 dark:hover:bg-zinc-800/30 transition-all duration-300 group">
-      
+    <div
+      className="
+        flex items-start gap-3 py-3 px-1
+        border-b border-gray-100 dark:border-zinc-800/60
+        last:border-b-0
+        hover:bg-gray-50/80 dark:hover:bg-zinc-800/30
+        transition-all duration-300
+        group rounded-xl
+      "
+    >
+      {/* Activity Icon */}
       <div className="flex-shrink-0 mt-0.5">
-        <div className={`w-9 h-9 rounded-full ${colorClass} flex items-center justify-center shadow-sm`}>
-          <span className="text-white font-bold text-xs">{initial}</span>
+        <div
+          className={`
+            w-10 h-10 rounded-full
+            ${config.color}
+            flex items-center justify-center
+            shadow-sm text-white
+            group-hover:scale-105
+            transition-transform duration-300
+          `}
+        >
+          <IconComponent size={18} strokeWidth={2.5} />
         </div>
       </div>
 
+      {/* Content */}
       <div className="flex-1 min-w-0">
         <div className="flex items-baseline gap-1.5 flex-wrap">
           <span className="text-sm font-semibold text-gray-900 dark:text-white truncate">
             {activity.studentName}
           </span>
-          <span className="text-xs font-medium text-red-500 dark:text-red-400">
+
+          <span className="text-xs font-medium text-gray-500 dark:text-gray-400 ">
             {activity.action}
           </span>
         </div>
 
         <div className="flex items-center gap-1.5 mt-1 text-xs text-gray-500 dark:text-gray-400">
-         {activity.mentorshipTitle && (
+          {activity.mentorshipTitle && (
             <>
-              <span className="truncate max-w-[120px] sm:max-w-[200px]">
-                {activity.mentorshipTitle || 'Untitled Mentorship'}
+              <span className="truncate max-w-[120px] sm:max-w-[220px]">
+                {activity.mentorshipTitle}
               </span>
-              <span className="text-gray-300 dark:text-zinc-600 text-[10px]">•</span>
+
+              <span className="text-gray-300 dark:text-zinc-600 text-[10px]">
+                •
+              </span>
             </>
           )}
-          <span className="shrink-0 font-medium" title={activity.timestamp?.toString()}>
+
+          <span
+            className="shrink-0 font-medium text-primary"
+            title={activity.timestamp?.toString()}
+          >
             {displayTime}
           </span>
         </div>

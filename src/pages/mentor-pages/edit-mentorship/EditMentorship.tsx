@@ -76,11 +76,11 @@ const EditMentorship: FC = () => {
         };
 
         const rawCoverUrl =
-          mentorship.coverImageUrl as string |
-          mentorship.Image_URL as string |
-          mentorship.imageUrl as string |
-          mentorship.coverImage as string |
-          mentorship.image_URL as string |
+          (mentorship.coverImageUrl as string) ||
+          (mentorship.Image_URL as string) ||
+          (mentorship.imageUrl as string) ||
+          (mentorship.coverImage as string) ||
+          (mentorship.image_URL as string) ||
           undefined;
 
         setFormData({

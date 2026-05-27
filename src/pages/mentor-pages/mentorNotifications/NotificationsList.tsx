@@ -1,10 +1,10 @@
 import type { FC } from 'react';
-import { useState, useMemo } from 'react';
+import { useState, useMemo} from 'react';
 import { Bell,  ChevronLeft, ChevronRight } from 'lucide-react';
 import DashLayout from '../../../components/layout/Dash-layout';
 import NotificationTabs from '../../../components/mentor-components/mentor-notifications-com/NotificationTabs/NotificationTabs';
 import NotificationCard from '../../../components/mentor-components/mentor-notifications-com/NotificationCard/NotificationCard';
-import { useNotifications } from '../../../hooks/Usenotifications';
+import { useNotificationsContext } from '../../../context/NotificationsContext';
 
 const PAGE_SIZE = 6;
 
@@ -21,7 +21,7 @@ const NotificationsList: FC = () => {
     handleMarkAllRead,
     handleDismiss,
     handleDeleteAll,
-  } = useNotifications();
+  } = useNotificationsContext();
 
   const filtered = useMemo(() => {
     const list = activeTab === 'unread'
@@ -37,7 +37,8 @@ const NotificationsList: FC = () => {
   };
 
   const totalPages = Math.ceil(filtered.length / PAGE_SIZE);
-  const paginated = filtered.slice(currentPage * PAGE_SIZE, (currentPage + 1) * PAGE_SIZE);
+  const safePage = Math.min(currentPage, Math.max(0, totalPages - 1));
+  const paginated = filtered.slice(safePage * PAGE_SIZE, (safePage + 1) * PAGE_SIZE);
 
   return (
     <DashLayout pageTitle="Notifications">
@@ -117,7 +118,7 @@ const NotificationsList: FC = () => {
             <div className="flex items-center justify-center gap-1.5 mt-6">
               <button
                 onClick={() => setCurrentPage(p => Math.max(0, p - 1))}
-                disabled={currentPage === 0}
+                disabled={safePage === 0}
                 className="w-8 h-8 flex items-center justify-center rounded-lg border border-gray-200
                            text-gray-400 hover:border-gray-300 hover:text-gray-600
                            disabled:opacity-30 disabled:cursor-not-allowed transition"
@@ -130,7 +131,7 @@ const NotificationsList: FC = () => {
                   key={i}
                   onClick={() => setCurrentPage(i)}
                   className={`w-8 h-8 flex items-center justify-center rounded-lg text-sm font-semibold transition
-                    ${i === currentPage
+                    ${i === safePage
                       ? 'bg-primary text-white'
                       : 'border border-gray-200 text-gray-500 hover:border-gray-300'
                     }`}
@@ -141,7 +142,7 @@ const NotificationsList: FC = () => {
 
               <button
                 onClick={() => setCurrentPage(p => Math.min(totalPages - 1, p + 1))}
-                disabled={currentPage === totalPages - 1}
+                disabled={safePage === totalPages - 1}
                 className="w-8 h-8 flex items-center justify-center rounded-lg border border-gray-200
                            text-gray-400 hover:border-gray-300 hover:text-gray-600
                            disabled:opacity-30 disabled:cursor-not-allowed transition"

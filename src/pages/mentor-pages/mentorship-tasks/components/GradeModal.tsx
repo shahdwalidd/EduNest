@@ -92,7 +92,7 @@ const GradeModal: FC<GradeModalProps> = ({ submission, maxPoints, onClose, onGra
                                         <p className="text-xs text-blue-500 mb-0.5">Student Submission File</p>
                                         <p className="truncate text-blue-800">{submission.uploadedFilePath?.split('/').pop() ?? 'Open File'}</p>
                                     </div>
-                                    <span className="text-xs text-blue-500 group-hover:text-blue-700 transition-colors shrink-0">Open ↗</span>
+                                    {/* <span className="text-xs text-blue-500 group-hover:text-blue-700 transition-colors shrink-0">Open ↗</span> */}
                                 </a>
                             ) : (
                                 <div className="flex items-center gap-3 w-full px-4 py-3 bg-blue-50 border border-blue-200 rounded-xl text-sm transition-colors group">
@@ -117,7 +117,7 @@ const GradeModal: FC<GradeModalProps> = ({ submission, maxPoints, onClose, onGra
                                             {submission.uploadedFilePath?.split('/').pop()}
                                         </a>
                                     </div>
-                                    <span className="text-xs text-blue-500 group-hover:text-blue-700 transition-colors shrink-0">Open ↗</span>
+                                    {/* <span className="text-xs text-blue-500 group-hover:text-blue-700 transition-colors shrink-0">Open ↗</span> */}
                                 </div>
                             )}
                         </div>

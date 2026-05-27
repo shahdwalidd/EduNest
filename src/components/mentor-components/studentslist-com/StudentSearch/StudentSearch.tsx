@@ -11,7 +11,7 @@ interface StudentSearchProps {
 const StudentSearch: FC<StudentSearchProps> = ({ 
   value, 
   onChange,
-  placeholder = "Search student by name or mentorship"
+  placeholder = "Search student by name or email"
 }) => {
   return (
     <div className="relative w-full">
@@ -27,7 +27,7 @@ const StudentSearch: FC<StudentSearchProps> = ({
           w-full h-14 pl-12 pr-6 
           bg-white border border-gray-200 rounded-xl
           text-sm text-gray-900 placeholder:text-gray-400
-          focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent
+          focus:outline-none focus:ring-2 focus:ring-[#0f5e8b] focus:border-transparent
           transition-all
         "
       />

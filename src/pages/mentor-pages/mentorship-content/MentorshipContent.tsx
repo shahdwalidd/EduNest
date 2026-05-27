@@ -71,19 +71,29 @@ const MentorshipContent: FC = () => {
 
   // دالة ديناميكية ذكية لاستخراج رسالة الخطأ من السيرفر مهما كان شكل الـ Response
   const parseServerError = (err: unknown): string => {
-    if (err && typeof err === 'object') {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const errorObj = err as any;
-      
-      if (errorObj.errorMessages?.error) return errorObj.errorMessages.error;
-      if (errorObj.errorMessages?.message) return errorObj.errorMessages.message;
-      
-      if (errorObj.response?.data?.errorMessages?.error) return errorObj.response.data.errorMessages.error;
-      if (errorObj.response?.data?.message) return errorObj.response.data.message;
-      
-      if (errorObj.message) return errorObj.message;
+    const fallback = 'Failed to process request. Please try again.';
+    if (!err || typeof err !== 'object') return fallback;
+
+    const e = err as Record<string, unknown>;
+
+    const asString = (v: unknown): string | undefined => (typeof v === 'string' ? v : undefined);
+
+    const errorMessages = e.errorMessages as Record<string, unknown> | undefined;
+    if (errorMessages) {
+      const msg = asString(errorMessages.error) ?? asString(errorMessages.message);
+      if (msg) return msg;
     }
-    return 'Failed to process request. Please try again.';
+
+    const response = e.response as Record<string, unknown> | undefined;
+    const data = response?.data as Record<string, unknown> | undefined;
+    const dataErrorMessages = data?.errorMessages as Record<string, unknown> | undefined;
+    if (dataErrorMessages) {
+      const msg = asString(dataErrorMessages.error);
+      if (msg) return msg;
+    }
+
+    const msg = asString(data?.message) ?? asString(e.message);
+    return msg ?? fallback;
   };
 
   useEffect(() => {
@@ -107,7 +117,8 @@ const MentorshipContent: FC = () => {
             } catch {
               items = [];
             }
-return {
+
+            return {
               id: week.id,
               title: week.title ?? `Week${index + 1}`,
 
@@ -144,8 +155,7 @@ return {
   };
 
   const resolveItemId = (c: WeekContentItem, type: ContentType): number | string | undefined => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const get = (k: string) => (c as any)[k];
+    const get = (k: string) => (c as Record<string, unknown>)[k];
     const defined = (v: unknown) => v !== undefined && v !== null;
 
     const typeSpecific: Record<ContentType, string[]> = {
@@ -174,6 +184,7 @@ return {
       title: (c.title as string | undefined) ?? 'Untitled',
       type: resolveContentType(c),
       weekId: weekId ?? undefined,
+      lectureUrl: 'lectureUrl' in c ? (c as { lectureUrl?: string }).lectureUrl : undefined,
     }));
 
   const openModal = (type: ContentType, moduleIdx: number) => {
@@ -337,7 +348,7 @@ const title = `Week ${modules.length + 1}`;
   };
 
   // دالة موحدة ومحمية من التكرار (Prevents Duplication Bug)
-  const handleModalSuccess = useCallback((title: string, id: number | string | undefined, type: ContentType) => {
+  const handleModalSuccess = useCallback((title: string, id: number | string | undefined, type: ContentType, lectureUrl?: string) => {
     setModules((prev) => {
       const next = [...prev];
       const mod = next[moduleIndexForModal];
@@ -346,13 +357,15 @@ const title = `Week ${modules.length + 1}`;
       if (editingItem) {
         // تحديث العنصر الحالي
         mod.items = mod.items.map((it) =>
-          it.id === editingItem.id && it.type === editingItem.type ? { ...it, title } : it
+          it.id === editingItem.id && it.type === editingItem.type
+            ? { ...it, title, ...(lectureUrl ? { lectureUrl } : {}) }
+            : it
         );
       } else {
         // التحقق منعاً للتكرار: لو الأي دي موجود بالفعل متضيفوش تاني
         const isAlreadyAdded = mod.items.some((it) => it.id === id && it.type === type);
         if (!isAlreadyAdded) {
-          mod.items = [...mod.items, { id, type, title, weekId: mod.id ?? undefined }];
+          mod.items = [...mod.items, { id, type, title, weekId: mod.id ?? undefined, ...(lectureUrl ? { lectureUrl } : {}) }];
         }
       }
       return next;

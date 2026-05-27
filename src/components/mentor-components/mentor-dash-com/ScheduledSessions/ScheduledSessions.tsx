@@ -72,7 +72,7 @@ const ScheduledSessions: FC<ScheduledSessionsWithPaginationProps> = ({
           currentPage={currentPage}
           totalPages={totalPages}
           onPageChange={onPageChange}
-          className="mt-4"
+          className="mt-4 "
         />
       )}
     </div>
