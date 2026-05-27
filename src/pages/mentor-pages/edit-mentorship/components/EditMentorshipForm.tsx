@@ -9,8 +9,10 @@ import {
     Sparkles,
     MousePointer2,
     ChevronDown,
-    Image as ImageIcon
+    Image as ImageIcon,
+    Trash2,
 } from 'lucide-react';
+import { API_BASE_URL } from '../../../../services/api';
 import type { MentorshipFormData } from '../types';
 
 interface EditMentorshipFormProps {
@@ -21,6 +23,8 @@ interface EditMentorshipFormProps {
     handleImageChange: (file: File | null) => void;
     handleSubmit: (e: FormEvent) => void;
     submitting: boolean;
+    deletingCover: boolean;
+    onDeleteCoverImage: () => void;
     onCancel: () => void;
 }
 
@@ -32,6 +36,8 @@ const EditMentorshipForm: FC<EditMentorshipFormProps> = ({
     handleImageChange,
     handleSubmit,
     submitting,
+    deletingCover,
+    onDeleteCoverImage,
 }) => {
     // Local UI states
     const [isEditingTitle, setIsEditingTitle] = useState(false);
@@ -72,11 +78,28 @@ const EditMentorshipForm: FC<EditMentorshipFormProps> = ({
             {/* Header / Cover Image Area */}
             <div className="relative w-full h-[320px] rounded-3xl bg-gray-100 mb-8 mt-2 shadow-sm border border-gray-200 flex items-center justify-center overflow-visible">
                 {formData.coverImageUrl ? (
-                    <img
-                        src={formData.coverImageUrl}
-                        alt="Cover"
-                        className="w-full h-full object-cover rounded-3xl"
-                    />
+                    <div className="relative w-full h-full">
+                        <img
+                            src={formData.coverImageUrl?.startsWith('http') || formData.coverImageUrl?.startsWith('blob:')
+                                ? formData.coverImageUrl
+                                : `${API_BASE_URL}${formData.coverImageUrl}`}
+                            alt="Cover"
+                            className="w-full h-full object-cover rounded-3xl"
+                        />
+                        <button
+                            type="button"
+                            onClick={onDeleteCoverImage}
+                            disabled={deletingCover || submitting}
+                            className="absolute top-3 right-3 w-10 h-10 rounded-full bg-white/90 border border-gray-200 text-red-600 shadow-sm flex items-center justify-center hover:bg-red-50 transition-colors"
+                            title="Delete cover image"
+                        >
+                            {deletingCover ? (
+                                <span className="animate-spin">⏳</span>
+                            ) : (
+                                <Trash2 className="w-4 h-4" />
+                            )}
+                        </button>
+                    </div>
                 ) : (
                     <div className="flex flex-col items-center text-gray-400 cursor-pointer"
                       onClick={() => imageInputRef.current?.click()}

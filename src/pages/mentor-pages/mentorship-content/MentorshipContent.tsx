@@ -107,9 +107,10 @@ const MentorshipContent: FC = () => {
             } catch {
               items = [];
             }
-            return {
+return {
               id: week.id,
-              title: week.title ?? `Module ${index + 1}`,
+              title: week.title ?? `Week${index + 1}`,
+
               items,
               expanded: false,
             };
@@ -314,7 +315,8 @@ const MentorshipContent: FC = () => {
     }
     setLoading(true);
     try {
-      const title = `Module ${modules.length + 1}`;
+const title = `Week ${modules.length + 1}`;
+
       const res = await createWeek({ mentorshipId, title });
       const weekId = (res as WeekResponse)?.id ?? res?.id;
       setModules((prev) => [
@@ -426,8 +428,8 @@ const MentorshipContent: FC = () => {
                             maxLength={25}
                           />
                         ) : (
-                          <span className="font-semibold text-gray-900 dark:text-white">
-                            {mod.title || `Module ${idx + 1}`}
+<span className="font-semibold text-gray-900 dark:text-white">
+                            {mod.title || `Week${idx + 1}`}
                           </span>
                         )}
                       </button>
@@ -534,7 +536,7 @@ const MentorshipContent: FC = () => {
                 className="mt-6 w-full flex items-center justify-center gap-2 py-4 rounded-2xl border-2 border-dashed border-gray-200 dark:border-zinc-800 text-gray-600 dark:text-gray-400 hover:border-[var(--primary-from)] hover:text-primary hover:bg-[var(--primary-from)]/5 transition disabled:opacity-50"
               >
                 <Plus className="w-5 h-5" />
-                {loading ? 'Adding...' : 'Add Module'}
+                {loading ? 'Adding...' : 'Add Week'}
               </button>
 
               {/* Bottom actions */}

@@ -212,3 +212,31 @@ export async function changeMentorshipCoverImage(
     throw error;
   }
 }
+
+/** Delete mentorship cover image */
+export async function deleteMentorshipCoverImage(
+  mentorshipId: string | number
+): Promise<{ status: string }> {
+  try {
+    const response = await api.delete<unknown>(`api/v1/mentorship/${mentorshipId}/delete-cover-image`);
+    const raw = response.data as Record<string, unknown> | null;
+    if (raw && typeof raw === 'object') {
+      const apiRes = raw.apiResponse as Record<string, unknown> | undefined;
+      if (apiRes && typeof apiRes.status === 'string') {
+        return { status: apiRes.status };
+      }
+      if (typeof raw.status === 'string') {
+        return { status: raw.status };
+      }
+    }
+
+    return { status: 'Cover image deleted successfully' };
+  } catch (error) {
+    const fieldErrors = getValidationFieldErrors(error);
+    if (fieldErrors && Object.keys(fieldErrors).length > 0) {
+      const firstMessage = Object.values(fieldErrors)[0] ?? 'Validation failed';
+      throw new ApiValidationError(firstMessage, fieldErrors);
+    }
+    throw error;
+  }
+}

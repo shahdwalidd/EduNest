@@ -21,6 +21,8 @@ export interface MentorshipApiResponse {
   Image_URL?: string;
   imageUrl?: string;
   coverImage?: string;
+  coverImageUrl?: string;
+  image_URL?: string;
   [key: string]: unknown;
 }
 

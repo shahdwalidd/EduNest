@@ -38,8 +38,8 @@ const MentorshipDetail: FC = () => {
   const [topPage, setTopPage] = useState(0);
   const [topTotalPages, setTopTotalPages] = useState(1);
 
-  const REVIEWS_PAGE_SIZE = 1;
-  const TOP_PAGE_SIZE = 1;
+  const REVIEWS_PAGE_SIZE = 6;
+  const TOP_PAGE_SIZE = 3;
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -242,7 +242,11 @@ const MentorshipDetail: FC = () => {
             </div>
 
             <div className="overflow-x-auto">
-              <MentorshipStudentsTable students={students} />
+              <MentorshipStudentsTable
+                mentorshipId={mentorshipId || ''}
+                initialStudents={students}
+                initialSize={REVIEWS_PAGE_SIZE}
+              />
             </div>
 
           </div>

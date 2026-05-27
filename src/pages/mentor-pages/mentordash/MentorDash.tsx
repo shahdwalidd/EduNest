@@ -172,16 +172,17 @@ const MentorDash: React.FC = () => {
 
                 {/* Right column (1/3) */}
                 <div className="space-y-6 mentorDashRighColumn">
-                  <CalendarWidget
-                    sessions={sessions.map((s) => ({
-                      id: s.id,
-                      title: s.title,
-                      startTime: s.startTime,
-                      endTime: s.endTime,
-                      type: s.type,
-                      date: s.date || new Date().toISOString().split('T')[0],
-                    }))}
-                  />
+                    <CalendarWidget
+                      selectedDate={new Date()}
+                      sessions={sessions.map((s) => ({
+                        id: s.id,
+                        title: s.title,
+                        startTime: s.startTime,
+                        endTime: s.endTime,
+                        type: s.type,
+                        date: s.date ?? new Date().toLocaleDateString('en-CA'),
+                      }))}
+                    />
 
                   <ScheduledSessions
                     sessions={sessions}
