@@ -8,7 +8,11 @@ interface RelativeTimeProps {
 const formatTimeAgo = (isoDate: string): string => {
   if (!isoDate) return '';
   const utc = isoDate.endsWith('Z') || isoDate.includes('+') ? isoDate : isoDate + 'Z';
-  const diff = Date.now() - new Date(utc).getTime();
+  const parsed = new Date(utc);
+  // prevent NaN-based output
+  if (isNaN(parsed.getTime())) return 'Just now';
+
+  const diff = Date.now() - parsed.getTime();
   const mins = Math.floor(diff / 60_000);
   const hours = Math.floor(diff / 3_600_000);
   const days = Math.floor(diff / 86_400_000);
@@ -18,7 +22,7 @@ const formatTimeAgo = (isoDate: string): string => {
   if (mins < 60) return `${mins}m ago`;
   if (hours < 24) return `${hours}h ago`;
   if (days < 7) return `${days}d ago`;
-  return new Date(utc).toLocaleDateString([], { month: 'short', day: 'numeric' });
+  return parsed.toLocaleDateString([], { month: 'short', day: 'numeric' });
 };
 
 

@@ -113,7 +113,7 @@ const Login: React.FC = () => {
         </div>
 
         {/* Forgot password */}
-        <Link to="/forgot-password" className="text-sm text-blue-600 hover:underline">
+        <Link to="/forgot-password" className="text-sm text-[var(--primary-500)] hover:underline">
           Forgot password?
         </Link>
 
@@ -146,7 +146,7 @@ const Login: React.FC = () => {
 
         <p className="text-center text-gray-600">
           Don't have an account?{" "}
-          <Link to="/register" className="text-blue-600 font-medium">Create one</Link>
+          <Link to="/register" className="text-[var(--primary-500)] font-medium">Create one</Link>
         </p>
       </form>
     </BasicLayout>

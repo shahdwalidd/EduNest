@@ -16,48 +16,15 @@ import {
   mapRevenueChart,
   mapNotifications,
 } from '../utils/mappers';
+import { DEFAULT_PAGINATION, getErrorMessage, parsePaginationMeta, type PaginationMeta } from './helpers';
+import { useNotificationsSocket } from './useNotificationsSocket';
 import type { DashboardCardsData } from '../types';
 import type { Session } from '../../../../components/mentor-components/mentor-dash-com/ScheduledSessions/ScheduledSessions.types';
 import type { Review } from '../../../../components/mentor-components/mentor-dash-com/Reviews/Reviews.types';
 import type { SalesData } from '../../../../components/mentor-components/mentor-dash-com/SalesChart/SalesChart.types';
 import type { Notification } from '../../../../types/mentornotification.types';
 
-// ─── Types ────────────────────────────────────────────────────────────────────
-
-export interface PaginationMeta {
-  page: number;          // 0-based (matches backend)
-  totalPages: number;
-  totalElements: number;
-}
-
-const DEFAULT_PAGINATION: PaginationMeta = {
-  page: 0,
-  totalPages: 1,
-  totalElements: 0,
-};
-
-// ─── Helpers ──────────────────────────────────────────────────────────────────
-
-function getErrorMessage(e: unknown): string {
-  if (!e) return 'Failed to load data';
-  if (typeof e === 'string') return e;
-  if (typeof e === 'object' && e !== null) {
-    const obj = e as Record<string, unknown>;
-    if (typeof obj.message === 'string' && obj.message) return obj.message;
-    if (typeof obj.error   === 'string' && obj.error)   return obj.error;
-  }
-  return 'Failed to load data';
-}
-
-function parsePaginationMeta(raw: Record<string, unknown>, page: number): PaginationMeta {
-  return {
-    page:          Number(raw.page          ?? page),
-    totalPages:    Number(raw.totalPages    ?? 1),
-    totalElements: Number(raw.totalElements ?? 0),
-  };
-}
-
-// ─── Main hook ────────────────────────────────────────────────────────────────
+type AnyDashboard = MentorDashboardResponse & { dashboard?: unknown; data?: unknown };
 
 export const useDashboardData = () => {
   const navigate = useNavigate();
@@ -74,118 +41,110 @@ export const useDashboardData = () => {
     year: 'numeric',
   });
 
-  // ── Global (initial load) state ──────────────────────────────────────────────
-  const [cards, setCards]               = useState<DashboardCardsData | null>(null);
-  const [revenueData, setRevenueData]   = useState<SalesData[]>([]);
-  const [notifications, setNotifications] = useState<Notification[]>([]);
-  const [notificationPagination, setNotificationPagination] = useState<PaginationMeta>(DEFAULT_PAGINATION);
-  const [initialLoading, setInitialLoading] = useState(true);
-  const [globalError, setGlobalError]   = useState<string | null>(null);
+  // ─── Grouped States ────────────────────────────────────────────────────────
+  const [mainData, setMainData] = useState({
+    cards: null as DashboardCardsData | null,
+    revenueData: [] as SalesData[],
+    notifications: [] as Notification[],
+    pagination: DEFAULT_PAGINATION,
+    loading: true,
+    error: null as string | null,
+  });
 
-  // ── Reviews section state ────────────────────────────────────────────────────
-  const [reviews, setReviews]               = useState<Review[]>([]);
-  const [reviewPagination, setReviewPagination] = useState<PaginationMeta>(DEFAULT_PAGINATION);
-  const [reviewsLoading, setReviewsLoading] = useState(false);
-  const [reviewsError, setReviewsError]     = useState<string | null>(null);
+  const [reviewsState, setReviewsState] = useState({
+    data: [] as Review[],
+    pagination: DEFAULT_PAGINATION,
+    loading: false,
+    error: null as string | null,
+  });
 
-  // ── Sessions section state ───────────────────────────────────────────────────
-  const [sessions, setSessions]               = useState<Session[]>([]);
-  const [sessionPagination, setSessionPagination] = useState<PaginationMeta>(DEFAULT_PAGINATION);
-  const [sessionsLoading, setSessionsLoading] = useState(false);
-  const [sessionsError, setSessionsError]     = useState<string | null>(null);
+  const [sessionsState, setSessionsState] = useState({
+    data: [] as Session[],
+    pagination: DEFAULT_PAGINATION,
+    loading: false,
+    error: null as string | null,
+  });
 
-  // ── Auth guards ──────────────────────────────────────────────────────────────
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      if (!useAuthStore.getState().token) navigate('/login');
-    }, 100);
-    return () => clearTimeout(timer);
-  }, [navigate]);
+  // ─── Race Condition Guard Refs ─────────────────────────────────────────────
+  const reviewsReqId = useRef(0);
+  const sessionsReqId = useRef(0);
+  const notificationsReqId = useRef(0);
 
-  useEffect(() => {
-    if (isHydrated && !token) navigate('/login');
-  }, [isHydrated, token, navigate]);
-
-  // ── Reviews fetch ────────────────────────────────────────────────────────────
+  // ─── Section Fetches (Callbacks) ───────────────────────────────────────────
   const fetchReviews = useCallback(
     (page: number) => {
       if (!isHydrated || !token) return;
+      const requestId = ++reviewsReqId.current;
 
-      setReviewsLoading(true);
-      setReviewsError(null);
+      setReviewsState((prev) => ({ ...prev, loading: true, error: null }));
 
       getDashboardReviews(page)
         .then((res) => {
+          if (requestId !== reviewsReqId.current) return;
+
           const reviewsObj = (res as { apiResponse?: { reviews?: Record<string, unknown> } })
-            ?.apiResponse?.reviews as Record<string, unknown> | undefined;
+            ?.apiResponse?.reviews;
 
           if (!reviewsObj) throw new Error('Invalid reviews response');
-
           const content = Array.isArray(reviewsObj.content) ? reviewsObj.content : [];
-          setReviews(mapReviews({ content }));
-          setReviewPagination(parsePaginationMeta(reviewsObj, page));
+
+          setReviewsState({
+            data: mapReviews({ content }),
+            pagination: parsePaginationMeta(reviewsObj, page),
+            loading: false,
+            error: null,
+          });
         })
         .catch((err) => {
-          setReviewsError(getErrorMessage(err));
-        })
-        .finally(() => {
-          setReviewsLoading(false);
+          if (requestId !== reviewsReqId.current) return;
+          setReviewsState((prev) => ({ ...prev, loading: false, error: getErrorMessage(err) }));
         });
     },
     [isHydrated, token],
   );
 
-  // ── Sessions fetch ───────────────────────────────────────────────────────────
   const fetchSessions = useCallback(
     (page: number) => {
       if (!isHydrated || !token) return;
+      const requestId = ++sessionsReqId.current;
 
-      setSessionsLoading(true);
-      setSessionsError(null);
+      setSessionsState((prev) => ({ ...prev, loading: true, error: null }));
 
       getDashboardSessions(page)
         .then((res) => {
+          if (requestId !== sessionsReqId.current) return;
+
           const sessionsObj = (res as { apiResponse?: { sessions?: Record<string, unknown> } })
-            ?.apiResponse?.sessions as Record<string, unknown> | undefined;
+            ?.apiResponse?.sessions;
 
           if (!sessionsObj) throw new Error('Invalid sessions response');
-
           const content = Array.isArray(sessionsObj.content) ? sessionsObj.content : [];
-          setSessions(mapSessions({ content }));
-          setSessionPagination(parsePaginationMeta(sessionsObj, page));
+
+          setSessionsState({
+            data: mapSessions({ content }),
+            pagination: parsePaginationMeta(sessionsObj, page),
+            loading: false,
+            error: null,
+          });
         })
         .catch((err) => {
-          setSessionsError(getErrorMessage(err));
-        })
-        .finally(() => {
-          setSessionsLoading(false);
+          if (requestId !== sessionsReqId.current) return;
+          setSessionsState((prev) => ({ ...prev, loading: false, error: getErrorMessage(err) }));
         });
     },
     [isHydrated, token],
   );
 
-  // ── Initial load: cards + notifications + revenue from the combined endpoint ──
-  // Use a ref to call the section fetches exactly once without adding them to deps
-  const fetchReviewsRef  = useRef(fetchReviews);
-  const fetchSessionsRef = useRef(fetchSessions);
-  fetchReviewsRef.current  = fetchReviews;
-  fetchSessionsRef.current = fetchSessions;
-
+  // ─── Initial Combined Load ──────────────────────────────────────────────────
   useEffect(() => {
     if (!isHydrated || !token) return;
-
     let cancelled = false;
 
-    setInitialLoading(true);
-    setGlobalError(null);
-
-    type AnyDashboard = MentorDashboardResponse & { dashboard?: unknown; data?: unknown };
+    setMainData((prev) => ({ ...prev, loading: true, error: null }));
 
     const params: MentorDashboardParams = {
-      // Only fetch cards & notifications from the combined endpoint
       notificationPage: 0,
       notificationSize: 3,
-      // We don't need reviews/sessions here — fetched separately below
       reviewPage: 0,
       reviewSize: 1,
       sessionPage: 0,
@@ -195,68 +154,47 @@ export const useDashboardData = () => {
     getMentorDashboard(params)
       .then((res) => {
         if (cancelled) return;
-
         if (!res || typeof res !== 'object') throw new Error('Unexpected response');
         if (isApiErrorResponse(res)) throw res;
 
         const r = res as AnyDashboard;
-        const dashboardObj = r.apiResponse?.dashboard ?? (r as AnyDashboard).dashboard ?? {};
+        const dashboardObj = r.apiResponse?.dashboard ?? r.dashboard ?? {};
         const dashObj = dashboardObj as Record<string, unknown>;
 
-        // Cards
-        setCards(extractCardsData(dashboardObj));
-
-        // Revenue chart
-        const mapped = mapRevenueChart(dashObj.salesChart);
-        setRevenueData(mapped.length > 0 ? mapped : []);
-
-        // Notifications
-        const mappedNotis = mapNotifications(dashObj.notifications);
-        setNotifications(mappedNotis);
-        const notisRaw = dashObj.notifications as Record<string, unknown> | undefined;
-        if (notisRaw) {
-          setNotificationPagination(parsePaginationMeta(notisRaw, 0));
-        }
-
-        setInitialLoading(false);
+        setMainData({
+          cards: extractCardsData(dashboardObj),
+          revenueData: mapRevenueChart(dashObj.salesChart) || [],
+          notifications: mapNotifications(dashObj.notifications),
+          pagination: parsePaginationMeta((dashObj.notifications as Record<string, unknown>) || {}, 0),
+          loading: false,
+          error: null,
+        });
       })
       .catch((err) => {
-        if (!cancelled) {
-          const message = getErrorMessage(err);
-          setGlobalError(message);
-          if (/invalid jwt|jwt token|unauthorized/i.test(message)) {
-            logout();
-            navigate('/login');
-          }
-          setInitialLoading(false);
+        if (cancelled) return;
+        const message = getErrorMessage(err);
+        setMainData((prev) => ({ ...prev, loading: false, error: message }));
+        
+        if (/invalid jwt|jwt token|unauthorized/i.test(message)) {
+          logout();
+          navigate('/login');
         }
       });
 
-    // Kick off section-specific fetches in parallel
-    fetchReviewsRef.current(0);
-    fetchSessionsRef.current(0);
+    // Parallel fetch initialization
+    fetchReviews(0);
+    fetchSessions(0);
 
-    return () => { cancelled = true; };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [token, isHydrated, navigate, logout]);
+    return () => {
+      cancelled = true;
+    };
+  }, [token, isHydrated, navigate, logout, fetchReviews, fetchSessions]);
 
-  // ── Pagination handlers (call dedicated endpoints) ───────────────────────────
-  const handleReviewPageChange = useCallback(
-    (page: number) => fetchReviews(page),
-    [fetchReviews],
-  );
-
-  const handleSessionPageChange = useCallback(
-    (page: number) => fetchSessions(page),
-    [fetchSessions],
-  );
-
-  /** Notifications still use the combined endpoint (no dedicated one yet) */
+  // ─── Pagination Handlers ────────────────────────────────────────────────────
   const handleNotificationPageChange = useCallback(
     (page: number) => {
       if (!isHydrated || !token) return;
-
-      type AnyDashboard = MentorDashboardResponse & { dashboard?: unknown };
+      const requestId = ++notificationsReqId.current;
 
       getMentorDashboard({
         notificationPage: page,
@@ -265,52 +203,69 @@ export const useDashboardData = () => {
         sessionPage: 0, sessionSize: 1,
       })
         .then((res) => {
-          const r = res as AnyDashboard;
-          const dashObj = (
-            r.apiResponse?.dashboard ?? (r as AnyDashboard).dashboard ?? {}
-          ) as Record<string, unknown>;
+          if (requestId !== notificationsReqId.current) return;
 
-          const mappedNotis = mapNotifications(dashObj.notifications);
-          setNotifications(mappedNotis);
+          const r = res as AnyDashboard;
+          const dashObj = (r.apiResponse?.dashboard ?? r.dashboard ?? {}) as Record<string, unknown>;
           const notisRaw = dashObj.notifications as Record<string, unknown> | undefined;
-          if (notisRaw) setNotificationPagination(parsePaginationMeta(notisRaw, page));
+
+          setMainData((prev) => ({
+            ...prev,
+            notifications: mapNotifications(dashObj.notifications),
+            pagination: parsePaginationMeta(notisRaw || {}, page),
+          }));
         })
-        .catch((err) => setGlobalError(getErrorMessage(err)));
+        .catch((err) => {
+          if (requestId !== notificationsReqId.current) return;
+          setMainData((prev) => ({ ...prev, error: getErrorMessage(err) }));
+        });
     },
     [isHydrated, token],
   );
 
+  // ─── WebSockets Compatibility Wrappers ──────────────────────────────────────
+  const setNotificationsWrapper = useCallback((updater: (prev: Notification[]) => Notification[]) => {
+    setMainData((prev) => ({ ...prev, notifications: updater(prev.notifications) }));
+  }, []);
+
+  const setNotificationPaginationWrapper = useCallback((updater: (prev: PaginationMeta) => PaginationMeta) => {
+    setMainData((prev) => ({ ...prev, pagination: updater(prev.pagination) }));
+  }, []);
+
+  useNotificationsSocket(token, isHydrated, setNotificationsWrapper, setNotificationPaginationWrapper);
+
+  // ─── Return Clean API ───────────────────────────────────────────────────────
   return {
     // Data
-    cards,
-    sessions,
-    reviews,
-    revenueData,
-    notifications,
+    cards:         mainData.cards,
+    sessions:      sessionsState.data,
+    reviews:       reviewsState.data,
+    revenueData:   mainData.revenueData,
+    notifications: mainData.notifications,
 
-    // Loading / error — unified for the page-level skeleton
-    loading: initialLoading,
-    error:   globalError,
+    // Global Status
+    loading: mainData.loading,
+    error:   mainData.error,
 
-    // Per-section loading states (for inline spinners if needed)
-    reviewsLoading,
-    sessionsLoading,
-    reviewsError,
-    sessionsError,
+    // Inline Statuses
+    reviewsLoading:  reviewsState.loading,
+    sessionsLoading: sessionsState.loading,
+    reviewsError:    reviewsState.error,
+    sessionsError:   sessionsState.error,
 
-    // Auth
+    // Auth Metadata
     isHydrated,
     displayName,
     welcomeDate,
 
-    // Pagination meta
-    reviewPagination,
-    sessionPagination,
-    notificationPagination,
+    // Pagination Metadata
+    reviewPagination:       reviewsState.pagination,
+    sessionPagination:      sessionsState.pagination,
+    notificationPagination: mainData.pagination,
 
-    // Pagination handlers
-    handleReviewPageChange,
-    handleSessionPageChange,
+    // Handlers
+    handleReviewPageChange:  fetchReviews,
+    handleSessionPageChange: fetchSessions,
     handleNotificationPageChange,
   };
 };

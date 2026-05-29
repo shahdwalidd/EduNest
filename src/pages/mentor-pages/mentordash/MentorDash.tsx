@@ -138,7 +138,7 @@ const MentorDash: React.FC = () => {
           ) : (
             <>
               {/* ── Stat Cards ─────────────────────────────────────────────── */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 stateMentorCard">
                 {stats.map((stat) => (
                   <DashboardStatCard
                     key={stat.title}
@@ -151,7 +151,8 @@ const MentorDash: React.FC = () => {
               </div>
 
               {/* ── Main Grid ─────────────────────────────────────────────── */}
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start mainDashDiv">
+           
                 {/* Left column (2/3) */}
                 <div className="lg:col-span-2 space-y-6">
                   <SalesChart
@@ -170,17 +171,20 @@ const MentorDash: React.FC = () => {
                 </div>
 
                 {/* Right column (1/3) */}
-                <div className="space-y-6">
-                  <CalendarWidget
-                    sessions={sessions.map((s) => ({
-                      id: s.id,
-                      title: s.title,
-                      startTime: s.startTime,
-                      endTime: s.endTime,
-                      type: s.type,
-                      date: s.date || new Date().toISOString().split('T')[0],
-                    }))}
-                  />
+                <div className="space-y-6 mentorDashRighColumn">
+                    <CalendarWidget
+                      selectedDate={new Date()}
+                      sessions={sessions.map((s) => ({
+                        id: s.id,
+                        mentorshipId: s.mentorshipId,
+                        mentorshipTitle: s.mentorshipTitle,
+                        title: s.title,
+                        startTime: s.startTime,
+                        endTime: s.endTime,
+                        type: s.type,
+                        date: s.date ?? new Date().toLocaleDateString('en-CA'),
+                      }))}
+                    />
 
                   <ScheduledSessions
                     sessions={sessions}
@@ -197,7 +201,7 @@ const MentorDash: React.FC = () => {
                       studentName: n.title || 'Notification',
                       action: n.message || '',
                       mentorshipTitle: '',
-                      timestamp: n.timestamp,
+                      timestamp: n.timestamp ?? (n.rawTime ?? new Date().toISOString()),
                       type: 'completion',
                     }))}
                     currentPage={notificationPagination.page}

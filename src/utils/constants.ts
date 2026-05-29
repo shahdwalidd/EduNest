@@ -1,15 +1,19 @@
 import mentorImgUiUx from '../assets/homePage/explore1.webp';
-import mentorImgReact from '../assets/homePage/ask.webp';
+import mentorImgReact from '../assets/homePage/Questions-pana.svg';
 import mentorImgMl from '../assets/homePage/aboutus3.webp';
 import mentorImgFullstack from '../assets/homePage/aboutus2.webp';
 import avatarDavid from '../assets/homePage/person1.webp';
 import avatarSarah from '../assets/homePage/person2.webp';
 import avatarKumar from '../assets/homePage/person3.webp';
 import avatarJohn from '../assets/homePage/person4.webp';
-import aboutUs1 from '../assets/homePage/aboutus1.webp';
-import aboutUs2 from '../assets/homePage/aboutus2.webp';
-import aboutUs3 from '../assets/homePage/aboutus3.webp';
-import blog1 from '../assets/homePage/blog1.webp';
+import aboutUs1 from '../assets/homePage/about/Seminar-amico.svg';
+import aboutUs2 from '../assets/homePage/about/Studying-amico.svg';
+import aboutUs3 from '../assets/homePage/about/Remote meeting-rafiki.svg';
+import blog1 from '../assets/homePage/blog/Blog post-bro.svg';
+import blog2 from '../assets/homePage/blog/Education-rafiki.svg';
+import blog3 from '../assets/homePage/blog/Programming-amico.svg';
+import blog4 from '../assets/homePage/blog/UI-UX differences-rafiki.svg';
+
 
 export const TEXTS = {
   heroTitle: 'Learn.Mentor. Grow',
@@ -53,8 +57,12 @@ export const ABOUT_STATS = [
   { icon: 'Users', value: '15,000+', label: 'Active Students' },
   { icon: 'BookOpen', value: '500+', label: 'Courses' },
   { icon: 'Check', value: '150+', label: 'Expert Instructors' },
-];
+] as Array<{ icon: 'Users' | 'BookOpen' | 'Star' | 'Check'; value: string; label: string }>;
 
+
+
+
+//  images
 export const ABOUT_IMAGES = [
   aboutUs3,
   aboutUs1,
@@ -63,7 +71,7 @@ export const ABOUT_IMAGES = [
 ];
 
 
-
+//  why choose us
 export const WHY_CHOOSE_US_FEATURES = [
   {
     title: 'Why Choose us?',
@@ -97,36 +105,53 @@ export const WHY_CHOOSE_US_FEATURES = [
     title: 'How Mentorship Can Fast-Track',
     description: 'Discover how learning from real mentors helps students build practical skills and enter the tech industry with confidence.',
   },
-  {
-    imageSrc: blog1,
-    date: 'May 01, 2026',
-    comments: 10,
-    title: 'How Mentorship Can Fast-Track',
-    description: 'Discover how learning from real mentors helps students build practical skills and enter the tech industry with confidence.',
+{
+    imageSrc: blog2,
+    date: 'May 12, 2026',
+    comments: 7,
+    title: 'Bridging the Gap Between College and Code',
+    description: 'Explore why standard university curricula often leave IT students scrambling and how working on practical, hands-on projects makes you job-ready.',
   },
   {
-    imageSrc: blog1,
-    date: 'May 01, 2026',
-    comments: 10,
-    title: 'How Mentorship Can Fast-Track',
-    description: 'Discover how learning from real mentors helps students build practical skills and enter the tech industry with confidence.',
+    imageSrc: blog3,
+    date: 'May 18, 2026',
+    comments: 14,
+    title: 'The Art of Code Review in Team Projects',
+    description: "Discover how collaborating effectively on shared repositories and reviewing your peers' code accelerates your growth as a developer.",
   },
   {
-    imageSrc: blog1,
-    date: 'May 01, 2026',
-    comments: 10,
-    title: 'How Mentorship Can Fast-Track',
-    description: 'Discover how learning from real mentors helps students build practical skills and enter the tech industry with confidence.',
+    imageSrc: blog4,
+    date: 'May 24, 2026',
+    comments: 5,
+    title: 'Why UI/UX Matters for Modern Web Apps',
+    description: 'Learn how adopting a minimalist, clean design approach can significantly elevate the user experience and value of your digital products.',
   },
 ];
 
-
+// testimonials
 export const TESTIMONIALS_DATA = [
-  { quote: "you only have to know one thing, that you can learn anything. Anytime, anywhere to do you discover yourself. Our content will help you every step.", name: "Jheny William", role: "Mentor", image: 'https://i.pravatar.cc/150?img=1' },
-  { quote: "you only have to know one thing, that you can learn anything. Anytime, anywhere to do you discover yourself. Our content will help you every step.", name: "Jheny William", role: "Student", image: 'https://i.pravatar.cc/150?img=2' },
-  { quote: "you only have to know one thing, that you can learn anything. Anytime, anywhere to do you discover yourself. Our content will help you every step.", name: "Jheny William", role: "Student", image: 'https://i.pravatar.cc/150?img=3' },
+  {
+    quote: "Guiding students here is deeply rewarding. The platform makes it seamless to share engineering insights and bridge the gap between theory and industry reality.",
+    name: "Elsayed Elsadek",
+    role: "Senior Full-Stack Mentor",
+    image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=150&h=150&q=80"
+  },
+  {
+    quote: "Navigating complex backend architectures alone was tough. Having a dedicated mentor to review my code and guide my roadmap completely transformed my career preparation.",
+    name: "Omar El-Farouk",
+    role: "Computer Science Student",
+    image: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=150&h=150&q=80"
+  },
+  {
+    quote: "The structured mentorship here is unmatched. It's inspiring to work with ambitious future engineers eager to master modern tech stacks and real-world workflows.",
+    name: "Sarah Jenkins",
+    role: "Tech Lead & Mentor",
+    image: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=150&h=150&q=80"
+  }
 ];
 
+
+// faq
 export const FAQ_ITEMS = [
   { id: 1, question: 'How can I become a mentor on the platform?', answer: 'To become a mentor, you need to have specialized experience in an IT field (usually 5+ years) and pass a short screening interview. You can apply through the "Become a Mentor" section on the website.' },
   { id: 2, question: 'Is joining the mentorship program free for students?', answer: 'The core mentorship program is offered free of charge to all registered students. However, some specialized one-on-one sessions may require a small fee.' },

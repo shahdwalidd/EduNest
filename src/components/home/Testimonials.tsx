@@ -3,7 +3,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faChevronDown, faChevronUp } from '@fortawesome/free-solid-svg-icons';
 
 import { TESTIMONIALS_DATA, FAQ_ITEMS } from '../../utils/constants'; 
-import askedImg from '../../assets/homePage/ask.webp'; 
+import askedImg from '../../assets/homePage/Questions-pana.svg'; 
 
 const CombinedClientAndFAQSections: React.FC = () => {
   const [openId, setOpenId] = useState<number | null>(null);
@@ -20,7 +20,7 @@ const CombinedClientAndFAQSections: React.FC = () => {
         {/* Header */}
         <div className="text-center mb-12 sm:mb-16">
           <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 inline-block relative pb-2">
-            What our Clients Say
+            What our Clients <span className="text-[var(--primary-500)]">Say</span> 
           </h2>
         </div>
         
@@ -55,9 +55,9 @@ const CombinedClientAndFAQSections: React.FC = () => {
 
               {/* Dots Decoration */}
               <div className="absolute top-1/2 right-4 transform -translate-y-1/2">
-                <span className="block w-2 h-2 bg-green-300 rounded-full mb-1"></span>
-                <span className="block w-2 h-2 bg-green-300 rounded-full mb-1 opacity-70"></span>
-                <span className="block w-2 h-2 bg-green-300 rounded-full opacity-40"></span>
+                <span className="block w-2 h-2 bg-[var(--primary-500)] rounded-full mb-1"></span>
+                <span className="block w-2 h-2 bg-[var(--primary-500)] rounded-full mb-1 opacity-70"></span>
+                <span className="block w-2 h-2 bg-[var(--primary-500)] rounded-full opacity-40"></span>
               </div>
             </div>
           ))}

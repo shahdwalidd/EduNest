@@ -128,8 +128,8 @@ const ExploreMentorships: FC = () => {
   };
 
 useEffect(() => {
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-}, [filters]);
+    window.scrollTo({ top: 0, behavior: 'smooth' ,   });
+}, []);
   return (
     <div className="min-h-screen bg-white">
       <Navbar />

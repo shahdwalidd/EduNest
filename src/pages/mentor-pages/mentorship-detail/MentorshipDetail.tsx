@@ -242,7 +242,11 @@ const MentorshipDetail: FC = () => {
             </div>
 
             <div className="overflow-x-auto">
-              <MentorshipStudentsTable students={students} />
+              <MentorshipStudentsTable
+                mentorshipId={mentorshipId || ''}
+                initialStudents={students}
+                initialSize={REVIEWS_PAGE_SIZE}
+              />
             </div>
 
           </div>

@@ -85,21 +85,48 @@ const GradeModal: FC<GradeModalProps> = ({ submission, maxPoints, onClose, onGra
                     {/* Student submission file — shown prominently */}
                     {resolveFirstFileUrl(submission.fileUrl, submission.uploadedFilePath) ? (
                         <div className="w-full mt-1">
-                            <a
-                                href={resolveFirstFileUrl(submission.fileUrl, submission.uploadedFilePath)}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="flex items-center gap-3 w-full px-4 py-3 bg-blue-50 border border-blue-200 text-blue-700 rounded-xl text-sm font-semibold hover:bg-blue-100 transition-colors group"
-                            >
-                                <div className="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center shrink-0">
-                                    <Paperclip size={15} className="text-white" />
+                            {submission.fileUrl ? (
+                                <a
+                                    href={submission.fileUrl}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="flex items-center gap-3 w-full px-4 py-3 bg-blue-50 border border-blue-200 text-blue-700 rounded-xl text-sm font-semibold hover:bg-blue-100 transition-colors group"
+                                >
+                                    <div className="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center shrink-0">
+                                        <Paperclip size={15} className="text-white" />
+                                    </div>
+                                    <div className="flex-1 min-w-0">
+                                        <p className="text-xs text-blue-500 mb-0.5">Student Submission File</p>
+                                        <p className="truncate text-blue-800">{submission.uploadedFilePath?.split('/').pop() ?? 'Open File'}</p>
+                                    </div>
+                                    {/* <span className="text-xs text-blue-500 group-hover:text-blue-700 transition-colors shrink-0">Open ↗</span> */}
+                                </a>
+                            ) : (
+                                <div className="flex items-center gap-3 w-full px-4 py-3 bg-blue-50 border border-blue-200 rounded-xl text-sm transition-colors group">
+                                    <div className="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center shrink-0">
+                                        <Paperclip size={15} className="text-white" />
+                                    </div>
+                                    <div className="flex-1 min-w-0">
+                                        <p className="text-xs text-blue-500 mb-0.5">Submitted File</p>
+                                        <a 
+                                            href={(() => {
+                                                const path = submission.uploadedFilePath;
+                                                if (!path) return '';
+                                                if (path.startsWith('http')) return path;
+                                                let clean = path.startsWith('/') ? path.substring(1) : path;
+                                                if (clean.startsWith('app/')) clean = clean.substring(4);
+                                                return `${API_BASE_URL.endsWith('/') ? API_BASE_URL : API_BASE_URL+'/'}${clean}`;
+                                            })()}
+                                            target="_blank" 
+                                            rel="noopener noreferrer" 
+                                            className="block truncate text-blue-800 hover:underline"
+                                        >
+                                            {submission.uploadedFilePath?.split('/').pop()}
+                                        </a>
+                                    </div>
+                                    {/* <span className="text-xs text-blue-500 group-hover:text-blue-700 transition-colors shrink-0">Open ↗</span> */}
                                 </div>
-                                <div className="flex-1 min-w-0">
-                                    <p className="text-xs text-blue-500 mb-0.5">Student Submission File</p>
-                                    <p className="truncate text-blue-800">{submission.uploadedFilePath?.split('/').pop() ?? 'Open File'}</p>
-                                </div>
-                                <span className="text-xs text-blue-500 group-hover:text-blue-700 transition-colors shrink-0">Open ↗</span>
-                            </a>
+                            )}
                         </div>
                     ) : null}
                 </div>

@@ -270,6 +270,7 @@ const ReviewsSection = () => {
   const reviewsPage = data?.reviewsPage ?? { content: [], totalElements: 0, totalPages: 0 };
   const avgRating = data?.avgRating ?? 0;
 
+
   const hasReviews = reviewsPage.content.length > 0;
   const showLoading = mentorshipLoading || isLoading;
 
@@ -293,15 +294,11 @@ const ReviewsSection = () => {
         <div className="rounded-[2rem] bg-slate-50 p-6">
           <div className="inline-flex items-center gap-3 rounded-3xl bg-[var(--primary-500)]/10 px-4 py-3 text-[var(--primary-500)]">
             <MessageSquare className="h-5 w-5" />
-            <span className="text-sm font-semibold uppercase tracking-[0.3em]">
-              Student feedback
-            </span>
+            <span className="text-sm font-semibold uppercase tracking-[0.3em]">Student feedback</span>
           </div>
 
           <div className="mt-8">
-            <p className="text-sm font-semibold uppercase tracking-[0.3em] text-slate-500">
-              Average rating
-            </p>
+            <p className="text-sm font-semibold uppercase tracking-[0.3em] text-slate-500">Average rating</p>
             <div className="mt-4 flex items-end gap-3">
               <span className="text-5xl font-semibold text-slate-900">
                 {avgRating.toFixed(1)}
@@ -322,25 +319,17 @@ const ReviewsSection = () => {
         <div className="rounded-[2rem] bg-white p-6 shadow-sm">
           <div className="flex flex-col gap-4">
             <div>
-              <p className="text-sm font-semibold uppercase tracking-[0.3em] text-slate-500">
-                Why students love it
-              </p>
-              <h2 className="mt-3 text-3xl font-semibold text-slate-900">
-                A clean review experience with insights that matter
-              </h2>
+              <p className="text-sm font-semibold uppercase tracking-[0.3em] text-slate-500">Why students love it</p>
+              <h2 className="mt-3 text-3xl font-semibold text-slate-900">A clean review experience with insights that matter</h2>
             </div>
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="rounded-[1.75rem] bg-slate-50 p-5">
                 <p className="text-sm font-semibold text-[var(--primary-500)]">Fast feedback</p>
-                <p className="mt-2 text-sm text-slate-600">
-                  Recent students can leave a review quickly and share their mentorship experience.
-                </p>
+                <p className="mt-2 text-sm text-slate-600">Recent students can leave a review quickly and share their mentorship experience.</p>
               </div>
               <div className="rounded-[1.75rem] bg-slate-50 p-5">
                 <p className="text-sm font-semibold text-[var(--primary-500)]">Helpful guidance</p>
-                <p className="mt-2 text-sm text-slate-600">
-                  Enjoy a modern review layout built to highlight student quotes and ratings.
-                </p>
+                <p className="mt-2 text-sm text-slate-600">Enjoy a modern review layout built to highlight student quotes and ratings.</p>
               </div>
             </div>
           </div>
@@ -409,7 +398,7 @@ const ReviewsSection = () => {
               {page * PAGE_SIZE + reviewsPage.content.length} of{' '}
               {reviewsPage.totalElements} reviews
             </p>
-            <div className="inline-flex items-center gap-1 rounded-full bg-white p-1 shadow-sm">
+              <div className="inline-flex items-center gap-1 rounded-full bg-white p-1 shadow-sm">
               <button
                 className="inline-flex h-10 w-10 items-center justify-center rounded-full text-slate-600 hover:bg-slate-100 disabled:opacity-50"
                 onClick={() => setPage((p) => Math.max(p - 1, 0))}
@@ -448,3 +437,4 @@ const ReviewsSection = () => {
 };
 
 export default ReviewsSection;
+

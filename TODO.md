@@ -1,8 +1,5 @@
-# TODO (SalesChart filter API)
-
-- [x] فهم كود SalesChart الحالي ومصدر بياناته
-- [ ] تعديل SalesChart.tsx ليعمل API call عند تغيير الفلتر
-- [ ] ربط PeriodKey مع months integer (1/3/6/12)
-- [ ] إضافة loading/error داخل المكوّن وتفادي race conditions
-- [x] التأكد أن Chart/Tooltip تعمل مع كل عدد نقاط
-- [x] تشغيل typecheck / lint إن لزم
+- [x] قراءة ActivityItem.tsx وتحديد الأجزاء المطلوبة (ACTIVITY_CONFIG, detectActivityType, getRelativeTime).
+- [x] إنشاء ملف utils جديد: src/components/mentor-components/mentor-dash-com/RecentActivity/activityItemUtils.ts.
+- [x] نقل ACTIVITY_CONFIG و detectActivityType و getRelativeTime داخل ملف utils الجديد.
+- [x] تعديل ActivityItem.tsx ليقوم بالاستيراد من activityItemUtils.ts.
+- [x] تشغيل lint/build للتأكد من عدم وجود أخطاء (لم يُنفّذ بسبب قيود تنفيذ الأوامر في بيئة الطرف).

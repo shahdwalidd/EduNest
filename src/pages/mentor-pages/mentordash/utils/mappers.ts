@@ -183,7 +183,8 @@ export function mapNotifications(raw: unknown): Notification[] {
             // Backend fields: content + time
             // UI fields: message + timestamp
             const message = String(n.message ?? n.content ?? '');
-            const timestamp = String(n.timestamp ?? n.time ?? n.date ?? '');
+            const rawTime = String(n.timestamp ?? n.time ?? n.date ?? '');
+            const timestamp = rawTime || '';
             const isRead = Boolean(n.isRead ?? n.read ?? false);
             // if backend doesn't provide isNew, derive it from read
             const isNew = Boolean(n.isNew ?? n.new ?? !(n.isRead ?? n.read ?? false));
@@ -198,6 +199,7 @@ export function mapNotifications(raw: unknown): Notification[] {
                 type,
                 title,
                 message,
+                rawTime,
                 timestamp,
                 isRead,
                 isNew,
