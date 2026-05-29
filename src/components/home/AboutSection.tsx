@@ -29,7 +29,7 @@ const AboutSection: React.FC<Props> = memo(({ images, stats  }) => {
 
         {/* Content */}
         <div className="w-full order-1 lg:order-2">
-          <h3 className="text-[#0f5e8b] font-semibold mb-2 text-sm sm:text-base md:text-lg">
+          <h3 className="text-[var(--primary-500)] font-bold mb-2 text-sm sm:text-base md:text-2xl">
             About Us
           </h3>
 

@@ -3,7 +3,6 @@ import { useState, useRef } from 'react';
 import {
     Upload,
     Edit3,
-    CheckCircle2,
     X,
     Plus,
     Sparkles,
@@ -42,7 +41,6 @@ const EditMentorshipForm: FC<EditMentorshipFormProps> = ({
     submitting,
     deletingCover,
     onDeleteCoverImage,
-    onCancel,
 }) => {
     // Local UI states
     const [isEditingTitle, setIsEditingTitle] = useState(false);

@@ -83,7 +83,7 @@ const ContactUsSection: React.FC = memo(() => {
 
           {/* Left Side: Content and Info */}
           <div className="order-2 lg:order-1 h-[100%] grid content-center">
-            <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-4">Contact Us</h2>
+            <h2 className="text-2xl sm:text-3xl font-bold text-[var(--primary-500)] mb-4">Contact Us</h2>
             <p className="text-base text-gray-600 mb-8 max-w-md">
               We are committed to processing the information in order to contact you and talk about your project.
             </p>

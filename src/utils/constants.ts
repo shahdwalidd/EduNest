@@ -57,8 +57,12 @@ export const ABOUT_STATS = [
   { icon: 'Users', value: '15,000+', label: 'Active Students' },
   { icon: 'BookOpen', value: '500+', label: 'Courses' },
   { icon: 'Check', value: '150+', label: 'Expert Instructors' },
-];
+] as Array<{ icon: 'Users' | 'BookOpen' | 'Star' | 'Check'; value: string; label: string }>;
 
+
+
+
+//  images
 export const ABOUT_IMAGES = [
   aboutUs3,
   aboutUs1,
@@ -67,7 +71,7 @@ export const ABOUT_IMAGES = [
 ];
 
 
-
+//  why choose us
 export const WHY_CHOOSE_US_FEATURES = [
   {
     title: 'Why Choose us?',
@@ -124,13 +128,30 @@ export const WHY_CHOOSE_US_FEATURES = [
   },
 ];
 
-
+// testimonials
 export const TESTIMONIALS_DATA = [
-  { quote: "you only have to know one thing, that you can learn anything. Anytime, anywhere to do you discover yourself. Our content will help you every step.", name: "Jheny William", role: "Mentor", image: 'https://i.pravatar.cc/150?img=1' },
-  { quote: "you only have to know one thing, that you can learn anything. Anytime, anywhere to do you discover yourself. Our content will help you every step.", name: "Jheny William", role: "Student", image: 'https://i.pravatar.cc/150?img=2' },
-  { quote: "you only have to know one thing, that you can learn anything. Anytime, anywhere to do you discover yourself. Our content will help you every step.", name: "Jheny William", role: "Student", image: 'https://i.pravatar.cc/150?img=3' },
+  {
+    quote: "Guiding students here is deeply rewarding. The platform makes it seamless to share engineering insights and bridge the gap between theory and industry reality.",
+    name: "Elsayed Elsadek",
+    role: "Senior Full-Stack Mentor",
+    image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=150&h=150&q=80"
+  },
+  {
+    quote: "Navigating complex backend architectures alone was tough. Having a dedicated mentor to review my code and guide my roadmap completely transformed my career preparation.",
+    name: "Omar El-Farouk",
+    role: "Computer Science Student",
+    image: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=150&h=150&q=80"
+  },
+  {
+    quote: "The structured mentorship here is unmatched. It's inspiring to work with ambitious future engineers eager to master modern tech stacks and real-world workflows.",
+    name: "Sarah Jenkins",
+    role: "Tech Lead & Mentor",
+    image: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=150&h=150&q=80"
+  }
 ];
 
+
+// faq
 export const FAQ_ITEMS = [
   { id: 1, question: 'How can I become a mentor on the platform?', answer: 'To become a mentor, you need to have specialized experience in an IT field (usually 5+ years) and pass a short screening interview. You can apply through the "Become a Mentor" section on the website.' },
   { id: 2, question: 'Is joining the mentorship program free for students?', answer: 'The core mentorship program is offered free of charge to all registered students. However, some specialized one-on-one sessions may require a small fee.' },

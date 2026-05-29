@@ -40,6 +40,7 @@ html, body {
   --primary-from: #154d71;
   --primary-via: #2a7fa8;
   --primary-to: #33a1e0;
+  /* the imporant color the main one */
   --primary-500: #0f5e8b;
   --primary-dark: #0f3550;
 
@@ -112,8 +113,9 @@ a {
   @apply w-[360px] h-[400px] rounded-[30px] overflow-hidden;
 }
 
-img {
+.hero-image img {
   aspect-ratio: 1024 / 1034;
+  object-fit: cover; /* لضمان عدم تمطط الصورة بداخل الحاوية */
 }
 
 .native-password-toggle-hidden::-ms-clear,
