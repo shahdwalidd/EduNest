@@ -4,8 +4,7 @@ import type { MentorshipFormData } from '../types';
 interface Props {
     formData: MentorshipFormData;
     onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    setFieldValue: (field: keyof MentorshipFormData, value: any) => void;
+    setFieldValue: (field: keyof MentorshipFormData, value: MentorshipFormData[keyof MentorshipFormData]) => void;
     fieldErrors: Record<string, string>;
 }
 
@@ -16,7 +15,8 @@ export const EntryPeriodFields: FC<Props> = ({ formData, onChange, fieldErrors }
                 ACCESS DURATION (MONTHS)
             </p>
             <input
-                type="number"
+                type="string"
+                maxLength={3}
                 name="duration"
                 value={formData.duration}
                 onChange={onChange}

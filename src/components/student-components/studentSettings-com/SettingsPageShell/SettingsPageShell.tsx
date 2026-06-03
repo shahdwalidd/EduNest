@@ -53,7 +53,7 @@ export const ModalInput: FC<ModalInputProps> = ({
           readOnly={readOnly}
           className={`
             w-full px-4 py-2.5 border rounded-xl text-sm focus:outline-none focus:ring-2
-            pr-10 transition-colors native-password-toggle-hidden
+            pr-10 transition-colors [&::-ms-reveal]:hidden [&::-ms-clear]:hidden
             focus:ring-[#0c2d48]/30
             ${readOnly
               ? 'bg-gray-50 border-gray-100 text-gray-500 cursor-not-allowed'

@@ -28,7 +28,19 @@ const ContentSection: FC = () => {
   );
 
   const renderLoading = () => (
-    <div className="text-center py-6 text-gray-500">Loading content...</div>
+    <div className="space-y-4 animate-pulse">
+      <div className="h-8 rounded-xl bg-gray-200 w-1/3 mx-auto" />
+      <div className="grid gap-4 sm:grid-cols-2">
+        {Array.from({ length: 4 }).map((_, idx) => (
+          <div key={idx} className="rounded-3xl border border-gray-200 bg-white p-5 space-y-4">
+            <div className="h-4 bg-gray-200 rounded w-2/3" />
+            <div className="h-3 bg-gray-200 rounded" />
+            <div className="h-3 bg-gray-200 rounded w-5/6" />
+            <div className="h-10 bg-gray-200 rounded" />
+          </div>
+        ))}
+      </div>
+    </div>
   );
 
   const renderError = () => (
@@ -64,6 +76,13 @@ const ContentSection: FC = () => {
         <h3 className="font-semibold text-gray-900 text-lg">
           Mentorship Content
         </h3>
+        <button
+          type="button"
+          onClick={() => navigate(`/student/learning/${mentorshipId}`)}
+          className="px-4 py-2 bg-primary text-white text-sm font-medium rounded-lg hover:bg-[var(--primary-dark)] transition-colors duration-200 shadow-sm"
+        >
+          Resume Learning
+        </button>
       </div>
 
       {/* States */}
@@ -114,7 +133,7 @@ const ContentSection: FC = () => {
                         >
                           {/* icon + connector */}
                           <div className="flex flex-col items-center">
-                            <div className="w-6 h-6 rounded-full bg-blue-50 flex items-center justify-center text-blue-500">
+                            <div className="w-6 h-6 rounded-full bg-blue-50 flex items-center justify-center text-[var(--primary-500)]">
                               {(() => {
                                 const Icon = getIconForType(item.type);
                                 return <Icon className="w-3.5 h-3.5" />;

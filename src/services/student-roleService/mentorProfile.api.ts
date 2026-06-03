@@ -1,6 +1,8 @@
+
 import { useQuery } from '@tanstack/react-query';
 import api from '../api';
 import { queryClient } from '../../lib/queryClient';
+import { useCallback } from 'react';
 import type { ReactNode } from 'react';
 
 const baseUrl = import.meta.env.VITE_BASE_URL ?? '';
@@ -10,6 +12,11 @@ const normalizeImageUrl = (value?: string | null): string | null => {
   if (value.startsWith('http')) return value;
   return `${baseUrl}${value.startsWith('/') ? '' : '/'}${value}`;
 };
+
+export interface SocialMediaLink {
+  media: 'GITHUB' | 'LINKEDIN' | 'TWITTER' | 'YOUTUBE' | string;
+  link: string;
+}
 
 export interface MentorProfileMentorship {
   id: number;
@@ -33,6 +40,14 @@ export interface MentorProfileReview {
   comment: string;
   mentorshipId: number;
   mentorshipTitle: string;
+  createdAt: string | null; 
+}
+
+export interface PageMetadata {
+  page: number;
+  size: number;
+  totalElements: number;
+  totalPages: number;
 }
 
 export interface MentorProfile {
@@ -44,6 +59,8 @@ export interface MentorProfile {
   avgReviewRate: number | null;
   bio: string;
   mentorEmail: string;
+  yearsOfExperience: number | null;      
+  socialMediaLinks: SocialMediaLink[];   
 }
 
 export interface MentorProfileApiResponse {
@@ -89,11 +106,23 @@ const mapReview = (item: Record<string, unknown>): MentorProfileReview => ({
   comment: String(item.feedBack ?? ''),
   mentorshipId: Number(item.mentorshipId ?? 0),
   mentorshipTitle: String(item.mentorshipTitle ?? ''),
-  reviewerTitle: undefined
+  createdAt: item.createdAt ? String(item.createdAt) : null, 
+  reviewerTitle: undefined,
 });
 
 const mapMentorProfile = (payload: Record<string, unknown>) => {
   const mentor = (payload.mentorProfile ?? {}) as Record<string, unknown>;
+
+  // : Map social media links
+  const rawLinks = Array.isArray(mentor.socialMediaLinks) ? mentor.socialMediaLinks : [];
+  const socialMediaLinks: SocialMediaLink[] = rawLinks.map((s: unknown) => {
+    const obj = s as Record<string, unknown>;
+    return {
+      media: String(obj.media ?? ''),
+      link: String(obj.link ?? ''),
+    };
+  });
+
   return {
     mentorProfileImageUrl: normalizeImageUrl(String(mentor.profileImageUrl ?? '')),
     mentorFirstName: String(mentor.mentorFirstName ?? ''),
@@ -103,8 +132,18 @@ const mapMentorProfile = (payload: Record<string, unknown>) => {
     avgReviewRate: mentor.avgReviewRate == null ? null : Number(mentor.avgReviewRate),
     bio: String(mentor.bio ?? ''),
     mentorEmail: String(mentor.mentorEmail ?? ''),
+    yearsOfExperience: mentor.mentorYearsOfExperience == null ? null : Number(mentor.mentorYearsOfExperience), 
+    socialMediaLinks, 
   };
 };
+
+export interface MentorProfileResponse {
+  mentorProfile: MentorProfile;
+  mentorships: MentorProfileMentorship[];
+  mentorshipsPage: PageMetadata;
+  reviews: MentorProfileReview[];
+  reviewsPage: PageMetadata;
+}
 
 export const fetchMentorProfile = async (
   mentorEmail: string,
@@ -113,16 +152,11 @@ export const fetchMentorProfile = async (
   msPage = 0,
   reviewsSize = 5,
   reviewsPage = 0
-) => {
+): Promise<MentorProfileResponse> => {
   const { data } = await api.get<MentorProfileApiResponse>(
     `/api/v1/profile/mentor/${encodeURIComponent(mentorEmail)}/full`,
     {
-      params: {
-        msSize,
-        msPage,
-        reviewsSize,
-        reviewsPage,
-      },
+      params: { msSize, msPage, reviewsSize, reviewsPage },
       signal,
     }
   );
@@ -133,26 +167,61 @@ export const fetchMentorProfile = async (
     throw new Error('Mentor profile data is not available.');
   }
 
+  const mentorshipsResponse = payload.mentorships as Record<string, unknown>;
+  const reviewsResponse = payload.reviews as Record<string, unknown>;
+
+  const mentorshipsPage: PageMetadata = {
+    page: Number(mentorshipsResponse?.page ?? 0),
+    size: Number(mentorshipsResponse?.size ?? 5),
+    totalElements: Number(mentorshipsResponse?.totalElements ?? 0),
+    totalPages: Number(mentorshipsResponse?.totalPages ?? 1),
+  };
+
+  const reviewsPageMeta: PageMetadata = {
+    page: Number(reviewsResponse?.page ?? 0),
+    size: Number(reviewsResponse?.size ?? 5),
+    totalElements: Number(reviewsResponse?.totalElements ?? 0),
+    totalPages: Number(reviewsResponse?.totalPages ?? 1),
+  };
+
   return {
     mentorProfile: mapMentorProfile(payload),
-    mentorships: Array.isArray(payload.mentorships?.content)
-      ? payload.mentorships.content.map((item) => mapMentorship(item as Record<string, unknown>))
+    mentorships: Array.isArray(mentorshipsResponse?.content)
+      ? (mentorshipsResponse.content as Record<string, unknown>[]).map((item) => mapMentorship(item))
       : [],
-    reviews: Array.isArray(payload.reviews?.content)
-      ? payload.reviews.content.map((item) => mapReview(item as Record<string, unknown>))
+    mentorshipsPage,
+    reviews: Array.isArray(reviewsResponse?.content)
+      ? (reviewsResponse.content as Record<string, unknown>[]).map((item) => mapReview(item))
       : [],
+    reviewsPage: reviewsPageMeta,
   };
 };
 
-export const useMentorProfile = (mentorEmail: string, enabled = true) =>
-  useQuery({
-    queryKey: ['mentorProfile', mentorEmail],
-    queryFn: ({ signal }) => fetchMentorProfile(mentorEmail, signal),
+export const useMentorProfile = (
+  mentorEmail: string,
+  enabled = true,
+  msPage = 0,
+  reviewsPage = 0,
+  msSize = 5,
+  reviewsSize = 5
+) => {
+  const queryKey = ['mentorProfile', mentorEmail, msPage, reviewsPage, msSize, reviewsSize];
+  
+  const queryFn = useCallback(
+    ({ signal }: { signal?: AbortSignal }) =>
+      fetchMentorProfile(mentorEmail, signal, msSize, msPage, reviewsSize, reviewsPage),
+    [mentorEmail, msSize, msPage, reviewsSize, reviewsPage]
+  );
+
+  return useQuery({
+    queryKey,
+    queryFn,
     enabled: enabled && mentorEmail.trim().length > 0,
     staleTime: 5 * 60 * 1000,
     gcTime: 15 * 60 * 1000,
     retry: 2,
   });
+};
 
 export const prefetchMentorProfile = async (mentorEmail: string) => {
   await queryClient.prefetchQuery({

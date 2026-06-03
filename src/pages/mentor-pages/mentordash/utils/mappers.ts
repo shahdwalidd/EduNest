@@ -110,7 +110,14 @@ export function mapSessions(raw: unknown): Session[] {
             return {
                 id,
                 mentorshipId: String(item.mentorshipId ?? item.mentorship_id ?? (item.mentorship && typeof item.mentorship === 'object' && 'id' in item.mentorship ? (item.mentorship as Record<string, unknown>).id : undefined) ?? ''),
-                title,
+                mentorshipTitle: String(
+                    (item.mentorshipTitle ??
+                      item.mentorship_title ??
+                      (item.mentorship && typeof item.mentorship === 'object' && 'title' in item.mentorship
+                        ? (item.mentorship as Record<string, unknown>).title
+                        : undefined) ?? '')
+                ),
+                title: String(item.title ?? item.name ?? item.mentorshipTitle ?? 'Session'),
                 startTime,
                 endTime,
                 type,
@@ -133,12 +140,13 @@ export function mapReviews(raw: unknown): Review[] {
     return dataArray
         .map((rawItem) => {
             const item = rawItem as Record<string, unknown>;
-            const id = String(item.id ?? '');
             const studentName = String(item.studentName ?? 'Student');
-            const courseTitle = String(item.courseTitle ?? item.mentorshipTitle ?? 'Course');
+            const date = String(item.date ?? item.createdAt ?? item.reviewDate ?? '');
+            const id = String(item.id ?? `${studentName}-${date}`);
+            
+            const courseTitle = String(item.courseTitle ?? item.mentorshipTitle ?? item.mentorShip ?? 'Course');
             const rating = Number(item.rating) || 0;
-            const comment = String(item.comment ?? '');
-            const date = String(item.date ?? item.createdAt ?? '');
+            const comment = String(item.comment ?? item.feedBack ?? '');
             const studentAvatar = item.studentAvatar ? String(item.studentAvatar) : undefined;
 
             if (id && rating > 0) {
@@ -175,7 +183,8 @@ export function mapNotifications(raw: unknown): Notification[] {
             // Backend fields: content + time
             // UI fields: message + timestamp
             const message = String(n.message ?? n.content ?? '');
-            const timestamp = String(n.timestamp ?? n.time ?? n.date ?? '');
+            const rawTime = String(n.timestamp ?? n.time ?? n.date ?? '');
+            const timestamp = rawTime || '';
             const isRead = Boolean(n.isRead ?? n.read ?? false);
             // if backend doesn't provide isNew, derive it from read
             const isNew = Boolean(n.isNew ?? n.new ?? !(n.isRead ?? n.read ?? false));
@@ -190,6 +199,7 @@ export function mapNotifications(raw: unknown): Notification[] {
                 type,
                 title,
                 message,
+                rawTime,
                 timestamp,
                 isRead,
                 isNew,

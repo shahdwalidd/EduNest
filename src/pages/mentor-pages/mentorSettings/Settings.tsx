@@ -53,7 +53,7 @@ const Input: FC<InputProps> = ({ label, value, onChange, type = 'text', placehol
           onChange={(e) => onChange(e.target.value)}
           placeholder={placeholder}
           autoComplete={autoComplete}
-          className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 pr-10"
+          className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 pr-10 [&::-ms-reveal]:hidden [&::-ms-clear]:hidden"
         />
         {showToggle && (
           <button type="button" onClick={() => setShow(!show)}

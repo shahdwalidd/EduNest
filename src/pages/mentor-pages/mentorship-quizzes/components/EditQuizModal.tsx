@@ -70,7 +70,7 @@ const EditQuizModal: React.FC<EditQuizModalProps> = ({ isOpen, onClose, quizId, 
             onClose();
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } catch (err: any) {
-            toast.error(err?.message || 'Failed to update quiz');
+            toast.error(err?.errorMessages.error || 'Failed to update quiz');
         } finally {
             setSubmitting(false);
         }
@@ -104,6 +104,7 @@ const EditQuizModal: React.FC<EditQuizModalProps> = ({ isOpen, onClose, quizId, 
                                 required
                                 type="text"
                                 value={title}
+                                maxLength={50}
                                 onChange={e => setTitle(e.target.value)}
                                 className="w-full px-4 py-2 border border-gray-200 rounded-lg outline-none focus:border-blue-500 transition-colors"
                             />
@@ -115,6 +116,7 @@ const EditQuizModal: React.FC<EditQuizModalProps> = ({ isOpen, onClose, quizId, 
                                 value={description}
                                 onChange={e => setDescription(e.target.value)}
                                 rows={3}
+                                maxLength={150}
                                 className="w-full px-4 py-2 border border-gray-200 rounded-lg outline-none focus:border-blue-500 transition-colors resize-none"
                             />
                         </div>
@@ -125,6 +127,7 @@ const EditQuizModal: React.FC<EditQuizModalProps> = ({ isOpen, onClose, quizId, 
                                 <input
                                     required
                                     type="number"
+                                    max="9999"
                                     min="1"
                                     value={durationMinutes}
                                     onChange={e => setDurationMinutes(parseInt(e.target.value) || 1)}

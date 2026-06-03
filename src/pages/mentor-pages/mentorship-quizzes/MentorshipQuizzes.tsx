@@ -22,11 +22,12 @@ const MentorshipQuizzes: FC = () => {
 
     // Filters
     const [searchQuery, setSearchQuery] = useState('');
-    const [statusFilter, setStatusFilter] = useState('');
+    // default to "All" so Published/Draft shows without extra filtering UX
+    const [statusFilter, setStatusFilter] = useState<string>('');
 
     // Pagination
     const [page, setPage] = useState(0); // 0-indexed API
-    const size = 6;
+    const size = 10;
 
     // Actions state
     const [refreshTrigger, setRefreshTrigger] = useState(0);
@@ -57,7 +58,10 @@ const MentorshipQuizzes: FC = () => {
                 setLoading(true);
                 setError(null);
 
-                if (searchQuery || statusFilter) {
+                // Always load quizzes for pagination.
+                // Use filterQuizzes ONLY when user is actively searching or selecting a status.
+                const shouldUseFilter = Boolean(searchQuery) || Boolean(statusFilter);
+                if (shouldUseFilter) {
                     const responseData = await filterQuizzes(Number(mentorshipId), searchQuery, statusFilter, page, size);
                     if (active) setQuizPage(responseData);
 
@@ -65,7 +69,8 @@ const MentorshipQuizzes: FC = () => {
                         const overviewData = await getMentorshipQuizzesOverview(Number(mentorshipId), 0, 1);
                         if (active) setStats(overviewData.quizDashboardDTO);
                     }
-                } else {
+                } else { 
+                    // No filter: fetch paginated data so pagination always appears.
                     const responseData = await getMentorshipQuizzesOverview(Number(mentorshipId), page, size);
                     if (active) {
                         setStats(responseData.quizDashboardDTO);
@@ -181,7 +186,7 @@ const MentorshipQuizzes: FC = () => {
                             <p className="text-sm font-medium text-gray-500 mb-1">Total Quizzes</p>
                             <h3 className="text-2xl font-bold text-gray-900">{stats?.totalQuizzes || 0}</h3>
                         </div>
-                        <div className="w-12 h-12 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center">
+                        <div className="w-12 h-12 rounded-xl bg-blue-50 text-[var(--primary-500)] flex items-center justify-center">
                             <FileText size={24} />
                         </div>
                     </div>
@@ -219,7 +224,7 @@ const MentorshipQuizzes: FC = () => {
 
                 {/* Search Bar */}
                 <div className="bg-white px-4 py-3 rounded-2xl shadow-sm border border-gray-100 flex items-center gap-3">
-                    <Search className="text-blue-500" size={20} />
+                    <Search className="text-[var(--primary-500)]" size={20} />
                     <input
                         type="text"
                         placeholder="Search quiz..."
@@ -270,10 +275,13 @@ const MentorshipQuizzes: FC = () => {
                                     </tr>
                                 ) : (
                                     quizzes.map((quiz: QuizOverviewContent) => (
-                                        <tr key={quiz.id} className="hover:bg-gray-50/50 transition-colors">
-                                            <td className="px-6 py-4">
+                                        <tr key={quiz.id} className="hover:bg-gray-50/50 transition-colors ">
+                                            <td className="px-6 py-4 cursor-pointer"
+                                      onClick={() => navigate(`/mentor/mentorships/${mentorshipId}/quizzes/${quiz.id}`)}
+                                            
+                                            >
                                                 <div className="flex items-center gap-3">
-                                                    <div className="p-2 bg-blue-50 text-blue-600 rounded-lg">
+                                                    <div className="p-2 bg-blue-50 text-[var(--primary-500)] rounded-lg">
                                                         <FileText size={18} />
                                                     </div>
                                                     <span className="font-semibold text-gray-900">{quiz.title}</span>
@@ -289,13 +297,13 @@ const MentorshipQuizzes: FC = () => {
                                                 </span>
                                             </td>
                                             <td className="px-6 py-4 text-center">
-                                                <span className={`font-medium ${quiz.submissions !== 0 ? 'text-blue-600' : 'text-gray-400'}`}>
+                                                <span className={`font-medium ${quiz.submissions !== 0 ? 'text-[var(--primary-500)]' : 'text-gray-400'}`}>
                                                     {quiz.submissions || '0'}
                                                 </span>
                                             </td>
                                             <td className="px-6 py-4 text-center">
                                                 {quiz.averageScore ? (
-                                                    <span className="font-bold text-green-500">{quiz.averageScore} %</span>
+                                                    <span className="font-bold text-[var(--primary-500)]">{quiz.averageScore} %</span>
                                                 ) : (
                                                     <span className="text-gray-400">—</span>
                                                 )}
@@ -371,8 +379,8 @@ const MentorshipQuizzes: FC = () => {
                                         key={i}
                                         onClick={() => setPage(i)}
                                         className={`w-8 h-8 flex items-center justify-center text-sm font-medium rounded-lg transition-colors ${page === i
-                                            ? ' text-gray-500 bg-gray-100'
-                                            : 'text-gray-600 hover:bg-gray-100'
+                                            ? ' text-white bg-[var(--primary-500)]'
+                                            : 'text-gray-600 hover:bg-gray-100 '
                                             }`}
                                     >
                                         {i + 1}

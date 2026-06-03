@@ -1,5 +1,6 @@
 
 import { useState } from 'react';
+import toast from 'react-hot-toast';
 import { useAuthStore } from '../../store/authStore';
 import {
   requestEmailChange,
@@ -17,13 +18,11 @@ export const useStudentSettings = () => {
 
   const [loading, setLoading] = useState(false);
   const [error,   setError  ] = useState<string | null>(null);
-  const [success, setSuccess] = useState<string | null>(null);
 
-  const clear = () => { setError(null); setSuccess(null); };
+  const clear = () => { setError(null); };
 
   const flash = (msg: string) => {
-    setSuccess(msg);
-    setTimeout(() => setSuccess(null), 3000);
+    toast.success(msg);
   };
 
   const extractError = (err: unknown): string => {
@@ -43,7 +42,7 @@ export const useStudentSettings = () => {
       await requestEmailChange(data);
       flash(`OTP sent to ${data.newEmail}`);
       return true;
-    } catch (err) { setError(extractError(err)); return false; }
+    } catch (err) { const e = extractError(err); setError(e); toast.error(e); return false; }
     finally { setLoading(false); }
   };
 
@@ -53,7 +52,7 @@ export const useStudentSettings = () => {
       await confirmEmailChange({ otpCode });
       logout();
       return true;
-    } catch (err) { setError(extractError(err)); return false; }
+    } catch (err) { const e = extractError(err); setError(e); toast.error(e); return false; }
     finally { setLoading(false); }
   };
 
@@ -63,7 +62,7 @@ export const useStudentSettings = () => {
       await changePassword(data);
       flash('Password changed successfully!');
       return true;
-    } catch (err) { setError(extractError(err)); return false; }
+    } catch (err) { const e = extractError(err); setError(e); toast.error(e); return false; }
     finally { setLoading(false); }
   };
 
@@ -73,7 +72,7 @@ export const useStudentSettings = () => {
       await deactivateAccount(password);
       logout();
       return true;
-    } catch (err) { setError(extractError(err)); return false; }
+    } catch (err) { const e = extractError(err); setError(e); toast.error(e); return false; }
     finally { setLoading(false); }
   };
 
@@ -83,7 +82,7 @@ export const useStudentSettings = () => {
       await requestDeleteAccount();
       flash(`OTP sent to ${userEmail}`);
       return true;
-    } catch (err) { setError(extractError(err)); return false; }
+    } catch (err) { const e = extractError(err); setError(e); toast.error(e); return false; }
     finally { setLoading(false); }
   };
 
@@ -93,12 +92,13 @@ export const useStudentSettings = () => {
       await confirmDeleteAccount({ otp });
       logout();
       return true;
-    } catch (err) { setError(extractError(err)); return false; }
+    } catch (err) { const e = extractError(err); setError(e); toast.error(e); return false; }
     finally { setLoading(false); }
   };
 
   return {
-    loading, error, success,
+    loading, error,
+    clear,
     handleRequestEmailChange,
     handleConfirmEmailChange,
     handleChangePassword,

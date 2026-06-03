@@ -12,7 +12,7 @@ export interface MentorshipApiResponse {
   duration?: number;
   revenue?: number;
   rating?: number;
-  totalEnrolled?: number;
+  totalEnroll?: number;
   enrolledCount?: number;
   status?: string;
   createdAt?: string;
@@ -21,6 +21,8 @@ export interface MentorshipApiResponse {
   Image_URL?: string;
   imageUrl?: string;
   coverImage?: string;
+  coverImageUrl?: string;
+  image_URL?: string;
   [key: string]: unknown;
 }
 

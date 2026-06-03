@@ -35,6 +35,7 @@ const mapWsToEvent = (raw: RawWsNotification): ActivityEvent => ({
   title:       raw.title,
   description: raw.content,
   timeLabel:   formatTimeAgo(raw.createdAt),
+  rawTime:     raw.createdAt,
   isAlert:     raw.type?.toUpperCase() === 'ALERT',
 });
 

@@ -6,7 +6,9 @@ import { getValidationFieldErrors } from './validation';
 import { extractMentorshipsData } from './extractors';
 
 /** GET /api/v1/mentorship with pagination (page 0-based, size = page size) */
-export function getMentorships(page = 0, size = 5): Promise<MentorshipsPageResponse> {
+export function getMentorships(page = 0, size = 5, statusParam: string | undefined): Promise<MentorshipsPageResponse> {
+  void statusParam;
+
   return handleRequest(api.get<unknown>('api/v1/dashboard/mentorships', { params: { page, size } })).then((raw) => {
     if (!raw || typeof raw !== 'object') {
       return { content: [], page: 0, size, totalElements: 0, totalPages: 0 };
@@ -201,6 +203,34 @@ export async function changeMentorshipCoverImage(
     }
 
     throw new Error('Failed to change cover image. Invalid response format.');
+  } catch (error) {
+    const fieldErrors = getValidationFieldErrors(error);
+    if (fieldErrors && Object.keys(fieldErrors).length > 0) {
+      const firstMessage = Object.values(fieldErrors)[0] ?? 'Validation failed';
+      throw new ApiValidationError(firstMessage, fieldErrors);
+    }
+    throw error;
+  }
+}
+
+/** Delete mentorship cover image */
+export async function deleteMentorshipCoverImage(
+  mentorshipId: string | number
+): Promise<{ status: string }> {
+  try {
+    const response = await api.delete<unknown>(`api/v1/mentorship/${mentorshipId}/delete-cover-image`);
+    const raw = response.data as Record<string, unknown> | null;
+    if (raw && typeof raw === 'object') {
+      const apiRes = raw.apiResponse as Record<string, unknown> | undefined;
+      if (apiRes && typeof apiRes.status === 'string') {
+        return { status: apiRes.status };
+      }
+      if (typeof raw.status === 'string') {
+        return { status: raw.status };
+      }
+    }
+
+    return { status: 'Cover image deleted successfully' };
   } catch (error) {
     const fieldErrors = getValidationFieldErrors(error);
     if (fieldErrors && Object.keys(fieldErrors).length > 0) {

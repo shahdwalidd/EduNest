@@ -2,13 +2,14 @@ import { useState, type FC, useEffect } from 'react';
 import toast from 'react-hot-toast';
 import { createLecture, updateLecture, type UpdateLecturePayload } from '../../../../services/mentorshipsContent';
 import ModalOverlay from './ModalOverlay';
+import { fetchLecture } from '../../../../services/student-roleService/lecture.api';
 import type { ContentItem } from '../types';
 
 interface AddLectureModalProps {
   weekId: number | null;
   editingItem?: ContentItem | null;
   onClose: () => void;
-  onSuccess: (title: string, id?: number | string) => void;
+  onSuccess: (title: string, id?: number | string, lectureUrl?: string) => void;
 }
 
 const AddLectureModal: FC<AddLectureModalProps> = ({ weekId, editingItem, onClose, onSuccess }) => {
@@ -19,7 +20,27 @@ const AddLectureModal: FC<AddLectureModalProps> = ({ weekId, editingItem, onClos
   useEffect(() => {
     if (editingItem) {
       setTitle(editingItem.title || '');
-      // Note: we don't have lectureUrl from the item, so it starts empty
+      // If the editing item includes a lecture URL, populate the field
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const existing = (editingItem as any).lectureUrl;
+      if (existing) {
+        setLectureUrl(existing);
+      } else if (editingItem.id) {
+        // fetch lecture details from API if available
+        void (async () => {
+          try {
+            const data = await fetchLecture(Number(editingItem.id));
+            const url = data?.apiResponse?.lecture?.lectureUrl;
+            if (url) setLectureUrl(url);
+          } catch (e) {
+            // don't block editing on fetch failure, but log
+            // eslint-disable-next-line no-console
+            console.warn('Failed to fetch lecture details', e);
+          }
+        })();
+      } else {
+        setLectureUrl('');
+      }
     }
   }, [editingItem]);
 
@@ -31,7 +52,7 @@ const AddLectureModal: FC<AddLectureModalProps> = ({ weekId, editingItem, onClos
     }
     setSubmitting(true);
     try {
-      if (editingItem && editingItem.id) {
+        if (editingItem && editingItem.id) {
         // Update mode
         const payload: UpdateLecturePayload = {
           title: title.trim(),
@@ -39,12 +60,12 @@ const AddLectureModal: FC<AddLectureModalProps> = ({ weekId, editingItem, onClos
         };
         await updateLecture(Number(editingItem.id), payload);
         toast.success('Lecture updated successfully');
-        onSuccess(title.trim(), editingItem.id);
+        onSuccess(title.trim(), editingItem.id, lectureUrl.trim());
       } else {
         // Create mode
         await createLecture({ weekId, title: title.trim(), lectureUrl: lectureUrl.trim() });
         toast.success('Lecture added successfully');
-        onSuccess(title.trim());
+        onSuccess(title.trim(), undefined, lectureUrl.trim());
       }
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Failed to save lecture');
@@ -69,6 +90,7 @@ const AddLectureModal: FC<AddLectureModalProps> = ({ weekId, editingItem, onClos
             onChange={(e) => setTitle(e.target.value)}
             className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-[var(--primary-from)] focus:border-transparent"
             placeholder="Enter lecture name..."
+            maxLength={50}
             required
           />
         </div>
@@ -85,7 +107,7 @@ const AddLectureModal: FC<AddLectureModalProps> = ({ weekId, editingItem, onClos
         </div>
         <div className="flex gap-3 pt-2">
           <button type="button" onClick={onClose} className="flex-1 py-2.5 rounded-xl border border-gray-200 bg-white text-gray-700 font-medium">
-            {isEditing ? 'Cancel' : 'Save as Draft'}
+            Cancel
           </button>
           <button type="submit" disabled={submitting} className="flex-1 py-2.5 rounded-xl bg-primary text-white font-medium disabled:opacity-60">
             {submitting ? 'Saving...' : isEditing ? 'Update Lecture' : 'Save Lecture'}

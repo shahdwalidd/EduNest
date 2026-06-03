@@ -6,10 +6,11 @@ import {
     ChevronLeft, ChevronRight, ArrowLeft
 } from 'lucide-react';
 import DashLayout from '../../../components/layout/Dash-layout';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import type { TaskSubmissionItem } from '../../../services/mentorshipsContent/task';
 import { useTaskDetail } from '../../../hooks/useTaskDetail';
 import GradeModal from './components/GradeModal';
+import EditTaskModal from './components/EditTaskModal';
 
 /* ════════════════════════════════════════════════
    Status Badge - Refined Design
@@ -50,6 +51,11 @@ const StatusBadge: FC<{ status: TaskSubmissionItem['status']; isLate?: boolean }
    Task Detail Page
    ════════════════════════════════════════════════ */
 const TaskDetail: FC = () => {
+    const { taskId } = useParams<{ taskId: string }>();
+    const [editTaskOpen, setEditTaskOpen] = useState(false);
+
+    const [editTaskId, setEditTaskId] = useState<number | null>(null);
+
     const navigate = useNavigate();
     const {
         stats, loading,  submissions: filteredSubmissions,
@@ -93,12 +99,9 @@ const TaskDetail: FC = () => {
                             </h1>
                         </div>
                         <div className="flex items-center gap-3">
-                            {/* <div className="p-2.5 bg-indigo-600 rounded-xl text-white shadow-lg shadow-indigo-200">
-                                <ClipboardList size={24} />
-                            </div> */}
-                            {/* <nav className="text-sm font-medium text-slate-400">
-                                Mentorship / <span className="text-slate-900">Task Details</span>
-                            </nav> */}
+
+                            {/* i will add the description here if needed */}
+                         {/* <p>{stats?.description || ""}</p> */}
                         </div>
                         <div className="flex flex-wrap items-center gap-3">
                              <span className="flex items-center gap-1.5 px-3 py-1 bg-slate-100 text-slate-700 rounded-full text-xs font-bold uppercase tracking-wider">
@@ -116,9 +119,24 @@ const TaskDetail: FC = () => {
                     </div>
 
                     <div className="flex items-center gap-3">
-                        <button className="p-2 text-slate-400 hover:text-slate-600 transition-colors">
-                            {/* <MoreHorizontal size={20} /> */}
+                        <button
+                            onClick={() => {
+                                if (!taskId) return;
+                                const parsed = Number(taskId);
+                                if (!Number.isFinite(parsed)) return;
+                                setEditTaskId(parsed);
+                                setEditTaskOpen(true);
+                            }}
+                            disabled={!stats}
+                            className={`px-4 py-2 rounded-xl text-sm font-bold border-2 transition-all ${
+                                stats
+                                    ? 'border-indigo-100 text-indigo-600 bg-indigo-50 hover:bg-indigo-100'
+                                    : 'border-slate-100 text-slate-400 bg-slate-50 cursor-not-allowed'
+                            }`}
+                        >
+                            Edit
                         </button>
+
                         <div className={`px-4 py-2 rounded-xl text-sm font-bold border-2 ${
                             stats?.status === 'PUBLISHED' ? 'border-emerald-100 text-emerald-600 bg-emerald-50/50' : 'border-slate-100 text-slate-500 bg-slate-50'
                         }`}>
@@ -328,6 +346,18 @@ const TaskDetail: FC = () => {
                     onGraded={handleGradedWrapper}
                 />
             )}
+
+            <EditTaskModal
+                isOpen={editTaskOpen}
+                onClose={() => {
+                    setEditTaskOpen(false);
+                    setEditTaskId(null);
+                }}
+                taskId={editTaskId}
+                onSuccess={() => {
+                    handleGraded();
+                }}
+            />
         </DashLayout>
     );
 };

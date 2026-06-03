@@ -1,11 +1,13 @@
 import type { FC } from 'react';
 import { useState } from 'react';
 import { X, Send, Award, Paperclip, AlertCircle, Star } from 'lucide-react';
+import FileViewer from '../../../../components/common/FileViewer';
+import ContentTypeBadge from '../../../../components/common/ContentTypeBadge';
+import { resolveFirstFileUrl } from '../../../../utils/fileUrl';
 import type { GradePayload } from '../../../../services/mentorshipsContent/task';
 import { gradeTaskSubmission } from '../../../../services/mentorshipsContent/task';
 import toast from 'react-hot-toast';
 import type { GradeModalProps } from './types';
-import { API_BASE_URL } from '../../../../services/api';
 
 const GradeModal: FC<GradeModalProps> = ({ submission, maxPoints, onClose, onGraded }) => {
     const [score, setScore] = useState<string>(
@@ -54,9 +56,14 @@ const GradeModal: FC<GradeModalProps> = ({ submission, maxPoints, onClose, onGra
                         <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center">
                             <Award size={22} className="text-white" />
                         </div>
-                        <div>
-                            <h3 className="text-lg font-bold text-white">Grade Submission</h3>
-                            <p className="text-sm text-blue-100">{submission.studentFullName}</p>
+                        <div className="flex items-center gap-3">
+                            <div>
+                                <h3 className="text-lg font-bold text-white">Grade Submission</h3>
+                                <p className="text-sm text-blue-100">{submission.studentFullName}</p>
+                            </div>
+                            <div>
+                                <ContentTypeBadge type="TASK" size="sm" />
+                            </div>
                         </div>
                     </div>
                     <button
@@ -76,7 +83,7 @@ const GradeModal: FC<GradeModalProps> = ({ submission, maxPoints, onClose, onGra
                     )}
 
                     {/* Student submission file — shown prominently */}
-                    {(submission.fileUrl || submission.uploadedFilePath) && (
+                    {resolveFirstFileUrl(submission.fileUrl, submission.uploadedFilePath) ? (
                         <div className="w-full mt-1">
                             {submission.fileUrl ? (
                                 <a
@@ -92,7 +99,7 @@ const GradeModal: FC<GradeModalProps> = ({ submission, maxPoints, onClose, onGra
                                         <p className="text-xs text-blue-500 mb-0.5">Student Submission File</p>
                                         <p className="truncate text-blue-800">{submission.uploadedFilePath?.split('/').pop() ?? 'Open File'}</p>
                                     </div>
-                                    <span className="text-xs text-blue-500 group-hover:text-blue-700 transition-colors shrink-0">Open ↗</span>
+                                    {/* <span className="text-xs text-blue-500 group-hover:text-blue-700 transition-colors shrink-0">Open ↗</span> */}
                                 </a>
                             ) : (
                                 <div className="flex items-center gap-3 w-full px-4 py-3 bg-blue-50 border border-blue-200 rounded-xl text-sm transition-colors group">
@@ -117,12 +124,19 @@ const GradeModal: FC<GradeModalProps> = ({ submission, maxPoints, onClose, onGra
                                             {submission.uploadedFilePath?.split('/').pop()}
                                         </a>
                                     </div>
-                                    <span className="text-xs text-blue-500 group-hover:text-blue-700 transition-colors shrink-0">Open ↗</span>
+                                    {/* <span className="text-xs text-blue-500 group-hover:text-blue-700 transition-colors shrink-0">Open ↗</span> */}
                                 </div>
                             )}
                         </div>
-                    )}
+                    ) : null}
                 </div>
+
+                {/* Inline preview for mentor to inspect without downloading */}
+                {resolveFirstFileUrl(submission.fileUrl, submission.uploadedFilePath) && (
+                    <div className="px-6 pb-2">
+                        <FileViewer url={resolveFirstFileUrl(submission.fileUrl, submission.uploadedFilePath)} height="h-[260px]" />
+                    </div>
+                )}
 
                 {/* Form */}
                 <div className="px-6 py-4 space-y-5">

@@ -13,14 +13,37 @@ const Label: FC<{ text: string }> = ({ text }) => (
   <p className="text-[10px] font-bold text-gray-400 tracking-widest uppercase mb-1.5">{text}</p>
 );
 
-const Input: FC<React.InputHTMLAttributes<HTMLInputElement>> = (props) => (
-  <input
-    {...props}
-    className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm text-gray-900
-               placeholder:text-gray-300 outline-none focus:border-[#0f5e8b] focus:ring-2
-               focus:ring-[#0f5e8b]/10 transition-colors"
-  />
-);
+const Input: FC<React.InputHTMLAttributes<HTMLInputElement>> = ({
+  type = 'text',
+  className = '',
+  ...props
+}) => {
+  const [showPassword, setShowPassword] = useState(false);
+
+  const isPassword = type === 'password';
+
+  return (
+    <div className="relative">
+      <input
+        {...props}
+        type={isPassword ? (showPassword ? 'text' : 'password') : type}
+        className={`w-full border border-gray-200 rounded-xl px-3 py-2.5 ${isPassword ? 'pr-10' : ''} text-sm text-gray-900
+                   placeholder:text-gray-300 outline-none focus:border-[#0f5e8b] focus:ring-2
+                   focus:ring-[#0f5e8b]/10 transition-colors [&::-ms-reveal]:hidden [&::-ms-clear]:hidden ${className}`}
+      />
+
+      {isPassword && (
+        <button
+          type="button"
+          onClick={() => setShowPassword((p) => !p)}
+          className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+        >
+          {showPassword ? <Eye size={18} /> : <EyeOff size={18} />}
+        </button>
+      )}
+    </div>
+  );
+};
 
 // Edit Profile Modal
 export const EditProfileModal: FC<EditProfileModalProps> = ({
@@ -109,7 +132,12 @@ export const ChangePasswordModal: FC<ChangePasswordModalProps> = ({
   open, saving, onClose, onSave,
 }) => {
   const [form, setForm] = useState({ oldPassword: '', newPassword: '', confirmPassword: '' });
-  const [show, setShow] = useState({ old: false, new: false, confirm: false });
+
+  useEffect(() => {
+    if (!open) {
+      setForm({ oldPassword: '', newPassword: '', confirmPassword: '' });
+    }
+  }, [open]);
 
   if (!open) return null;
 
@@ -129,21 +157,16 @@ export const ChangePasswordModal: FC<ChangePasswordModalProps> = ({
           {(['old','new','confirm'] as const).map((key) => {
             const labels = { old: 'Current Password', new: 'New Password (min 8 chars)', confirm: 'Confirm New Password' };
             const fields = { old: 'oldPassword', new: 'newPassword', confirm: 'confirmPassword' } as const;
+            
             return (
               <div key={key}>
                 <Label text={labels[key]} />
-                <div className="relative">
-                  <Input
-                    type={show[key] ? 'text' : 'password'}
-                    value={form[fields[key]]}
-                    onChange={e => setForm(p => ({ ...p, [fields[key]]: e.target.value }))}
-                    placeholder="••••••••"
-                  />
-                  <button type="button" onClick={() => setShow(s => ({ ...s, [key]: !s[key] }))}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
-                    {show[key] ? <EyeOff size={15} /> : <Eye size={15} />}
-                  </button>
-                </div>
+                <Input
+                  type="password"
+                  value={form[fields[key]]}
+                  onChange={e => setForm(p => ({ ...p, [fields[key]]: e.target.value }))}
+                  placeholder="Enter password"
+                />
               </div>
             );
           })}

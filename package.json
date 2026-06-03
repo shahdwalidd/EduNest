@@ -36,6 +36,7 @@
     "html2pdf": "^0.0.11",
     "html2pdf.js": "^0.14.0",
     "lucide-react": "^0.563.0",
+    "mammoth": "^1.12.0",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
     "react-hot-toast": "^2.6.0",
@@ -46,6 +47,7 @@
     "sockjs-client": "^1.6.1",
     "sweetalert2": "^11.26.17",
     "sweetalert2-react-content": "^5.1.1",
+    "zod": "^4.4.3",
     "zustand": "^5.0.8"
   },
   "devDependencies": {

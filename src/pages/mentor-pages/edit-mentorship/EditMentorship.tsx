@@ -1,14 +1,18 @@
 import type { FC } from 'react';
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { useQueryClient } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
 import DashLayout from '../../../components/layout/Dash-layout';
+import { API_BASE_URL } from '../../../services/api';
 import {
   getMentorshipDetail,
   updateMentorship,
   changeMentorshipCoverImage,
+  deleteMentorshipCoverImage,
   type MentorshipApiResponse,
 } from '../../../services/mentorDashboardService';
+import { queryKeys } from '../../../lib/queryClient';
 import { useAuthStore } from '../../../store/authStore';
 import type { MentorshipFormData } from './types';
 import EditMentorshipForm from './components/EditMentorshipForm';
@@ -18,6 +22,7 @@ const EditMentorship: FC = () => {
   const mentorshipId = params.mentorshipId ?? params.id;
   const navigate = useNavigate();
   const token = useAuthStore((s) => s.token);
+  const queryClient = useQueryClient();
 
   const [formData, setFormData] = useState<MentorshipFormData>({
     title: '',
@@ -34,6 +39,7 @@ const EditMentorship: FC = () => {
 
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
+  const [deletingCover, setDeletingCover] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -59,6 +65,24 @@ const EditMentorship: FC = () => {
           return;
         }
 
+        const resolveCoverImageUrl = (value?: string | null): string | undefined => {
+          if (!value) return undefined;
+          const cleanValue = String(value).trim();
+          if (!cleanValue) return undefined;
+          if (cleanValue.startsWith('http') || cleanValue.startsWith('blob:')) {
+            return cleanValue;
+          }
+          return cleanValue.startsWith('/') ? `${API_BASE_URL}${cleanValue}` : `${API_BASE_URL}/${cleanValue}`;
+        };
+
+        const rawCoverUrl =
+          (mentorship.coverImageUrl as string) ||
+          (mentorship.Image_URL as string) ||
+          (mentorship.imageUrl as string) ||
+          (mentorship.coverImage as string) ||
+          (mentorship.image_URL as string) ||
+          undefined;
+
         setFormData({
           title: (mentorship.title && mentorship.title !== 'string') ? mentorship.title : '',
           description: (mentorship.description && mentorship.description !== 'string') ? mentorship.description : '',
@@ -68,7 +92,7 @@ const EditMentorship: FC = () => {
           whatWillLearn: Array.isArray(mentorship.whatWillLearn) ? mentorship.whatWillLearn.filter((item) => item !== 'string') : [],
           tags: Array.isArray(mentorship.tags) ? mentorship.tags.filter((item) => item !== 'string') : [],
           duration: Number(mentorship.duration ?? 0),
-          coverImageUrl: (mentorship.Image_URL as string) || (mentorship.imageUrl as string) || (mentorship.coverImage as string) || undefined,
+          coverImageUrl: resolveCoverImageUrl(rawCoverUrl),
         });
       } catch (err) {
         const message = err instanceof Error ? err.message : 'Failed to load mentorship';
@@ -144,6 +168,7 @@ const EditMentorship: FC = () => {
         await changeMentorshipCoverImage(mentorshipId, formData.coverImageFile);
       }
 
+      queryClient.invalidateQueries({ queryKey: queryKeys.mentorships });
       toast.success('Mentorship updated successfully');
       navigate(`/mentor/mentorships/${mentorshipId}`);
     } catch (err) {
@@ -152,6 +177,44 @@ const EditMentorship: FC = () => {
       console.error('Error updating mentorship:', err);
     } finally {
       setSubmitting(false);
+    }
+  };
+
+  const handleDeleteCoverImage = async () => {
+    if (!mentorshipId) {
+      toast.error('Mentorship ID not provided');
+      return;
+    }
+
+    if (formData.coverImageFile) {
+      setFormData((prev) => ({
+        ...prev,
+        coverImageFile: null,
+        coverImageUrl: undefined,
+      }));
+      toast.success('Cover image preview cleared');
+      return;
+    }
+
+    if (!formData.coverImageUrl) {
+      toast.error('No cover image available to delete');
+      return;
+    }
+
+    try {
+      setDeletingCover(true);
+      const response = await deleteMentorshipCoverImage(mentorshipId);
+      setFormData((prev) => ({
+        ...prev,
+        coverImageUrl: undefined,
+      }));
+      toast.success(response.status || 'Cover image deleted successfully');
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Failed to delete cover image';
+      toast.error(message);
+      console.error('Error deleting cover image:', err);
+    } finally {
+      setDeletingCover(false);
     }
   };
 
@@ -209,6 +272,8 @@ const EditMentorship: FC = () => {
             handleImageChange={handleImageChange}
             handleSubmit={handleSubmit}
             submitting={submitting}
+            deletingCover={deletingCover}
+            onDeleteCoverImage={handleDeleteCoverImage}
             onCancel={handleCancel}
           />
         </div>

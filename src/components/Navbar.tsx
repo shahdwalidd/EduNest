@@ -38,7 +38,7 @@ const Navbar: React.FC = () => {
   };
 
   return (
-    <header className="w-full sticky top-0 z-40 bg-white/70 dark:bg-gray-900/70 backdrop-blur-md transition-colors">
+    <header className="w-full sticky top-0 z-40 bg-white dark:bg-gray-900/70 backdrop-blur-md transition-colors">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3">
           <div className="flex items-center justify-between bg-white/5 dark:bg-transparent shadow-sm backdrop-blur-sm rounded-2xl px-4 sm:px-6 py-3">
           {/* Logo */}
@@ -89,7 +89,7 @@ const Navbar: React.FC = () => {
             ) : (
               <>
                 <Link to="/login">
-                  <button className="text-sm text-gray-600 dark:text-gray-200 hover:text-primary transition font-semibold">
+                  <button className="text-sm text-gray-600 dark:text-gray-200 hover:text-[var(--primary-500)] dark:hover:text-primary transition font-semibold">
                     Sign in
                   </button>
                 </Link>

@@ -1,7 +1,7 @@
 import React from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useRegisterForm } from "../../hooks/useRegisterForm";
-import {BasicLayout} from "../../components/layout/BasicLayout";
+import { BasicLayout } from "../../components/layout/BasicLayout";
 import {
   FormHeader,
   JoinAsToggle,
@@ -12,14 +12,12 @@ import {
   EmailInput,
   PhoneInput,
 } from "../../components/register-com";
-import { registerStudent , registerMentor , sendOtp} from "../../services/authService";
+import { registerStudent, registerMentor, sendOtp } from "../../services/authService";
 import toast from "react-hot-toast";
 
 const Register: React.FC = () => {
   const form = useRegisterForm();
   const navigate = useNavigate();
-
- 
 
   // Handle form submission based on user type (student or mentor)
   const handleRegister = async (e: React.FormEvent) => {
@@ -66,13 +64,13 @@ const Register: React.FC = () => {
       
       console.log('Error Response:', errorData);
       
-      // استخراج رسالة الخطأ من أي مصدر محتمل (Email Error، message، أو أول قيمة في errorMessages)
+      // Extract error message from any potential source
       const rawMsg = errorData?.errorMessages?.['Email Error'] 
         || errorData?.message 
         || (errorData?.errorMessages && Object.values(errorData.errorMessages)[0]);
       const errorText = (typeof rawMsg === 'string' ? rawMsg : String(rawMsg || '')).toLowerCase();
       
-      // الحل الأمثل: حساب موجود لكن غير مفعّل → توجيه تلقائي لصفحة OTP
+      // Account exists but unverified -> automatic redirect to OTP page
       const isUnverifiedAccount = 
         errorText.includes('not verified') ||
         errorText.includes('unverified') ||
@@ -93,7 +91,7 @@ const Register: React.FC = () => {
         return;
       }
       
-      // Check if error is related to duplicate email (409 Conflict) - حساب مفعّل بالفعل
+      // Check if error is related to duplicate email (409 Conflict)
       if (errorStatus === 409 && errorData?.errorMessages?.['Email Error']) {
         const msg = errorData.errorMessages['Email Error'];
         form.setEmailError(msg);
@@ -102,7 +100,6 @@ const Register: React.FC = () => {
         form.setEmailError('This email is already registered. Please use a different email.');
         toast.error('Email already exists. Please use a different email.');
       } else {
-        // استخراج الرسالة: errorMessages أولاً، ثم message من الباكند، ثم رسالة عامة
         const errorMessage =
           (errorData?.errorMessages && Object.values(errorData.errorMessages)[0]) ||
           errorData?.message ||
@@ -160,26 +157,34 @@ const Register: React.FC = () => {
           error={form.errors.phoneNumber}
         />
 
-        {/* Educational Level - Only for Students */}
+        {/* Educational Level - Only for Students (Styled & Brand Colorized) */}
         {form.joinAs === "student" && (
           <div className="w-full">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Educational Level
+            <label className="block text-sm font-semibold text-gray-700 mb-1.5">
+              Level
             </label>
-            <select
-              value={form.formData.educationalLevel || ""}
-              onChange={(e) => form.handleInputChange("educationalLevel", e.target.value)}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-            >
-              <option value="">Select your educational level</option>
-              <option value="1">High School</option>
-              <option value="2">Bachelor's Degree</option>
-              <option value="3">Master's Degree</option>
-              <option value="4">Ph.D</option>
-              <option value="5">Professional Certification</option>
-            </select>
+            <div className="relative">
+              <select
+                value={form.formData.educationalLevel || ""}
+                onChange={(e) => form.handleInputChange("educationalLevel", e.target.value)}
+                className={`w-full px-4 py-3 bg-white border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0f5e8b] focus:border-transparent transition-all appearance-none cursor-pointer text-sm text-gray-800 ${
+                  form.errors.educationalLevel ? 'border-red-300' : 'border-gray-300 hover:border-gray-400'
+                }`}
+              >
+                <option value="" className="text-gray-400">Select your educational level</option>
+                <option value="FRESH">FRESH</option>
+                <option value="JUNIOR">JUNIOR</option>
+                <option value="SENIOR">SENIOR</option>
+              </select>
+              {/* Custom smooth arrow for Select Dropdown */}
+              <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-gray-500">
+                <svg className="fill-current h-4 w-4" viewBox="0 0 24 24">
+                  <path d="M7 10l5 5 5-5z" />
+                </svg>
+              </div>
+            </div>
             {form.errors.educationalLevel && (
-              <p className="text-red-500 text-xs mt-1">{form.errors.educationalLevel}</p>
+              <p className="text-red-500 text-xs mt-1 font-medium">{form.errors.educationalLevel}</p>
             )}
           </div>
         )}
@@ -203,43 +208,42 @@ const Register: React.FC = () => {
           error={form.errors.confirmPassword}
           id="confirmPassword"
         />
-        {/* Checkboxes */}
         
-        <div className="flex flex-col gap-3 sm:gap-4 mt-4 text-xs sm:text-sm">
+        <div className="flex flex-col gap-3 sm:gap-4 mt-2 text-xs sm:text-sm">
           {/* Agree terms */}
-          <label className="flex items-start sm:items-center gap-2 cursor-pointer hover:opacity-80 transition-opacity">
+          <label className="flex items-start sm:items-center gap-2.5 cursor-pointer hover:opacity-90 transition-opacity">
             <input
               type="checkbox"
-              className="w-4 h-4 accent-blue-500 mt-1 sm:mt-0 flex-shrink-0 rounded cursor-pointer"
+              className="w-4 h-4 accent-[#0f5e8b] mt-0.5 sm:mt-0 flex-shrink-0 rounded cursor-pointer"
               checked={form.agreeTerms}
               onChange={(e) => form.setAgreeTerms(e.target.checked)}
             />
-            <span className="flex flex-wrap gap-1 text-gray-700">
-              I agree with
-              <a href="#" className="text-blue-600 hover:text-blue-700 underline font-semibold transition-colors">
+            <span className="text-gray-600">
+              I agree with{" "}
+              <a href="#" className="text-[var(--primary-500)] hover:underline font-semibold transition-colors">
                 Terms
-              </a>
-              and
-              <a href="#" className="text-blue-600 hover:text-blue-700 underline font-semibold transition-colors">
+              </a>{" "}
+              and{" "}
+              <a href="#" className="text-[var(--primary-500)] hover:underline font-semibold transition-colors">
                 Privacy Policy
               </a>
             </span>
           </label>
           {form.errors.agreeTerms && (
-            <span className="text-red-500 text-xs font-medium">
+            <span className="text-red-500 text-xs font-medium ml-6">
               {form.errors.agreeTerms}
             </span>
           )}
 
           {/* Remember me */}
-          <label className="flex items-center gap-2 cursor-pointer hover:opacity-80 transition-opacity">
+          <label className="flex items-center gap-2.5 cursor-pointer hover:opacity-90 transition-opacity">
             <input
               type="checkbox"
-              className="w-4 h-4 accent-blue-500 flex-shrink-0 rounded cursor-pointer"
+              className="w-4 h-4 accent-[#0f5e8b] flex-shrink-0 rounded cursor-pointer"
               checked={form.rememberMe}
               onChange={(e) => form.setRememberMe(e.target.checked)}
             />
-            <span className="text-gray-700">Remember me</span>
+            <span className="text-gray-600 font-medium">Remember me</span>
           </label>
         </div>
 
@@ -251,10 +255,10 @@ const Register: React.FC = () => {
         />
 
         {/* Already have an account */}
-        <p className="text-xs sm:text-sm md:text-base text-gray-600 text-center mt-4 sm:mt-5">
+        <p className="text-xs sm:text-sm text-gray-500 text-center mt-3">
           Already have an account?{" "}
           <Link to="/login">
-            <span className="text-blue-600 hover:text-blue-700 underline font-semibold transition-colors">Sign in</span>
+            <span className="text-[var(--primary-500)] hover:underline font-semibold transition-colors">Sign in</span>
           </Link>
         </p>
       </form>
@@ -263,5 +267,3 @@ const Register: React.FC = () => {
 };
 
 export default Register;
-
-

@@ -155,8 +155,27 @@ export const useStudentProfile = () => {
   // ── Update profile info 
   const updateMutation = useMutation({
     mutationFn: updateStudentProfile,
-    onSuccess: () => {
+    onSuccess: (_data, variables) => {
       queryClient.invalidateQueries({ queryKey: [STUDENT_PROFILE_KEY, userEmail] });
+      const fullName = `${variables.firstName} ${variables.lastName}`.trim();
+      if (fullName) {
+        useAuthStore.getState().updateProfile({ userName: fullName });
+      }
+      queryClient.setQueryData([STUDENT_PROFILE_KEY, userEmail], (oldData: unknown) => {
+        if (!oldData || typeof oldData !== 'object') return oldData;
+        const existing = oldData as { profile?: Partial<ProfileData> };
+        return {
+          ...existing,
+          profile: {
+            ...existing.profile,
+            firstName: variables.firstName,
+            lastName: variables.lastName,
+            role: variables.jobTitle,
+            bio: variables.bio,
+            skills: variables.skills,
+          },
+        };
+      });
       toast.success('Profile updated successfully');
     },
     onError: (e: unknown) => {
@@ -169,8 +188,23 @@ export const useStudentProfile = () => {
   // ── Upload image
   const imageMutation = useMutation({
     mutationFn: updateStudentProfileImage,
-    onSuccess: () => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: [STUDENT_PROFILE_KEY, userEmail] });
+      const imageUrl = data?.apiResponse?.profileImageUrl;
+      if (imageUrl) {
+        useAuthStore.getState().updateProfile({ userAvatar: buildImgUrl(imageUrl) });
+        queryClient.setQueryData([STUDENT_PROFILE_KEY, userEmail], (oldData: unknown) => {
+          if (!oldData || typeof oldData !== 'object') return oldData;
+          const existing = oldData as { profile?: Partial<ProfileData> };
+          return {
+            ...existing,
+            profile: {
+              ...existing.profile,
+              avatar: buildImgUrl(imageUrl),
+            },
+          };
+        });
+      }
       toast.success('Profile image updated');
     },
     onError: () => toast.error('Failed to update image'),

@@ -4,8 +4,6 @@
 
 /**
  * Safely decodes a Base64URL JWT payload and returns UTF-8 text.
- * This fixes issues where Arabic (or other non-ASCII) characters
- * appear كمجموعة رموز غريبة مثل "Ø§Ù„..." بسبب التعامل الخاطئ مع الترميز.
  */
 function decodeBase64UrlUtf8(segment: string): string {
   // 1) تحويل Base64URL إلى Base64 عادي
@@ -17,7 +15,6 @@ function decodeBase64UrlUtf8(segment: string): string {
 
   const binary = atob(base64);
 
-  // 2) تحويل السلسلة الثنائية (bytes 0–255) إلى نص UTF‑8 صحيح
   try {
     const percentEncoded = binary
       .split("")

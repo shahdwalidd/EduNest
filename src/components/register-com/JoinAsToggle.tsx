@@ -1,6 +1,6 @@
-
 import React from "react";
 import type { JoinAs } from "../../types/auth";
+import toast from "react-hot-toast";
 
 interface Props {
   joinAs: JoinAs;
@@ -8,29 +8,45 @@ interface Props {
 }
 
 export const JoinAsToggle: React.FC<Props> = ({ joinAs, setJoinAs }) => {
+  // Base styling ensuring high vertical consistency with the compact form viewport layout
   const baseStyles =
-    "flex-1 sm:flex-auto h-11 sm:h-12 px-6 sm:px-8 rounded-lg sm:rounded-xl text-sm sm:text-base font-semibold transition-all duration-300 flex items-center justify-center font-Poppins hover:scale-[1.05] active:scale-95 shadow-sm border-2";
+    "flex-1 h-10 sm:h-11 px-4 sm:px-6 rounded-lg text-sm font-semibold transition-all duration-200 flex items-center justify-center border text-center cursor-pointer select-none active:scale-[0.98]";
 
-  const activeStyles = "bg-primary text-white shadow-md";
+  // Active state utilizing the brand identity color (#0f5e8b)
+  const activeStyles = "bg-[#0f5e8b] text-white border-[#0f5e8b] shadow-sm font-bold";
+  
+  // Inactive state with minimalist borders and clean hover states
   const inactiveStyles =
-    "bg-white text-gray-700 border-gray-300 hover:border-gray-400 hover:bg-gray-50";
+    "bg-white text-gray-600 border-gray-200 hover:border-gray-300 hover:text-gray-800 hover:bg-gray-50/60";
+
+  // Handles role switching and fires a dynamic success toast notification cleanly
+  const handleToggle = (role: JoinAs) => {
+    // Prevent triggering a new toast if the user clicks the currently active role
+    if (joinAs === role) return;
+    
+    setJoinAs(role);
+    
+    // Capitalize the first letter for professional display (e.g., "Student" or "Mentor")
+    const formattedRole = role.charAt(0).toUpperCase() + role.slice(1);
+    toast.success(`Switched to ${formattedRole}`);
+  };
 
   return (
     <div
       className="
         flex flex-row
-        gap-2 sm:gap-4
+        gap-2.5 sm:gap-3
         items-center
         w-full
-        justify-start sm:justify-center
       "
     >
       <button
         type="button"
         aria-pressed={joinAs === "student"}
-        onClick={() => setJoinAs("student")}
-        className={`${baseStyles} ${joinAs === "student" ? activeStyles : inactiveStyles
-          }`}
+        onClick={() => handleToggle("student")}
+        className={`${baseStyles} ${
+          joinAs === "student" ? activeStyles : inactiveStyles
+        }`}
       >
         Student
       </button>
@@ -38,16 +54,13 @@ export const JoinAsToggle: React.FC<Props> = ({ joinAs, setJoinAs }) => {
       <button
         type="button"
         aria-pressed={joinAs === "mentor"}
-        onClick={() => setJoinAs("mentor")}
-        className={`${baseStyles} ${joinAs === "mentor" ? activeStyles : inactiveStyles
-          }`}
+        onClick={() => handleToggle("mentor")}
+        className={`${baseStyles} ${
+          joinAs === "mentor" ? activeStyles : inactiveStyles
+        }`}
       >
         Mentor
       </button>
     </div>
   );
 };
-
-
-
-

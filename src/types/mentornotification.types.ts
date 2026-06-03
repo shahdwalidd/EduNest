@@ -67,7 +67,8 @@ export interface Notification {
   message: string;
   isRead: boolean;
   isNew: boolean;
-  timestamp: string;
+  rawTime: string;  // ← ISO timestamp for dynamic formatting
+  timestamp?: string;  // ← deprecated; kept for backward compat
   actionLabel?: string;
   actionUrl?: string;
 }
@@ -98,5 +99,6 @@ export const toUiNotification = (dto: NotificationApiDto): Notification => ({
   message: dto.content,
   isRead: dto.read,
   isNew: !dto.read,
-  timestamp: formatTimeAgo(dto.time),
+  rawTime: dto.time,  // ← store raw ISO time; component formats it dynamically
+  timestamp: formatTimeAgo(dto.time),  // ← fallback for backward compat
 });
