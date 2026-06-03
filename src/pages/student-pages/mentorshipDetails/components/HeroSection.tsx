@@ -86,9 +86,20 @@ const HeroSection: FC<HeroSectionProps> = ({ mentorship, mentorshipId, isEnrolle
               )}
             </div>
 
-            <div className="space-y-3 lg:space-y-4 ">
-              <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-7xl font-black tracking-tight lg:tracking-[0.04em] leading-tight break-words">
-                {mentorship?.title.slice(0,20)}
+            <div className="space-y-3 lg:space-y-4">
+              <h1  className={`
+    font-black
+    tracking-tight
+    leading-tight
+    break-words
+    whitespace-normal
+    ${
+         mentorship?.title?.length && mentorship.title.length  > 40
+        ? "text-xl sm:text-2xl md:text-3xl lg:text-4xl"
+        : "text-3xl sm:text-4xl md:text-5xl lg:text-7xl"
+    }
+  `}>
+                {mentorship?.title}
               </h1>
               <p className="text-lg lg:text-2xl font-medium text-blue-100/80 leading-relaxed max-w-2xl break-words">
                 {mentorship?.subtitle}

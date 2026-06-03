@@ -267,7 +267,7 @@ const StudentMentorshipContent = () => {
                 <div>
                   <div className="flex items-center gap-3">
                     <ContentTypeBadge type={selectedItem.type} size="sm" />
-                    <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-slate-900">{selectedItem.title}</h1>
+                    <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-slate-900 break-all">{selectedItem.title}</h1>
                   </div>
                   <p className="mt-3 sm:mt-4 text-slate-600 text-sm sm:text-base max-w-3xl">
                     {(() => {

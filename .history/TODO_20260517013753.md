@@ -1,7 +1,0 @@
-# EduNest - TODO
-
-## Mentor dashboard - Notifications fix
-
-- [ ] Update `mapNotifications` to correctly map backend fields (`content`, `time`, `read`) to UI fields (`message`, `timestamp`, `isRead/isNew`).
-- [ ] Run typecheck/build to ensure no TS errors.
-- [ ] Manually verify in UI that notifications show correct message text and time.

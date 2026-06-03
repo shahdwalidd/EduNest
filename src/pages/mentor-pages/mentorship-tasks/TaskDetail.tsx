@@ -99,12 +99,9 @@ const TaskDetail: FC = () => {
                             </h1>
                         </div>
                         <div className="flex items-center gap-3">
-                            {/* <div className="p-2.5 bg-indigo-600 rounded-xl text-white shadow-lg shadow-indigo-200">
-                                <ClipboardList size={24} />
-                            </div> */}
-                            {/* <nav className="text-sm font-medium text-slate-400">
-                                Mentorship / <span className="text-slate-900">Task Details</span>
-                            </nav> */}
+
+                            {/* i will add the description here if needed */}
+                         {/* <p>{stats?.description || ""}</p> */}
                         </div>
                         <div className="flex flex-wrap items-center gap-3">
                              <span className="flex items-center gap-1.5 px-3 py-1 bg-slate-100 text-slate-700 rounded-full text-xs font-bold uppercase tracking-wider">

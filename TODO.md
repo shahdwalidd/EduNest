@@ -1,5 +1,0 @@
-- [x] قراءة ActivityItem.tsx وتحديد الأجزاء المطلوبة (ACTIVITY_CONFIG, detectActivityType, getRelativeTime).
-- [x] إنشاء ملف utils جديد: src/components/mentor-components/mentor-dash-com/RecentActivity/activityItemUtils.ts.
-- [x] نقل ACTIVITY_CONFIG و detectActivityType و getRelativeTime داخل ملف utils الجديد.
-- [x] تعديل ActivityItem.tsx ليقوم بالاستيراد من activityItemUtils.ts.
-- [x] تشغيل lint/build للتأكد من عدم وجود أخطاء (لم يُنفّذ بسبب قيود تنفيذ الأوامر في بيئة الطرف).

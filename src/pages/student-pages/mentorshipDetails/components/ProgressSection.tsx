@@ -51,7 +51,7 @@ const ProgressSection: FC<ProgressSectionProps> = ({
 
         <div className="flex items-center gap-3 self-start rounded-2xl bg-[var(--primary-500)]/10 px-4 py-2">
           <div className="flex flex-col items-center gap-1">
-            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-[var(--primary-500)] text-white font-bold">
+            <div className="flex h-11 w-12 items-center justify-center rounded-xl bg-[var(--primary-500)] text-white font-bold">
               {progress.progressPercentage}%
             </div>
             {/* <div className="text-xs text-slate-500">Overall completion</div> */}
