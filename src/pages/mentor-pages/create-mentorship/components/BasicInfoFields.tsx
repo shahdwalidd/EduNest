@@ -51,7 +51,7 @@ export const BasicInfoFields: FC<Props> = ({ formData, onChange, setFieldValue, 
             onChange={onChange}
             className={`w-full h-12 px-4 rounded-xl border text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#154d71] ${fieldErrors.title ? 'border-red-400 bg-red-50' : 'border-gray-200'}`}
             placeholder="Enter title here..."
-            maxLength={30}
+            maxLength={50}
           />
           {fieldErrors.title && <p className="mt-1 text-xs text-red-600">{fieldErrors.title}</p>}
         </div>
@@ -80,7 +80,7 @@ export const BasicInfoFields: FC<Props> = ({ formData, onChange, setFieldValue, 
             rows={4}
             className={`w-full px-4 py-3 rounded-xl border text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#154d71] resize-none ${fieldErrors.description ? 'border-red-400 bg-red-50' : 'border-gray-200'}`}
             placeholder="Enter description here..."
-            maxLength={250}
+            maxLength={150}
           />
         </div>
       </div>

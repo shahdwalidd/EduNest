@@ -21,6 +21,7 @@ const EditTaskModal: React.FC<EditTaskModalProps> = ({ isOpen, onClose, taskId, 
     const [status, setStatus] = useState<'DRAFT' | 'PUBLISHED'>('DRAFT');
 
     const [file, setFile] = useState<File | null>(null);
+    const [attachmentUrl, setAttachmentUrl] = useState<string>('');
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     const [loading, setLoading] = useState(false);
@@ -44,7 +45,6 @@ const EditTaskModal: React.FC<EditTaskModalProps> = ({ isOpen, onClose, taskId, 
                     if (data.dueAt) {
                         try {
                             const dateObj = new Date(data.dueAt);
-                            // Format to YYYY-MM-DDThh:mm for datetime-local
                             const year = dateObj.getFullYear();
                             const month = String(dateObj.getMonth() + 1).padStart(2, '0');
                             const day = String(dateObj.getDate()).padStart(2, '0');
@@ -60,11 +60,12 @@ const EditTaskModal: React.FC<EditTaskModalProps> = ({ isOpen, onClose, taskId, 
 
                     setStatus(data.status === 'PUBLISHED' ? 'PUBLISHED' : 'DRAFT');
                     setFile(null);
+                    setAttachmentUrl(data.attachmentUrl || '');
                 }
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            } catch (err: any) {
+            } catch (err) {
                 if (active) {
-                    toast.error(err?.message || 'Failed to load task details');
+                    const errorMessage = err instanceof Error ? err.message : 'Failed to load task details';
+                    toast.error(errorMessage);
                     onClose();
                 }
             } finally {
@@ -85,7 +86,9 @@ const EditTaskModal: React.FC<EditTaskModalProps> = ({ isOpen, onClose, taskId, 
         }
     };
 
-    const handleRemoveFile = () => {
+    const handleRemoveFile = (e: React.MouseEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
         setFile(null);
         if (fileInputRef.current) {
             fileInputRef.current.value = '';
@@ -99,7 +102,6 @@ const EditTaskModal: React.FC<EditTaskModalProps> = ({ isOpen, onClose, taskId, 
         try {
             setSubmitting(true);
 
-            // Format date for backend API if present
             let formattedDueAt = dueAt;
             if (dueAt) {
                 formattedDueAt = dueAt.replace('T', ' ');
@@ -115,16 +117,22 @@ const EditTaskModal: React.FC<EditTaskModalProps> = ({ isOpen, onClose, taskId, 
                 passPoints,
                 estimatedMinutes,
                 dueAt: formattedDueAt || undefined,
-                status
+                status,
+                attachmentUrl: attachmentUrl.trim() || undefined
             };
 
             await updateTask(taskId, payload, file || undefined);
+
             toast.success('Task updated successfully');
             onSuccess();
             onClose();
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        } catch (err: any) {
-            const errorMessage = err?.errorMessages?.error || err?.message || 'Failed to update task';
+        } catch (err: unknown) {
+            // التعامل الآمن مع الأخطاء بدون استخدام any لضمان عدم وجود أخطاء في الـ Linter
+            let errorMessage = 'Failed to update task';
+            if (err && typeof err === 'object') {
+                const errorObj = err as { errorMessages?: { error?: string }; message?: string };
+                errorMessage = errorObj.errorMessages?.error || errorObj.message || errorMessage;
+            }
             toast.error(errorMessage);
         } finally {
             setSubmitting(false);
@@ -139,6 +147,7 @@ const EditTaskModal: React.FC<EditTaskModalProps> = ({ isOpen, onClose, taskId, 
                 <div className="flex items-center justify-between p-6 border-b border-gray-100 shrink-0">
                     <h3 className="text-xl font-bold text-gray-900">Edit Task</h3>
                     <button
+                        type="button"
                         onClick={onClose}
                         disabled={submitting}
                         className="text-gray-400 hover:text-gray-600 transition-colors disabled:opacity-50"
@@ -149,7 +158,7 @@ const EditTaskModal: React.FC<EditTaskModalProps> = ({ isOpen, onClose, taskId, 
 
                 {loading ? (
                     <div className="p-12 flex justify-center">
-                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
                     </div>
                 ) : (
                     <div className="p-6 overflow-y-auto">
@@ -159,9 +168,10 @@ const EditTaskModal: React.FC<EditTaskModalProps> = ({ isOpen, onClose, taskId, 
                                 <input
                                     required
                                     type="text"
+                                    maxLength={50}
                                     value={title}
                                     onChange={e => setTitle(e.target.value)}
-                                    className="w-full px-4 py-2 border border-gray-200 rounded-lg outline-none focus:border-blue-500 transition-colors"
+                                    className="w-full px-4 py-2 border border-gray-200 rounded-lg outline-none focus:border-primary transition-colors"
                                 />
                             </div>
 
@@ -172,7 +182,7 @@ const EditTaskModal: React.FC<EditTaskModalProps> = ({ isOpen, onClose, taskId, 
                                     value={description}
                                     onChange={e => setDescription(e.target.value)}
                                     rows={4}
-                                    className="w-full px-4 py-2 border border-gray-200 rounded-lg outline-none focus:border-blue-500 transition-colors resize-none"
+                                    className="w-full px-4 py-2 border border-gray-200 rounded-lg outline-none focus:border-primary transition-colors resize-none"
                                 />
                             </div>
 
@@ -185,7 +195,7 @@ const EditTaskModal: React.FC<EditTaskModalProps> = ({ isOpen, onClose, taskId, 
                                         min="1"
                                         value={points}
                                         onChange={e => setPoints(parseInt(e.target.value) || 0)}
-                                        className="w-full px-4 py-2 border border-gray-200 rounded-lg outline-none focus:border-blue-500 transition-colors"
+                                        className="w-full px-4 py-2 border border-gray-200 rounded-lg outline-none focus:border-primary transition-colors"
                                     />
                                 </div>
                                 <div>
@@ -197,7 +207,7 @@ const EditTaskModal: React.FC<EditTaskModalProps> = ({ isOpen, onClose, taskId, 
                                         max={points}
                                         value={passPoints}
                                         onChange={e => setPassPoints(parseInt(e.target.value) || 0)}
-                                        className="w-full px-4 py-2 border border-gray-200 rounded-lg outline-none focus:border-blue-500 transition-colors"
+                                        className="w-full px-4 py-2 border border-gray-200 rounded-lg outline-none focus:border-primary transition-colors"
                                     />
                                 </div>
                             </div>
@@ -210,7 +220,7 @@ const EditTaskModal: React.FC<EditTaskModalProps> = ({ isOpen, onClose, taskId, 
                                         min="1"
                                         value={estimatedMinutes}
                                         onChange={e => setEstimatedMinutes(parseInt(e.target.value) || 0)}
-                                        className="w-full px-4 py-2 border border-gray-200 rounded-lg outline-none focus:border-blue-500 transition-colors"
+                                        className="w-full px-4 py-2 border border-gray-200 rounded-lg outline-none focus:border-primary transition-colors"
                                     />
                                 </div>
                                 <div>
@@ -219,7 +229,7 @@ const EditTaskModal: React.FC<EditTaskModalProps> = ({ isOpen, onClose, taskId, 
                                         type="datetime-local"
                                         value={dueAt}
                                         onChange={e => setDueAt(e.target.value)}
-                                        className="w-full px-4 py-2 border border-gray-200 rounded-lg outline-none focus:border-blue-500 transition-colors"
+                                        className="w-full px-4 py-2 border border-gray-200 rounded-lg outline-none focus:border-primary transition-colors"
                                     />
                                 </div>
                             </div>
@@ -229,7 +239,7 @@ const EditTaskModal: React.FC<EditTaskModalProps> = ({ isOpen, onClose, taskId, 
                                 <select
                                     value={status}
                                     onChange={e => setStatus(e.target.value as 'DRAFT' | 'PUBLISHED')}
-                                    className="w-full px-4 py-2 border border-gray-200 rounded-lg outline-none focus:border-blue-500 transition-colors bg-white"
+                                    className="w-full px-4 py-2 border border-gray-200 rounded-lg outline-none focus:border-primary transition-colors bg-white"
                                 >
                                     <option value="DRAFT">Draft</option>
                                     <option value="PUBLISHED">Published</option>
@@ -237,45 +247,66 @@ const EditTaskModal: React.FC<EditTaskModalProps> = ({ isOpen, onClose, taskId, 
                             </div>
 
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Attachment File (Optional)</label>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">ATTACHMENT <span className="text-gray-500 font-normal">(optional)</span></label>
 
-                                {!file ? (
-                                    <div
-                                        onClick={() => fileInputRef.current?.click()}
-                                        className="border-2 border-dashed border-gray-300 rounded-xl p-6 flex flex-col items-center justify-center cursor-pointer hover:border-blue-500 hover:bg-blue-50/50 transition-all group"
-                                    >
-                                        <div className="w-12 h-12 bg-blue-50 rounded-full flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
-                                            <Upload className="text-blue-500" size={24} />
-                                        </div>
-                                        <p className="text-sm font-medium text-gray-700 mb-1">Click to upload or replace file</p>
-                                        <p className="text-xs text-gray-500">Maximum file size: 10MB</p>
+                                <div className="space-y-3">
+                                    <div>
+                                        <label className="block text-xs font-medium text-gray-500 mb-1">Link to file</label>
                                         <input
-                                            type="file"
-                                            ref={fileInputRef}
-                                            onChange={handleFileChange}
-                                            className="hidden"
+                                            type="url"
+                                            value={attachmentUrl}
+                                            onChange={e => setAttachmentUrl(e.target.value)}
+                                            placeholder="https://..."
+                                            className="w-full px-4 py-2 border border-gray-200 rounded-lg outline-none focus:border-primary transition-colors"
                                         />
                                     </div>
-                                ) : (
-                                    <div className="bg-blue-50 border border-blue-100 rounded-xl p-4 flex items-center justify-between">
-                                        <div className="flex items-center gap-3 overflow-hidden">
-                                            <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center shrink-0">
-                                                <FileIcon className="text-blue-500" size={20} />
-                                            </div>
-                                            <div className="truncate">
-                                                <p className="text-sm font-medium text-gray-900 truncate">{file.name}</p>
-                                                <p className="text-xs text-gray-500">{(file.size / 1024 / 1024).toFixed(2)} MB</p>
+
+                                    <div>
+                                        <label className="block text-xs font-medium text-gray-500 mb-1">OR Upload File</label>
+
+                                        <div className={`mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-dashed rounded-lg transition-all ${
+                                            file ? 'border-[var(--primary-500)] bg-[var(--primary-500)]/5' : 'border-gray-300 bg-white'
+                                        }`}>
+                                            <div className="space-y-2 text-center w-full max-w-md mx-auto">
+                                                {file ? (
+                                                    <div className="flex flex-col items-center p-2 rounded-lg">
+                                                        <div className="relative p-3 bg-[var(--primary-500)]/10 text-[var(--primary-500)] rounded-xl mb-2">
+                                                            <FileIcon className="h-10 w-10" />
+                                                            <button 
+                                                                type="button"
+                                                                onClick={handleRemoveFile}
+                                                                className="absolute -top-1.5 -right-1.5 bg-red-500 text-white rounded-full p-0.5 hover:bg-red-600 shadow-md transition-colors"
+                                                                title="Remove file"
+                                                            >
+                                                                <X size={14} />
+                                                            </button>
+                                                        </div>
+                                                        <p className="text-sm font-semibold text-gray-800 break-all max-w-xs">{file.name}</p>
+                                                        <p className="text-xs text-gray-400 mt-0.5">({(file.size / (1024 * 1024)).toFixed(2)} MB)</p>
+                                                        <p className="text-xs text-[var(--primary-500)] font-medium mt-2 bg-[var(--primary-500)]/10 px-2 py-0.5 rounded-full">Ready to upload</p>
+                                                    </div>
+                                                ) : (
+                                                    <div 
+                                                        onClick={() => fileInputRef.current?.click()}
+                                                        className="cursor-pointer group flex flex-col items-center"
+                                                    >
+                                                        <div className="w-12 h-12 bg-gray-50 rounded-full flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
+                                                            <Upload className="text-gray-400 group-hover:text-[var(--primary-500)] transition-colors" size={24} />
+                                                        </div>
+                                                        <p className="text-sm font-medium text-gray-700 mb-1">Click to upload or replace file</p>
+                                                        <p className="text-xs text-gray-500">Maximum file size: 10MB</p>
+                                                        <input
+                                                            type="file"
+                                                            ref={fileInputRef}
+                                                            onChange={handleFileChange}
+                                                            className="hidden"
+                                                        />
+                                                    </div>
+                                                )}
                                             </div>
                                         </div>
-                                        <button
-                                            type="button"
-                                            onClick={handleRemoveFile}
-                                            className="p-2 text-gray-400 hover:text-red-500 hover:bg-white rounded-lg transition-colors shrink-0"
-                                        >
-                                            <X size={18} />
-                                        </button>
                                     </div>
-                                )}
+                                </div>
                             </div>
                         </form>
                     </div>
@@ -294,7 +325,7 @@ const EditTaskModal: React.FC<EditTaskModalProps> = ({ isOpen, onClose, taskId, 
                         type="submit"
                         form="edit-task-form"
                         disabled={submitting || loading}
-                        className="flex items-center gap-2 px-5 py-2.5 text-sm font-medium text-white bg-primary rounded-xl transition-colors shadow-sm shadow-blue-600/20 disabled:opacity-50"
+                        className="flex items-center gap-2 px-5 py-2.5 text-sm font-medium text-white bg-primary rounded-xl transition-colors shadow-sm disabled:opacity-50"
                     >
                         {submitting ? (
                             <>

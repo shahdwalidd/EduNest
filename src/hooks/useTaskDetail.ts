@@ -54,7 +54,7 @@ export const useTaskDetail = () => {
     const submissions = stats?.taskSubmissionResponsePageResponse?.content ?? [];
     const paginationMeta = stats?.taskSubmissionResponsePageResponse;
     const maxPoints = stats?.totalPoints ?? 100;
-    const gradedCount = stats ? stats.totalSubmissions - stats.pendingReview : 0;
+    const gradedCount = stats ? stats.totalSubmissions - stats.pendingReview + stats.totalStudents : 0;
 
     // Client-side search + filter
     const filteredSubmissions = submissions.filter((sub) => {
