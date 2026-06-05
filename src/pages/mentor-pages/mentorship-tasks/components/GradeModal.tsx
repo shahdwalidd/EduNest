@@ -4,6 +4,7 @@ import { X, Send, Award, Paperclip, AlertCircle, Star } from 'lucide-react';
 import FileViewer from '../../../../components/common/FileViewer';
 import ContentTypeBadge from '../../../../components/common/ContentTypeBadge';
 import { resolveFirstFileUrl } from '../../../../utils/fileUrl';
+import { API_BASE_URL } from '../../../../services/api';
 import type { GradePayload } from '../../../../services/mentorshipsContent/task';
 import { gradeTaskSubmission } from '../../../../services/mentorshipsContent/task';
 import toast from 'react-hot-toast';
