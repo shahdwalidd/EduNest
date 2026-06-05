@@ -79,6 +79,11 @@ export interface StudentProjectDetails {
   mentorId: number | null;
   mentorName: string | null;
   mentorPhoto: string | null;
+  // Extended fields to support multiple submissions
+  studentSubmission?: {
+    fileUrl?: string | null;
+    uploadedFilePath?: string | null;
+  };
 }
 
 export const getStudentProjectDetails = async (projectId: number): Promise<StudentProjectDetails> => {

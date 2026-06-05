@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import DashLayout from '../../../components/layout/Dash-layout';
 import toast from 'react-hot-toast';
 import { getProjectStatistics, getProjectDashboard, gradeProjectSubmission, type ProjectStatistics, type TaskSubmission, type ProjectResponse } from '../../../services/projectService';
-import { Download, CheckCircle, Clock, AlertCircle, Award, ArrowLeft, Edit } from 'lucide-react';
+import { Download, CheckCircle, Clock, AlertCircle, Award, ArrowLeft, Edit, Link as LinkIcon } from 'lucide-react';
 import { EditProjectModal } from './components/ProjectModals';
 
 
@@ -230,13 +230,24 @@ const ProjectDetail: React.FC = () => {
                       )}
                     </td>
                     <td className="p-4">
-                      {sub.fileUrl ? (
-                        <a href={sub.fileUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 text-blue-600 hover:text-blue-800 text-sm font-medium">
-                          <Download size={16} /> View File
-                        </a>
-                      ) : (
-                        <span className="text-gray-400 text-sm">No File</span>
-                      )}
+                      <div className="flex flex-col gap-2">
+                        {/* Show Link if exists */}
+                        {sub.fileUrl && (
+                          <a href={sub.fileUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 text-blue-600 hover:text-blue-800 text-sm font-medium">
+                            <LinkIcon size={16} /> View Link
+                          </a>
+                        )}
+                        {/* Show File if exists */}
+                        {sub.uploadedFilePath && (
+                          <a href={sub.uploadedFilePath} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 text-blue-600 hover:text-blue-800 text-sm font-medium">
+                            <Download size={16} /> View File
+                          </a>
+                        )}
+                        {/* Show message if neither exists */}
+                        {!sub.fileUrl && !sub.uploadedFilePath && (
+                          <span className="text-gray-400 text-sm">No File</span>
+                        )}
+                      </div>
                     </td>
                     <td className="p-4 font-medium">
                       {sub.status === 'GRADED' ? (

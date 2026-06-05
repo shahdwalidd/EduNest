@@ -40,13 +40,13 @@ const AssignmentSubmission = ({ taskId }: AssignmentSubmissionProps) => {
     const selectedFile = e.target.files?.[0];
     if (selectedFile) {
       setFile(selectedFile);
-      setFileUrl(''); // Clear URL if file is selected
+      // Keep fileUrl if set - allow both file and URL
     }
   };
 
   const handleUrlChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFileUrl(e.target.value);
-    setFile(null); // Clear file if URL is entered
+    // Keep file if set - allow both file and URL
   };
 
   const handleSubmit = async () => {
