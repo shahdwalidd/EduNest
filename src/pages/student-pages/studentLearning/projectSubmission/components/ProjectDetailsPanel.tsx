@@ -1,5 +1,5 @@
-import { FileText, Calendar, Award, Download, Eye, Target } from 'lucide-react';
-import { resolveFirstFileUrl } from '../../../../../utils/fileUrl';
+import { FileText, Calendar, Award, Download, Eye, Target, ExternalLink } from 'lucide-react';
+import { buildFullFileUrl } from '../../../../../utils/fileUrl';
 import type { StudentProjectDetails } from '../../../../../services/student-roleService/submitProject';
 import FileViewer from '../../../../../components/common/FileViewer';
 import toast from 'react-hot-toast';
@@ -9,7 +9,9 @@ interface ProjectDetailsPanelProps {
 }
 
 const ProjectDetailsPanel = ({ projectDetails }: ProjectDetailsPanelProps) => {
-  const getAttachmentUrl = () => resolveFirstFileUrl(projectDetails?.attachmentPath, projectDetails?.descriptionUrl);
+  // Separate functions for file and link
+  const getFileUrl = () => buildFullFileUrl(projectDetails?.attachmentPath);
+  const getLinkUrl = () => buildFullFileUrl(projectDetails?.descriptionUrl);
 
   return (
     <div className="bg-white rounded-3xl p-6 shadow-lg">
@@ -90,73 +92,107 @@ const ProjectDetailsPanel = ({ projectDetails }: ProjectDetailsPanelProps) => {
           )}
         </div>
         
-        {/* Mentor Attachment */}
-        {getAttachmentUrl() ? (
-          <div className="flex flex-col p-4 bg-slate-50 rounded-xl gap-4 mt-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <FileText className="w-5 h-5 text-slate-600" />
-                <div>
-                  <p className="text-sm font-semibold text-slate-800">Mentor Attachment</p>
-                  <p className="text-xs text-slate-500">Provided by your mentor</p>
+        {/* Resources Section */}
+        {(getFileUrl() || getLinkUrl()) && (
+          <div className="mt-6">
+            <h4 className="font-semibold text-slate-800 mb-3">Resources</h4>
+            <div className="space-y-3">
+              {/* Link Resource */}
+              {getLinkUrl() && (
+                <div className="flex items-center justify-between p-4 bg-amber-50 rounded-xl">
+                  <div className="flex items-center gap-2">
+                    <ExternalLink className="w-5 h-5 text-amber-600" />
+                    <div>
+                      <p className="text-sm font-semibold text-slate-800">Resource Link</p>
+                      <p className="text-xs text-slate-500">External resource</p>
+                    </div>
+                  </div>
+
+                  <a
+                    href={getLinkUrl()}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-1.5 text-sm bg-amber-600 text-white px-3 py-1.5 rounded-lg hover:bg-amber-700 font-medium transition-colors"
+                  >
+                    <ExternalLink className="w-4 h-4" />
+                    View Link
+                  </a>
                 </div>
-              </div>
+              )}
 
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={async (e) => {
-                    e.preventDefault();
-                    const url = getAttachmentUrl();
-                    if (!url) return;
-                    try {
-                      const toastId = toast.loading('Starting download...');
-                      const response = await fetch(url);
-                      if (!response.ok) throw new Error('File fetch failed');
-                      const blob = await response.blob();
-                      const objectUrl = URL.createObjectURL(blob);
-                      const a = document.createElement('a');
-                      a.href = objectUrl;
-                      const filename = url.split('/').pop() || 'mentor-attachment';
-                      a.download = filename;
-                      document.body.appendChild(a);
-                      a.click();
-                      document.body.removeChild(a);
-                      URL.revokeObjectURL(objectUrl);
-                      toast.success('Download complete', { id: toastId });
-                    } catch (err) {
-                      console.error('Force download failed:', err);
-                      toast.error('Direct download unavailable, opening file...');
-                      window.open(url, '_blank'); // fallback
-                    }
-                  }}
-                  className="flex items-center gap-1.5 text-sm bg-white border border-slate-200 px-3 py-1.5 rounded-lg hover:bg-slate-50 text-slate-700 font-medium transition-colors"
-                >
-                  <Download className="w-4 h-4" />
-                  Download
-                </button>
-                <a
-                  href={getAttachmentUrl()}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-1.5 text-sm bg-[var(--primary-500)] text-white px-3 py-1.5 rounded-lg hover:bg-[var(--primary-dark)] font-medium transition-colors"
-                >
-                  <Eye className="w-4 h-4" />
-                  View Page
-                </a>
-              </div>
-            </div>
+              {/* File Resource */}
+              {getFileUrl() && (
+                <div className="flex flex-col p-4 bg-slate-50 rounded-xl gap-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <FileText className="w-5 h-5 text-slate-600" />
+                      <div>
+                        <p className="text-sm font-semibold text-slate-800">File</p>
+                        <p className="text-xs text-slate-500">Mentor provided file</p>
+                      </div>
+                    </div>
 
-            <div className="w-full">
-              <FileViewer url={getAttachmentUrl()} height="h-[420px]" />
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={async (e) => {
+                          e.preventDefault();
+                          const url = getFileUrl();
+                          if (!url) return;
+                          try {
+                            const toastId = toast.loading('Starting download...');
+                            const response = await fetch(url);
+                            if (!response.ok) throw new Error('File fetch failed');
+                            const blob = await response.blob();
+                            const objectUrl = URL.createObjectURL(blob);
+                            const a = document.createElement('a');
+                            a.href = objectUrl;
+                            const filename = url.split('/').pop() || 'mentor-file';
+                            a.download = filename;
+                            document.body.appendChild(a);
+                            a.click();
+                            document.body.removeChild(a);
+                            URL.revokeObjectURL(objectUrl);
+                            toast.success('Download complete', { id: toastId });
+                          } catch (err) {
+                            console.error('Force download failed:', err);
+                            toast.error('Direct download unavailable, opening file...');
+                            window.open(url, '_blank');
+                          }
+                        }}
+                        className="flex items-center gap-1.5 text-sm bg-white border border-slate-200 px-3 py-1.5 rounded-lg hover:bg-slate-50 text-slate-700 font-medium transition-colors"
+                      >
+                        <Download className="w-4 h-4" />
+                        Download
+                      </button>
+                      <a
+                        href={getFileUrl()}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-1.5 text-sm bg-[var(--primary-500)] text-white px-3 py-1.5 rounded-lg hover:bg-[var(--primary-dark)] font-medium transition-colors"
+                      >
+                        <Eye className="w-4 h-4" />
+                        View File
+                      </a>
+                    </div>
+                  </div>
+
+                  <div className="w-full">
+                    <FileViewer url={getFileUrl()} height="h-[300px]" />
+                  </div>
+                </div>
+              )}
             </div>
           </div>
-        ) : (
+        )}
+
+        {/* No resources message */}
+        {!getFileUrl() && !getLinkUrl() && (
           <div className="flex flex-col p-4 bg-slate-50 rounded-xl gap-2 mt-4 text-sm text-slate-600">
             <div className="flex items-center gap-2">
               <FileText className="w-5 h-5 text-slate-400" />
-              <span className="font-semibold text-slate-800">Mentor Attachment</span>
+              <span className="font-semibold text-slate-800">Resources</span>
             </div>
-            <p>No mentor attachment provided.</p>
+            <p>No resources provided.</p>
           </div>
         )}
       </div>

@@ -1,4 +1,4 @@
-import { FileText, Calendar, Clock, Award, Download, Eye } from 'lucide-react';
+import { FileText, Calendar, Clock, Award, Download, Eye, ExternalLink } from 'lucide-react';
 import { API_BASE_URL } from '../../../../services/api';
 import type { StudentTaskDetails } from '../../../../services/student-roleService/submitTask';
 import FileViewer from '../../../../components/common/FileViewer';
@@ -9,19 +9,21 @@ interface AssimentDetailsPanelProps {
 }
 
 const AssimentDetailsPanel = ({ taskDetails }: AssimentDetailsPanelProps) => {
-  const getAttachmentUrl = () => {
-    const url = taskDetails?.attachmentUrl || taskDetails?.uploadedAttachmentPath;
-    if (!url) return '';
-    if (url.startsWith('http')) return url;
-    
-    let cleanPath = url.startsWith('/') ? url.substring(1) : url;
-    if (cleanPath.startsWith('app/')) {
-        cleanPath = cleanPath.substring(4);
-    }
-    
-    const baseUrl = API_BASE_URL.endsWith('/') ? API_BASE_URL : `${API_BASE_URL}/`;
-    return `${baseUrl}${cleanPath}`;
+  // Build URL helper
+  const buildUrl = (candidate?: string | null): string => {
+    if (!candidate) return '';
+    const trimmed = String(candidate).trim();
+    if (!trimmed) return '';
+    if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) return trimmed;
+    let clean = trimmed.startsWith('/') ? trimmed.substring(1) : trimmed;
+    if (clean.startsWith('app/')) clean = clean.substring(4);
+    const base = API_BASE_URL.endsWith('/') ? API_BASE_URL : API_BASE_URL + '/';
+    return `${base}${clean}`;
   };
+
+  // Separate functions for file and link
+  const getFileUrl = () => buildUrl(taskDetails?.uploadedAttachmentPath);
+  const getLinkUrl = () => buildUrl(taskDetails?.attachmentUrl);
 
   return (
     <div className="bg-white rounded-3xl p-6 shadow-lg">
@@ -83,65 +85,107 @@ const AssimentDetailsPanel = ({ taskDetails }: AssimentDetailsPanelProps) => {
           )}
         </div>
         
-        {/* Attachment */}
-        {(taskDetails.attachmentUrl || taskDetails.uploadedAttachmentPath) && (
-          <div className="flex flex-col p-4 bg-slate-50 rounded-xl gap-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <FileText className="w-5 h-5 text-slate-600" />
-                <div>
-                  <p className="text-sm font-semibold text-slate-800">Attachment</p>
-                  <p className="text-xs text-slate-500">Resource file</p>
+        {/* Resources Section */}
+        {(getFileUrl() || getLinkUrl()) && (
+          <div className="mt-6">
+            <h4 className="font-semibold text-slate-800 mb-3">Resources</h4>
+            <div className="space-y-3">
+              {/* Link Resource */}
+              {getLinkUrl() && (
+                <div className="flex items-center justify-between p-4 bg-amber-50 rounded-xl">
+                  <div className="flex items-center gap-2">
+                    <ExternalLink className="w-5 h-5 text-amber-600" />
+                    <div>
+                      <p className="text-sm font-semibold text-slate-800">Resource Link</p>
+                      <p className="text-xs text-slate-500">External resource</p>
+                    </div>
+                  </div>
+
+                  <a
+                    href={getLinkUrl()}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-1.5 text-sm bg-amber-600 text-white px-3 py-1.5 rounded-lg hover:bg-amber-700 font-medium transition-colors"
+                  >
+                    <ExternalLink className="w-4 h-4" />
+                    View Link
+                  </a>
                 </div>
-              </div>
+              )}
 
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={async (e) => {
-                    e.preventDefault();
-                    const url = getAttachmentUrl();
-                    if (!url) return;
-                    try {
-                      const toastId = toast.loading('Starting download...');
-                      const response = await fetch(url);
-                      if (!response.ok) throw new Error('File fetch failed');
-                      const blob = await response.blob();
-                      const objectUrl = URL.createObjectURL(blob);
-                      const a = document.createElement('a');
-                      a.href = objectUrl;
-                      const filename = url.split('/').pop() || 'assignment-file';
-                      a.download = filename;
-                      document.body.appendChild(a);
-                      a.click();
-                      document.body.removeChild(a);
-                      URL.revokeObjectURL(objectUrl);
-                      toast.success('Download complete', { id: toastId });
-                    } catch (err) {
-                      console.error('Force download failed:', err);
-                      toast.error('Direct download unavailable, opening file...');
-                      window.open(url, '_blank'); // fallback
-                    }
-                  }}
-                  className="flex items-center gap-1.5 text-sm bg-white border border-slate-200 px-3 py-1.5 rounded-lg hover:bg-slate-50 text-slate-700 font-medium transition-colors"
-                >
-                  <Download className="w-4 h-4" />
-                  Download
-                </button>
-                <a
-                  href={getAttachmentUrl()}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-1.5 text-sm bg-[var(--primary-500)] text-white px-3 py-1.5 rounded-lg hover:bg-[var(--primary-dark)] font-medium transition-colors"
-                >
-                  <Eye className="w-4 h-4" />
-                  View Page
-                </a>
-              </div>
-            </div>
+              {/* File Resource */}
+              {getFileUrl() && (
+                <div className="flex flex-col p-4 bg-slate-50 rounded-xl gap-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <FileText className="w-5 h-5 text-slate-600" />
+                      <div>
+                        <p className="text-sm font-semibold text-slate-800">File</p>
+                        <p className="text-xs text-slate-500">Mentor provided file</p>
+                      </div>
+                    </div>
 
-            <div className="w-full">
-              <FileViewer url={getAttachmentUrl()} height="h-[420px]" />
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={async (e) => {
+                          e.preventDefault();
+                          const url = getFileUrl();
+                          if (!url) return;
+                          try {
+                            const toastId = toast.loading('Starting download...');
+                            const response = await fetch(url);
+                            if (!response.ok) throw new Error('File fetch failed');
+                            const blob = await response.blob();
+                            const objectUrl = URL.createObjectURL(blob);
+                            const a = document.createElement('a');
+                            a.href = objectUrl;
+                            const filename = url.split('/').pop() || 'assignment-file';
+                            a.download = filename;
+                            document.body.appendChild(a);
+                            a.click();
+                            document.body.removeChild(a);
+                            URL.revokeObjectURL(objectUrl);
+                            toast.success('Download complete', { id: toastId });
+                          } catch (err) {
+                            console.error('Force download failed:', err);
+                            toast.error('Direct download unavailable, opening file...');
+                            window.open(url, '_blank');
+                          }
+                        }}
+                        className="flex items-center gap-1.5 text-sm bg-white border border-slate-200 px-3 py-1.5 rounded-lg hover:bg-slate-50 text-slate-700 font-medium transition-colors"
+                      >
+                        <Download className="w-4 h-4" />
+                        Download
+                      </button>
+                      <a
+                        href={getFileUrl()}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-1.5 text-sm bg-[var(--primary-500)] text-white px-3 py-1.5 rounded-lg hover:bg-[var(--primary-dark)] font-medium transition-colors"
+                      >
+                        <Eye className="w-4 h-4" />
+                        View File
+                      </a>
+                    </div>
+                  </div>
+
+                  <div className="w-full">
+                    <FileViewer url={getFileUrl()} height="h-[300px]" />
+                  </div>
+                </div>
+              )}
             </div>
+          </div>
+        )}
+
+        {/* No resources message */}
+        {!getFileUrl() && !getLinkUrl() && (
+          <div className="flex flex-col p-4 bg-slate-50 rounded-xl gap-2 mt-4 text-sm text-slate-600">
+            <div className="flex items-center gap-2">
+              <FileText className="w-5 h-5 text-slate-400" />
+              <span className="font-semibold text-slate-800">Resources</span>
+            </div>
+            <p>No resources provided.</p>
           </div>
         )}
       </div>

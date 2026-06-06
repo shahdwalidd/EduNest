@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { ChevronDown, FileText } from 'lucide-react';
+import { ChevronDown, FileText, CheckCircle } from 'lucide-react';
 import ContentTypeBadge from '../../../../components/common/ContentTypeBadge';
 import type { Week } from '../../../../types/student-role-types/studentMentorshipTypes';
 import { Link } from 'react-router-dom';
@@ -108,11 +108,16 @@ const ContentSidebar = ({
                           className={`w-full flex items-center gap-3 p-3 rounded-xl text-sm transition-all duration-200 ${
                             isSelected 
                               ? 'bg-[var(--primary-500)]/10 text-[var(--primary-500)] ring-1 ring-[var(--primary-500)]/30' 
+                              : item.completed
+                              ? 'text-emerald-700 bg-emerald-50/50 hover:bg-emerald-50'
                               : 'text-slate-600 hover:bg-gray-50 hover:text-slate-900'
                           }`}
                         >
                           <ContentTypeBadge type={item.type} size="sm" />
-                          <span className="truncate">{item.title}</span>
+                          <span className="truncate flex-1">{item.title}</span>
+                          {item.completed && (
+                            <CheckCircle className="w-4 h-4 flex-shrink-0 text-emerald-600" />
+                          )}
                         </button>
                       );
                     })}
