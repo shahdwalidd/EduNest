@@ -271,7 +271,7 @@ if (stage !== 'quiz' && stage !== 'review') return;    submittingRef.current = t
   const handlePrev = () => { if (currentIdx > 0) setCurrentIdx(i => i - 1); };
 
   const answeredCount = Object.keys(answers).length;
-  const totalPoints = questions.reduce((s, q) => s + q.points, 0);
+  // const totalPoints = quiz ? quiz.totalPoints : 0;
 
   // ── LOADING ──────────────────────────────────────────────────────────────────
   if (stage === 'loading') return (
@@ -332,11 +332,10 @@ if (stage !== 'quiz' && stage !== 'review') return;    submittingRef.current = t
             <p className="text-slate-500 text-sm max-w-md">{quiz.description}</p>
           )}
         </div>
-        <div className="grid grid-cols-3 gap-3 w-full max-w-sm">
+        <div className="grid grid-cols-2 gap-3 w-full max-w-sm">
           {[
             { label: 'Duration', value: `${quiz.durationMinutes} min` },
-            { label: 'Questions', value: questions.length },
-            { label: 'Total Points', value: totalPoints },
+{ label: 'Total Points', value: quiz.totalPoints },
           ].map(({ label, value }) => (
             <div key={label} className="bg-slate-50 rounded-xl p-3 text-center border border-slate-100">
               <p className="text-xl font-bold text-slate-800">{value}</p>
