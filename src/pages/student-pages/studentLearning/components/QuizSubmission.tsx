@@ -132,22 +132,13 @@ const QuizSubmission = ({ quizId }: QuizSubmissionProps) => {
   const doSubmit = useCallback(async (isAutoSubmit = false) => {
     if (submittingRef.current) return;
     // ✅ Guard: only submit if quiz stage is active
-if (stage !== 'quiz' && stage !== 'review') return;    submittingRef.current = true;
+    if (stage !== 'quiz' && stage !== 'review') return;
+    submittingRef.current = true;
 
     const payload: Answer[] = Object.entries(answers).map(([qId, sel]) => ({
       questionId: parseInt(qId),
       selectedAnswer: sel,
     }));
-
-    // لو auto-submit ومفيش إجابات خالص → score = 0 من غير request
-    if (isAutoSubmit && payload.length === 0) {
-      setSubmittedScore(0);
-      setSubmittedTotal(quiz?.totalPoints ?? 0);
-      toast('Time is up! Quiz auto-submitted with score 0.', { icon: '⏰' });
-      setStage('submitted');
-      submittingRef.current = false;
-      return;
-    }
 
     try {
       const res = await submitQuizAnswers(quizId, payload);
@@ -160,7 +151,6 @@ if (stage !== 'quiz' && stage !== 'review') return;    submittingRef.current = t
           : (res.message ?? 'Quiz submitted!')
       );
       setStage('submitted');
-      submittingRef.current = false;
     } catch (err: unknown) {
       if (axios.isAxiosError(err)) {
         const status = err.response?.status;
@@ -169,14 +159,15 @@ if (stage !== 'quiz' && stage !== 'review') return;    submittingRef.current = t
         if ((status === 400 || status === 409) && msg === 'Quiz already submitted') {
           toast.error('This quiz was already submitted.');
           setStage('already-done');
-          submittingRef.current = false;
           return;
         }
       }
       toast.error(getBackendErrorMessage(err, 'Submission failed.'));
+    } finally {
+      // ✅ Always release the lock - guaranteed to run
       submittingRef.current = false;
     }
-  }, [answers, quiz, quizId, stage]);
+  }, [answers, quizId, stage]);
 
   // ── Fetch quiz details on mount (NOT questions - lazy load) ────────────────
   useEffect(() => {
