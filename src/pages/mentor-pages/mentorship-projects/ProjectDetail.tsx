@@ -2,8 +2,9 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import DashLayout from '../../../components/layout/Dash-layout';
 import toast from 'react-hot-toast';
+import { buildFullFileUrl } from '../../../utils/fileUrl';
 import { getProjectStatistics, getProjectDashboard, gradeProjectSubmission, type ProjectStatistics, type TaskSubmission, type ProjectResponse } from '../../../services/projectService';
-import { Download, CheckCircle, Clock, AlertCircle, Award, ArrowLeft, Edit, Link as LinkIcon } from 'lucide-react';
+import { Download, CheckCircle, Clock, AlertCircle, Award, ArrowLeft, Edit, ExternalLink } from 'lucide-react';
 import { EditProjectModal } from './components/ProjectModals';
 
 const ProjectDetail: React.FC = () => {
@@ -134,7 +135,11 @@ const ProjectDetail: React.FC = () => {
                 {stats?.projectTitle || 'Project Details'}
               </h1>
             </div>
-            <p className="text-sm text-gray-500 mt-1 pl-7">Review student submissions and statistics</p>
+            <div className="text-sm text-gray-500 mt-1 pl-7">
+              <p className="break-words">
+                Review student submissions and statistics
+              </p>
+            </div>
           </div>
 
           <div className="flex items-center gap-3 w-full sm:w-auto flex-shrink-0">
@@ -148,6 +153,59 @@ const ProjectDetail: React.FC = () => {
             </button>
           </div>
         </div>
+
+        {/* Project Overview */}
+        {(stats?.goal || stats?.brief || stats?.descriptionUrl || stats?.uploadedAttachmentPath) && (
+          <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5 space-y-4">
+            <h2 className="text-lg font-bold text-gray-900">Project Overview</h2>
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              {stats?.goal && (
+                <div className="bg-slate-50 rounded-xl p-4">
+                  <p className="text-sm text-gray-500">Goal</p>
+                  <p className="mt-2 text-gray-900">{stats.goal}</p>
+                </div>
+              )}
+              {stats?.brief && (
+                <div className="bg-slate-50 rounded-xl p-4">
+                  <p className="text-sm text-gray-500">Brief</p>
+                  <p className="mt-2 text-gray-900">{stats.brief}</p>
+                </div>
+              )}
+            </div>
+            {(stats?.descriptionUrl || stats?.uploadedAttachmentPath) && (
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                {stats?.descriptionUrl && (
+                  <a
+                    href={buildFullFileUrl(stats.descriptionUrl)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center justify-between gap-3 p-4 bg-blue-50 rounded-xl hover:bg-blue-100 transition-colors"
+                  >
+                    <div>
+                      <p className="text-sm text-blue-700 font-semibold">Description URL</p>
+                      <p className="mt-1 text-sm text-slate-600 break-words">{stats.descriptionUrl}</p>
+                    </div>
+                    <ExternalLink size={18} className="text-blue-700" />
+                  </a>
+                )}
+                {stats?.uploadedAttachmentPath && (
+                  <a
+                    href={buildFullFileUrl(stats.uploadedAttachmentPath)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center justify-between gap-3 p-4 bg-emerald-50 rounded-xl hover:bg-emerald-100 transition-colors"
+                  >
+                    <div>
+                      <p className="text-sm text-emerald-700 font-semibold">Attachment</p>
+                      <p className="mt-1 text-sm text-slate-600 break-words">{stats.uploadedAttachmentPath}</p>
+                    </div>
+                    <Download size={18} className="text-emerald-700" />
+                  </a>
+                )}
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Stats Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">

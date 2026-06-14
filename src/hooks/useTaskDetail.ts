@@ -1,19 +1,24 @@
 import { useState, useCallback, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
-import type { TaskStatistics } from '../services/mentorshipsContent/task';
-import { getTaskStatistics } from '../services/mentorshipsContent/task';
+import type { TaskResponseContent, TaskStatistics } from '../services/mentorshipsContent/task';
+import { getTaskById, getTaskStatistics } from '../services/mentorshipsContent/task';
 import { useAuthStore } from '../store/authStore';
 import toast from 'react-hot-toast';
 
 export const useTaskDetail = () => {
+
     const { taskId } = useParams<{ taskId: string }>();
     const token = useAuthStore((s) => s.token);
 
     const [stats, setStats] = useState<TaskStatistics | null>(null);
+    const [taskDescription, setTaskDescription] = useState<string>('');
+    const [taskAttachmentUrl, setTaskAttachmentUrl] = useState<string>('');
+    const [uploadedAttachmentPath, setUploadedAttachmentPath] = useState<string>('');
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [page, setPage] = useState(0);
     const PAGE_SIZE = 6;
+
 
     // Search & Filter
     const [searchQuery, setSearchQuery] = useState('');
@@ -26,8 +31,17 @@ export const useTaskDetail = () => {
             setLoading(true);
             setError(null);
 
-            const data = await getTaskStatistics(Number(taskId), page, PAGE_SIZE);
-            setStats(data);
+            const [statsData, taskData] = await Promise.all([
+                getTaskStatistics(Number(taskId), page, PAGE_SIZE),
+                getTaskById(Number(taskId)),
+            ]);
+
+            setStats(statsData);
+            const typedTask = taskData as TaskResponseContent;
+            setTaskDescription(typedTask.description ?? '');
+            setTaskAttachmentUrl(typedTask.attachmentUrl ?? '');
+            setUploadedAttachmentPath(typedTask.uploadedAttachmentPath ?? '');
+
 
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } catch (err: any) {
@@ -72,7 +86,11 @@ export const useTaskDetail = () => {
 
     return {
         stats,
+        taskDescription,
+        taskAttachmentUrl,
+        uploadedAttachmentPath,
         loading,
+
         error,
         submissions: filteredSubmissions,
         paginationMeta,

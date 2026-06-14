@@ -42,8 +42,9 @@ const MentorshipProjects: React.FC = () => {
         status: statusFilter || undefined
       });
       setDashboard(res.fullDashboard);
-    } catch (err: any) {
-      setError(err.message || 'Failed to load project dashboard');
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Failed to load project dashboard';
+      setError(message);
     } finally {
       setLoading(false);
     }
