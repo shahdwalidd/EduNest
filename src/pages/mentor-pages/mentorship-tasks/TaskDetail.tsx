@@ -11,9 +11,10 @@ import type { TaskSubmissionItem } from '../../../services/mentorshipsContent/ta
 import { useTaskDetail } from '../../../hooks/useTaskDetail';
 import GradeModal from './components/GradeModal';
 import EditTaskModal from './components/EditTaskModal';
+import { API_BASE_URL } from '../../../services/api';
 
 /* ════════════════════════════════════════════════
-   Status Badge - Refined Design
+   Status Badge - Refined xlign
    ════════════════════════════════════════════════ */
 const StatusBadge: FC<{ status: TaskSubmissionItem['status']; isLate?: boolean }> = ({ status, isLate }) => {
     const configs = {
@@ -58,13 +59,27 @@ const TaskDetail: FC = () => {
 
     const navigate = useNavigate();
     const {
-        stats, loading,  submissions: filteredSubmissions,
-        paginationMeta, maxPoints, gradedCount, searchQuery,
-        setSearchQuery, statusFilter, setStatusFilter, STATUS_OPTIONS,
-        page, setPage, handleGraded,
+        stats,
+        loading,
+        submissions: filteredSubmissions,
+        paginationMeta,
+        maxPoints,
+        gradedCount,
+        searchQuery,
+        setSearchQuery,
+        statusFilter,
+        setStatusFilter,
+        STATUS_OPTIONS,
+        page,
+        setPage,
+        handleGraded,
+        taskDescription,
+        taskAttachmentUrl,
+        uploadedAttachmentPath,
     } = useTaskDetail();
 
     const [gradingSubmission, setGradingSubmission] = useState<TaskSubmissionItem | null>(null);
+
     const [filterOpen, setFilterOpen] = useState(false);
 
     const handleGradedWrapper = () => {
@@ -98,10 +113,39 @@ const TaskDetail: FC = () => {
                                 {stats?.taskTitle || 'Untitled Mission'}
                             </h1>
                         </div>
-                        <div className="flex items-center gap-3">
+                        <div className="flex flex-col gap-2">
+                            {/* Task description */}
+                            <p className="text-slate-600">{taskDescription || ''}</p>
 
-                            {/* i will add the description here if needed */}
-                         {/* <p>{stats?.description || ""}</p> */}
+                            {/* Attachment links */}
+                            <div className="flex flex-wrap items-center gap-3">
+                                {taskAttachmentUrl ? (
+                                    <a
+                                        href={taskAttachmentUrl}
+                                        target="_blank"
+                                        rel="noreferrer"
+                                        className="text-indigo-600 font-bold hover:underline break-all"
+                                    >
+                                        View attachment (URL)
+                                    </a>
+                                ) : null}
+
+                                {uploadedAttachmentPath ? (
+                                    <a
+                                        href={`${API_BASE_URL ?? ''}${
+                                            uploadedAttachmentPath.startsWith('/') ? '' : '/'
+                                        }${uploadedAttachmentPath}`}
+                                        target="_blank"
+                                        rel="noreferrer"
+                                        className="text-indigo-600 font-bold hover:underline break-all"
+                                    >
+                                        View uploaded file
+                                    </a>
+                                ) : null}
+
+                                
+                                {/* في تعديل هنا بسبب تعديل الباك الجديد بتاع السيكيورتي */}
+                            </div>
                         </div>
                         <div className="flex flex-wrap items-center gap-3">
                              <span className="flex items-center gap-1.5 px-3 py-1 bg-slate-100 text-slate-700 rounded-full text-xs font-bold uppercase tracking-wider">
@@ -209,7 +253,7 @@ const TaskDetail: FC = () => {
                     <div className="overflow-x-auto">
                         <table className="w-full text-left border-collapse">
                             <thead>
-                                <tr className="bg-slate-50/50 text-slate-500 text-[11px] uppercase tracking-widest font-bold">
+                                <tr className="bg-slate-50/50 text-slate-500 text-[11px] uppercase tracking-wixlt font-bold">
                                     <th className="px-6 py-4">Student Information</th>
                                     <th className="px-6 py-4">Performance</th>
                                     <th className="px-6 py-4">Status</th>

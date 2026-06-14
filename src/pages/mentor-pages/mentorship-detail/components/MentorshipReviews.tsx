@@ -83,7 +83,7 @@ const MentorshipReviews: FC<MentorshipReviewsProps> = ({
                       {r.rating ?? 5}
                     </div>
                   </div>
-                  <p className="text-[11px] sm:text-xs text-gray-500 mt-1 break-words leading-relaxed w-full text-center">
+                  <p className="text-[11px] sm:text-xs text-gray-500 mt-1 break-words leading-relaxed w-full">
                     "{r.feedBack ?? r.message ?? ''}"
                   </p>
                 </div>

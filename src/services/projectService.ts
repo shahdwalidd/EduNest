@@ -90,6 +90,10 @@ export interface SubmissionPageResponse {
 export interface ProjectStatistics {
   status: string;
   projectTitle: string;
+  goal?: string | null;
+  brief?: string | null;
+  descriptionUrl?: string | null;
+  uploadedAttachmentPath?: string | null;
   totalStudents: number;
   totalSubmissions: number;
   pendingReview: number;
@@ -115,10 +119,23 @@ export const getProjectStatistics = async (
  * POST /api/v1/project/submissions/{submissionId}/grade
  * Grade a project submission
  */
+export interface ApiMessageResponse {
+  message?: string;
+  [key: string]: unknown;
+}
+
+export type ApiResponse<T = unknown> = T | ApiMessageResponse;
+
+export type EmptyApiResponse = Record<string, never>;
+
+/**
+ * POST /api/v1/project/submissions/{submissionId}/grade
+ * Grade a project submission
+ */
 export const gradeProjectSubmission = async (
   submissionId: string | number,
   data: { score: number; feedback: string }
-): Promise<any> => {
+): Promise<ApiResponse> => {
   const response = await api.post(`${BASE_URL}/submissions/${submissionId}/grade`, data);
   return response.data;
 };
@@ -127,7 +144,7 @@ export const gradeProjectSubmission = async (
  * DELETE /api/v1/project/{id}
  * Delete project by ID
  */
-export const deleteProject = async (id: string | number): Promise<any> => {
+export const deleteProject = async (id: string | number): Promise<ApiResponse<EmptyApiResponse>> => {
   const response = await api.delete(`${BASE_URL}/${id}`);
   return response.data;
 };
@@ -136,7 +153,10 @@ export const deleteProject = async (id: string | number): Promise<any> => {
  * PATCH /api/v1/project/{id}
  * Update project Entity
  */
-export const updateProject = async (id: string | number, formData: FormData): Promise<any> => {
+export const updateProject = async (
+  id: string | number,
+  formData: FormData
+): Promise<ApiResponse<EmptyApiResponse>> => {
   const response = await api.patch(`${BASE_URL}/${id}`, formData, {
     headers: {
       'Content-Type': 'multipart/form-data',
@@ -149,7 +169,7 @@ export const updateProject = async (id: string | number, formData: FormData): Pr
  * POST /api/v1/project
  * Create project with optional file attachment
  */
-export const createProject = async (formData: FormData): Promise<any> => {
+export const createProject = async (formData: FormData): Promise<ApiResponse<EmptyApiResponse>> => {
   const response = await api.post(`${BASE_URL}`, formData, {
     headers: {
       'Content-Type': 'multipart/form-data',
@@ -157,3 +177,4 @@ export const createProject = async (formData: FormData): Promise<any> => {
   });
   return response.data;
 };
+

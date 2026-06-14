@@ -194,6 +194,21 @@ const MentorshipContent: FC = () => {
   };
 
   const openEditModal = (type: ContentType, moduleIdx: number, item: ContentItem) => {
+    // For Quiz, Assignment, and Project: navigate to dashboard pages
+    if (type === 'quiz' && item.id) {
+      navigate(`/mentor/mentorships/${mentorshipId}/quizzes/${item.id}`);
+      return;
+    }
+    if (type === 'assignment' && item.id) {
+      navigate(`/mentor/mentorships/${mentorshipId}/tasks/${item.id}`);
+      return;
+    }
+    if (type === 'project' && item.id) {
+      navigate(`/mentor/mentorships/${mentorshipId}/projects/${item.id}`);
+      return;
+    }
+
+    // For other types (lecture, session): open modal
     setEditingItem(item);
     setModal(type);
     setModuleIndexForModal(moduleIdx);
