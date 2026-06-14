@@ -2,6 +2,7 @@
 import { type FC, useState, useRef, useEffect } from 'react';
 import { X, Send, Maximize2, Minimize2 } from 'lucide-react';
 import { useChatbot } from '../../../hooks/chatbot/Usechatbot';
+import { useAuthStore } from '../../../store/authStore';
 
 function formatBotText(raw: string): string {
   const text = raw.trim().replace(/\r\n/g, '\n');
@@ -132,6 +133,8 @@ const MessageBubble: FC<{ role: 'user' | 'bot'; text: string; expanded?: boolean
   role, text, expanded,
 }) => {
   const isBot = role === 'bot';
+  const { userName, userAvatar } = useAuthStore();
+  const userInitial = userName ? userName.charAt(0).toUpperCase() : 'S';
 
   if (expanded && isBot) {
     return (
@@ -178,12 +181,20 @@ const MessageBubble: FC<{ role: 'user' | 'bot'; text: string; expanded?: boolean
         </div>
       )}
       {!isBot && (
-        <div
-          className="w-8 h-8 rounded-full flex-shrink-0 flex items-center justify-center text-xs font-bold text-white"
-          style={{ background: 'linear-gradient(135deg, #0c2340 0%, #0f5e8b 100%)' }}
-        >
-          S
-        </div>
+        userAvatar ? (
+          <img
+            src={userAvatar}
+            alt={userName}
+            className="w-8 h-8 rounded-full flex-shrink-0 object-cover"
+          />
+        ) : (
+          <div
+            className="w-8 h-8 rounded-full flex-shrink-0 flex items-center justify-center text-xs font-bold text-white"
+            style={{ background: 'linear-gradient(135deg, #0c2340 0%, #0f5e8b 100%)' }}
+          >
+            {userInitial}
+          </div>
+        )
       )}
     </div>
   );
