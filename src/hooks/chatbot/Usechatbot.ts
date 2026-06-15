@@ -3,6 +3,7 @@ import { useState, useCallback, useRef } from 'react';
 import type { ChatMessage, ChatApiResponse } from '../../types/chatbot/Chatbot.types';
 
 const CHATBOT_API = 'http://127.0.0.1:8000/chat';
+const CHATBOT_NAME = 'Neo';
 
 const SUGGESTED = [
   'Summarize my courses',
@@ -16,7 +17,7 @@ export const useChatbot = () => {
     {
       id:        'welcome',
       role:      'bot',
-      text:      'أهلاً! أنا Mentra، مساعدك الأكاديمي. كيف أقدر أساعدك اليوم؟ 😊',
+      text:      'أهلاً! أنا Neo، مساعدك الأكاديمي. كيف أقدر أساعدك اليوم؟ 😊',
       timestamp: new Date(),
     },
   ]);
@@ -75,5 +76,5 @@ export const useChatbot = () => {
     }
   }, [input, loading]);
 
-  return { messages, input, setInput, loading, sendMessage, suggested: SUGGESTED };
+  return { messages, input, setInput, loading, sendMessage, suggested: SUGGESTED, chatbotName: CHATBOT_NAME };
 };

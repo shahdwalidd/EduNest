@@ -129,8 +129,8 @@ const BotMiniAvatar: FC = () => (
 );
 
 // ─── Message Bubble 
-const MessageBubble: FC<{ role: 'user' | 'bot'; text: string; expanded?: boolean }> = ({
-  role, text, expanded,
+const MessageBubble: FC<{ role: 'user' | 'bot'; text: string; expanded?: boolean; chatbotName: string }> = ({
+  role, text, expanded, chatbotName,
 }) => {
   const isBot = role === 'bot';
   const { userName, userAvatar } = useAuthStore();
@@ -139,7 +139,7 @@ const MessageBubble: FC<{ role: 'user' | 'bot'; text: string; expanded?: boolean
   if (expanded && isBot) {
     return (
       <div className="mb-5 max-w-[640px]">
-        <p className="text-xs font-semibold text-gray-400 mb-1.5 ml-1">Mentra AI</p>
+        <p className="text-xs font-semibold text-gray-400 mb-1.5 ml-1">{chatbotName}</p>
         <div
           className="bot-bubble inline-block px-4 py-3 text-sm rounded-2xl rounded-tl-sm
                      bg-white border border-gray-200 shadow-sm text-gray-800"
@@ -201,11 +201,11 @@ const MessageBubble: FC<{ role: 'user' | 'bot'; text: string; expanded?: boolean
 };
 
 // Typing Indicator
-const TypingIndicator: FC<{ expanded?: boolean }> = ({ expanded }) => {
+const TypingIndicator: FC<{ expanded?: boolean; chatbotName: string }> = ({ expanded, chatbotName }) => {
   if (expanded) {
     return (
       <div className="mb-5 max-w-[640px]">
-        <p className="text-xs font-semibold text-gray-400 mb-1.5 ml-1">Mentra AI</p>
+        <p className="text-xs font-semibold text-gray-400 mb-1.5 ml-1">{chatbotName}</p>
         <div className="inline-flex bg-white border border-gray-200 rounded-2xl rounded-tl-sm
                         px-4 py-3 shadow-sm items-center gap-1.5">
           <span className="w-2 h-2 rounded-full bg-gray-300 animate-bounce" style={{ animationDelay: '0ms' }} />
@@ -234,7 +234,7 @@ const ChatbotWidget: FC = () => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef       = useRef<HTMLInputElement>(null);
 
-  const { messages, input, setInput, loading, sendMessage, suggested } = useChatbot();
+  const { messages, input, setInput, loading, sendMessage, suggested, chatbotName } = useChatbot();
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -398,7 +398,7 @@ const ChatbotWidget: FC = () => {
                 </svg>
               </div>
               <div>
-                <p className="text-white font-semibold text-[15px] leading-tight">Mentra AI</p>
+                <p className="text-white font-semibold text-[15px] leading-tight">{chatbotName}</p>
                 <p className="text-white/50 text-[11px] leading-tight mt-0.5">Your Academic Assistant</p>
               </div>
             </div>
@@ -424,8 +424,8 @@ const ChatbotWidget: FC = () => {
           {/* Messages */}
           <div className="chat-scroll flex-1 overflow-y-auto px-5 py-5 bg-gray-50/60"
                style={{ scrollbarWidth: 'thin' }}>
-            {messages.map(m => <MessageBubble key={m.id} role={m.role} text={m.text} />)}
-            {loading && <TypingIndicator />}
+            {messages.map(m => <MessageBubble key={m.id} role={m.role} text={m.text} chatbotName={chatbotName} />)}
+            {loading && <TypingIndicator chatbotName={chatbotName} />}
             <div ref={messagesEndRef} />
           </div>
 
@@ -502,7 +502,7 @@ const ChatbotWidget: FC = () => {
             </div>
 
             <BotLargeAvatar />
-            <p className="text-white font-bold text-xl mt-4 leading-tight">Mentra AI</p>
+            <p className="text-white font-bold text-xl mt-4 leading-tight">{chatbotName}</p>
             <p className="text-white/55 text-sm mt-1">Your Academic Assistant</p>
           </div>
 
@@ -513,9 +513,9 @@ const ChatbotWidget: FC = () => {
           >
             <div className="max-w-[700px] mx-auto">
               {messages.map(m => (
-                <MessageBubble key={m.id} role={m.role} text={m.text} expanded />
+                <MessageBubble key={m.id} role={m.role} text={m.text} expanded chatbotName={chatbotName} />
               ))}
-              {loading && <TypingIndicator expanded />}
+              {loading && <TypingIndicator expanded chatbotName={chatbotName} />}
               <div ref={messagesEndRef} />
             </div>
           </div>

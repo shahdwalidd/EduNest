@@ -106,7 +106,6 @@ const AddProjectModal: FC<AddProjectModalProps> = ({ weekId, editingItem, onClos
             onChange={(e) => setGoal(e.target.value)}
             className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-[var(--primary-from)]"
             placeholder="Briefly explain the main goal of the project........"
-            maxLength={100}
             required
           />
         </div>
@@ -118,7 +117,6 @@ const AddProjectModal: FC<AddProjectModalProps> = ({ weekId, editingItem, onClos
             onChange={(e) => setBrief(e.target.value)}
             className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-[var(--primary-from)]"
             placeholder="Write a brief overview of project's goals and scope"
-            maxLength={100}
             required
           />
         </div>

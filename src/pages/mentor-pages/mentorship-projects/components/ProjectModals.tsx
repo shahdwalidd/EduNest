@@ -150,7 +150,6 @@ export const EditProjectModal: React.FC<EditProjectModalProps> = ({ project, isO
               <input 
                 type="text" 
                 name="goal" 
-                maxLength={100} 
                 value={formData.goal} 
                 onChange={handleChange} 
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary outline-none" 
@@ -161,7 +160,6 @@ export const EditProjectModal: React.FC<EditProjectModalProps> = ({ project, isO
               <label className="block text-sm font-medium text-gray-700 mb-1">Brief Content</label>
               <textarea 
                 name="brief" 
-                maxLength={150} 
                 value={formData.brief} 
                 onChange={handleChange} 
                 rows={3} 
