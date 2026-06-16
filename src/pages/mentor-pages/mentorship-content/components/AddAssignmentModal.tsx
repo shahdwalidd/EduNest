@@ -73,10 +73,9 @@ const AddAssignmentModal: FC<AddAssignmentModalProps> = ({ weekId, editingItem, 
         onSuccess({ type: 'assignment', title: title.trim(), isDraft: true });
       }
     } catch (err) {
-      const serverError = (err as ApiError).errorMessages?.error;
-      toast.error(
-        serverError || (err instanceof Error ? err.message : 'Failed to save assignment')
-      );
+      console.error('Assignment save error', err);
+      const serverError = (err as ApiError).errorMessages?.error || (err instanceof Error ? err.message : undefined);
+      toast.error(serverError || 'Failed to save assignment');
     } finally {
       setSubmitting(false);
     }

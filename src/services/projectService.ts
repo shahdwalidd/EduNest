@@ -92,7 +92,7 @@ export interface ProjectStatistics {
   projectTitle: string;
   goal?: string | null;
   brief?: string | null;
-  descriptionUrl?: string | null;
+  attachmentUrl?: string | null;
   uploadedAttachmentPath?: string | null;
   totalStudents: number;
   totalSubmissions: number;
