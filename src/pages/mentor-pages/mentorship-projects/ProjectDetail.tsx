@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import DashLayout from '../../../components/layout/Dash-layout';
@@ -93,6 +94,7 @@ const submitGrade = async () => {
       toast.success('Grade submitted successfully');
       closeGradeModal();
       fetchStats();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) { // تم تغيير النوع هنا إلى any لتسهيل فحص خصائص الـ API response
       // 1. التحقق أولاً إذا كان الخطأ قادم من السيرفر وبداخل الـ response body (مثل axios)
       const apiError = err?.response?.data?.errorMessages?.error || err?.data?.errorMessages?.error;
@@ -138,11 +140,12 @@ const submitGrade = async () => {
           onEdit={openEditModal}
         />
 
+        {/* Stats Cards */}
+        
+        <ProjectStatsCards stats={stats} />
         {/* Project Overview */}
         <ProjectOverview stats={stats} />
 
-        {/* Stats Cards */}
-        <ProjectStatsCards stats={stats} />
 
         {/* Submissions Table Container */}
         <ProjectSubmissionsTable

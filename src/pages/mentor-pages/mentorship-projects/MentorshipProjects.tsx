@@ -1,4 +1,5 @@
-import React, { useEffect, useState } from 'react';
+
+import React, { useEffect, useState, useMemo } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import DashLayout from '../../../components/layout/Dash-layout';
 import { getProjectDashboard, type FullProjectDashboard, type ProjectListItem } from '../../../services/projectService';
@@ -6,27 +7,25 @@ import { Briefcase, CheckCircle, Clock, BarChart2, Search, Eye, MoreVertical, Ed
 import { type ProjectResponse } from '../../../services/projectService';
 import { EditProjectModal, DeleteProjectModal } from './components/ProjectModals';
 
+const PAGE_SIZE = 10;
+
 const MentorshipProjects: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+
   const [dashboard, setDashboard] = useState<FullProjectDashboard | null>(null);
+  const [allProjects, setAllProjects] = useState<ProjectListItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [page, setPage] = useState(0);
+
+  // Filters
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
-  
-  // Debounce search
-  const [debouncedSearch, setDebouncedSearch] = useState('');
-  
-  useEffect(() => {
-    const handler = setTimeout(() => {
-      setDebouncedSearch(searchQuery);
-      setPage(0); // Reset page on search change
-    }, 500);
-    return () => clearTimeout(handler);
-  }, [searchQuery]);
 
+  // Client-side pagination
+  const [currentPage, setCurrentPage] = useState(0);
+
+  // Actions state
   const [activeDropdown, setActiveDropdown] = useState<number | null>(null);
   const [projectToEdit, setProjectToEdit] = useState<ProjectResponse | null>(null);
   const [projectToDelete, setProjectToDelete] = useState<number | null>(null);
@@ -35,13 +34,11 @@ const MentorshipProjects: React.FC = () => {
     if (!id) return;
     try {
       setLoading(true);
-      const res = await getProjectDashboard(id, { 
-        page, 
-        size: 10,
-        projectName: debouncedSearch || undefined,
-        status: statusFilter || undefined
-      });
+      // Fetch all projects at once — filtering & pagination handled client-side
+      const res = await getProjectDashboard(id, { page: 0, size: 1000 });
       setDashboard(res.fullDashboard);
+      setAllProjects(res.fullDashboard?.projectResponsePageResponse?.content || []);
+      setCurrentPage(0);
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Failed to load project dashboard';
       setError(message);
@@ -52,16 +49,31 @@ const MentorshipProjects: React.FC = () => {
 
   useEffect(() => {
     fetchDashboard();
-  }, [id, page, debouncedSearch, statusFilter]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [id]);
 
-  // Navigate back to mentorship overview
-  const handleBackToMentorship = () => {
-    navigate(`/mentor/mentorships/${id}`);
-  };
+  // Client-side filter
+  const filtered = useMemo(() => {
+    let list = allProjects;
+    if (searchQuery)
+      list = list.filter(item =>
+        item.project.title.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+    if (statusFilter)
+      list = list.filter(item => item.project.status === statusFilter);
+    return list;
+  }, [allProjects, searchQuery, statusFilter]);
 
-  if (loading && !dashboard) {
+  const totalPages = Math.ceil(filtered.length / PAGE_SIZE);
+  const safePage = Math.min(currentPage, Math.max(0, totalPages - 1));
+  const projectsList = filtered.slice(safePage * PAGE_SIZE, (safePage + 1) * PAGE_SIZE);
+
+  const handleSearchChange = (val: string) => { setSearchQuery(val); setCurrentPage(0); };
+  const handleStatusChange = (val: string) => { setStatusFilter(val); setCurrentPage(0); };
+
+  if (loading && allProjects.length === 0) {
     return (
-      <DashLayout pageTitle={`Dashboard / My Mentorships / Projects`}>
+      <DashLayout pageTitle="Dashboard / My Mentorships / Projects">
         <div className="flex h-[50vh] items-center justify-center">
           <p className="text-gray-500">Loading projects...</p>
         </div>
@@ -69,9 +81,9 @@ const MentorshipProjects: React.FC = () => {
     );
   }
 
-  if (error) {
+  if (error && allProjects.length === 0) {
     return (
-      <DashLayout pageTitle={`Dashboard / My Mentorships / Projects`}>
+      <DashLayout pageTitle="Dashboard / My Mentorships / Projects">
         <div className="flex h-[50vh] items-center justify-center text-red-500">
           <p>{error}</p>
         </div>
@@ -80,29 +92,23 @@ const MentorshipProjects: React.FC = () => {
   }
 
   const stats = dashboard?.projectDashboardDTO;
-  const projectsPage = dashboard?.projectResponsePageResponse;
-  const projectsList = projectsPage?.content || [];
 
   return (
-    <DashLayout pageTitle={`Dashboard / My Mentorships / Projects`}>
+    <DashLayout pageTitle="Dashboard / My Mentorships / Projects">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6 space-y-6">
-        
+
         {/* Header Section */}
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 ">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
-            <div className="flex items-baseline gap-2 cursor-pointer text-gray-600 hover:text-gray-900" onClick={handleBackToMentorship}>
-              {/* <span className="text-xl">{'<'}</span> */}
+            <div
+              className="flex items-baseline gap-2 cursor-pointer text-gray-600 hover:text-gray-900"
+              onClick={() => navigate(`/mentor/mentorships/${id}`)}
+            >
               <ArrowLeft size={20} />
               <h1 className="text-3xl font-bold text-gray-900">Projects</h1>
             </div>
             <p className="text-sm text-gray-500 mt-1">Manage and review all projects</p>
           </div>
-          
-          {/* <button 
-            className="flex items-center gap-2 bg-primary hover:bg-[var(--primary-dark)] text-white px-4 py-2 rounded-lg font-medium transition-colors"
-          >
-            Create Project <Plus size={18} />
-          </button> */}
         </div>
 
         {/* Stats Cards */}
@@ -116,7 +122,7 @@ const MentorshipProjects: React.FC = () => {
               <Briefcase size={20} />
             </div>
           </div>
-          
+
           <div className="bg-white p-5 rounded-xl border border-gray-100 shadow-sm flex items-center justify-between">
             <div>
               <p className="text-sm text-gray-500 font-medium">Published</p>
@@ -155,11 +161,11 @@ const MentorshipProjects: React.FC = () => {
         {/* Search Bar */}
         <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm flex items-center gap-3">
           <Search size={20} className="text-gray-400 shrink-0" />
-          <input 
-            type="text" 
+          <input
+            type="text"
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search project..." 
+            onChange={(e) => handleSearchChange(e.target.value)}
+            placeholder="Search project..."
             className="w-full bg-transparent border-none outline-none text-gray-700"
           />
         </div>
@@ -169,14 +175,11 @@ const MentorshipProjects: React.FC = () => {
           <div className="p-5 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
             <div>
               <h2 className="text-lg font-bold text-gray-900">All Projects</h2>
-              <p className="text-sm text-gray-500">Total {projectsPage?.totalElements || 0}</p>
+              <p className="text-sm text-gray-500">Total {filtered.length}</p>
             </div>
             <select
               value={statusFilter}
-              onChange={(e) => {
-                setStatusFilter(e.target.value);
-                setPage(0);
-              }}
+              onChange={(e) => handleStatusChange(e.target.value)}
               className="flex items-center gap-2 border border-gray-200 px-3 py-1.5 rounded-lg text-sm text-gray-600 bg-white outline-none focus:ring-2 focus:ring-primary/20"
             >
               <option value="">All Statuses</option>
@@ -200,16 +203,14 @@ const MentorshipProjects: React.FC = () => {
                 {projectsList.length > 0 ? projectsList.map((item: ProjectListItem) => (
                   <tr key={item.project.id} className="hover:bg-gray-50 transition-colors">
                     <td className="p-4 cursor-pointer">
-                    <Link 
-                     to={`/mentor/mentorships/${id}/projects/${item.project.id}`}>
-                      <div className="flex items-center gap-3">
-                        <div className="p-2 bg-blue-50 rounded text-[var(--primary-500)]">
-                          <Briefcase size={16} />
+                      <Link to={`/mentor/mentorships/${id}/projects/${item.project.id}`}>
+                        <div className="flex items-center gap-3">
+                          <div className="p-2 bg-blue-50 rounded text-[var(--primary-500)]">
+                            <Briefcase size={16} />
+                          </div>
+                          <span className="font-semibold text-gray-900">{item.project.title}</span>
                         </div>
-                        <span className="font-semibold text-gray-900">{item.project.title}</span>
-                      </div>
-                    </Link>
-
+                      </Link>
                     </td>
 
                     <td className="p-4">
@@ -223,15 +224,20 @@ const MentorshipProjects: React.FC = () => {
                         </span>
                       )}
                     </td>
+
                     <td className="px-10 font-medium">
                       <span className="text-[var(--primary-500)]">{item.submissionsCount}/{item.totalStudents}</span>
                     </td>
+
                     <td className="p-4 text-sm text-gray-500">
-                      {item.project.createdAt ? new Date(item.project.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' }) : 'N/A'}
+                      {item.project.createdAt
+                        ? new Date(item.project.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })
+                        : 'N/A'}
                     </td>
+
                     <td className="p-4 text-right">
                       <div className="flex items-center justify-end gap-2">
-                        <Link 
+                        <Link
                           to={`/mentor/mentorships/${id}/projects/${item.project.id}`}
                           className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-[var(--primary-500)] bg-white border border-blue-200 rounded-lg hover:bg-blue-50 transition-colors"
                         >
@@ -239,12 +245,12 @@ const MentorshipProjects: React.FC = () => {
                         </Link>
                         <div className="relative">
                           {activeDropdown === item.project.id && (
-                            <div 
-                              className="fixed inset-0 z-40" 
+                            <div
+                              className="fixed inset-0 z-40"
                               onClick={() => setActiveDropdown(null)}
-                            ></div>
+                            />
                           )}
-                          <button 
+                          <button
                             onClick={() => setActiveDropdown(activeDropdown === item.project.id ? null : item.project.id)}
                             className="relative z-5 p-1.5 text-gray-400 hover:bg-gray-100 rounded-lg border border-gray-200"
                           >
@@ -252,13 +258,13 @@ const MentorshipProjects: React.FC = () => {
                           </button>
                           {activeDropdown === item.project.id && (
                             <div className="absolute right-0 top-full mt-1 z-50 w-32 bg-white rounded-lg shadow-lg border border-gray-100 overflow-hidden py-1">
-                              <button 
+                              <button
                                 onClick={() => { setProjectToEdit(item.project); setActiveDropdown(null); }}
                                 className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
                               >
                                 <Edit size={14} /> Edit
                               </button>
-                              <button 
+                              <button
                                 onClick={() => { setProjectToDelete(item.project.id); setActiveDropdown(null); }}
                                 className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 flex items-center gap-2"
                               >
@@ -282,26 +288,39 @@ const MentorshipProjects: React.FC = () => {
           </div>
 
           {/* Pagination */}
-          {projectsPage && projectsPage.totalPages > 10&& (
-            <div className="p-4 border-t border-gray-100 flex items-center justify-between text-sm text-gray-500">
-              <p>Showing <select className="border-gray-200 rounded p-1 mx-1"><option>10</option></select> items in one page</p>
-              <div className="flex gap-1">
-                <button 
-                  disabled={page === 0}
-                  onClick={() => setPage(p => p - 1)}
-                  className="px-3 py-1 bg-gray-50 border border-gray-200 rounded text-gray-600 disabled:opacity-50"
+          {totalPages > 1 && (
+            <div className="px-6 py-4 border-t border-gray-100 flex items-center justify-between bg-white">
+              <div className="text-sm text-gray-500">
+                Showing {safePage * PAGE_SIZE + 1}–{Math.min((safePage + 1) * PAGE_SIZE, filtered.length)} of {filtered.length}
+              </div>
+
+              <div className="flex items-center gap-1.5">
+                <button
+                  onClick={() => setCurrentPage(p => Math.max(0, p - 1))}
+                  disabled={safePage === 0}
+                  className="px-3 py-1.5 text-sm font-medium text-gray-600 hover:bg-gray-100 rounded-lg disabled:opacity-50 transition-colors"
                 >
                   Previous
                 </button>
-                <div className="flex items-center px-2">
-                  <span className="text-gray-900 font-medium">{page + 1}</span>
-                  <span className="mx-1">of</span>
-                  <span>{projectsPage.totalPages}</span>
-                </div>
-                <button 
-                  disabled={page >= projectsPage.totalPages - 1}
-                  onClick={() => setPage(p => p + 1)}
-                  className="px-3 py-1 bg-white border border-gray-200 rounded text-gray-600 hover:bg-gray-50 disabled:opacity-50"
+
+                {Array.from({ length: totalPages }).map((_, i) => (
+                  <button
+                    key={i}
+                    onClick={() => setCurrentPage(i)}
+                    className={`w-8 h-8 flex items-center justify-center text-sm font-medium rounded-lg transition-colors ${
+                      i === safePage
+                        ? 'text-white bg-[var(--primary-500)]'
+                        : 'text-gray-600 hover:bg-gray-100'
+                    }`}
+                  >
+                    {i + 1}
+                  </button>
+                ))}
+
+                <button
+                  onClick={() => setCurrentPage(p => Math.min(totalPages - 1, p + 1))}
+                  disabled={safePage === totalPages - 1}
+                  className="px-3 py-1.5 text-sm font-medium text-gray-600 hover:bg-gray-100 rounded-lg disabled:opacity-50 transition-colors"
                 >
                   Next
                 </button>
@@ -310,17 +329,18 @@ const MentorshipProjects: React.FC = () => {
           )}
         </div>
       </div>
-      <EditProjectModal 
-        project={projectToEdit} 
-        isOpen={!!projectToEdit} 
-        onClose={() => setProjectToEdit(null)} 
-        onSuccess={fetchDashboard} 
+
+      <EditProjectModal
+        project={projectToEdit}
+        isOpen={!!projectToEdit}
+        onClose={() => setProjectToEdit(null)}
+        onSuccess={fetchDashboard}
       />
-      <DeleteProjectModal 
-        projectId={projectToDelete} 
-        isOpen={!!projectToDelete} 
-        onClose={() => setProjectToDelete(null)} 
-        onSuccess={fetchDashboard} 
+      <DeleteProjectModal
+        projectId={projectToDelete}
+        isOpen={!!projectToDelete}
+        onClose={() => setProjectToDelete(null)}
+        onSuccess={fetchDashboard}
       />
     </DashLayout>
   );

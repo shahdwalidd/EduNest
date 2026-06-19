@@ -2,7 +2,7 @@ import type { FC } from 'react';
 import { useState } from 'react';
 import { X, Send, Award, Paperclip, AlertCircle, Star } from 'lucide-react';
 import FileViewer from '../../../../components/common/FileViewer';
-import { resolveFirstFileUrl } from '../../../../utils/fileUrl';
+import { resolveFirstFileUrl, buildFullFileUrl } from '../../../../utils/fileUrl';
 import type { GradePayload } from '../../../../services/mentorshipsContent/task';
 import { gradeTaskSubmission } from '../../../../services/mentorshipsContent/task';
 import toast from 'react-hot-toast';
@@ -78,14 +78,12 @@ const GradeModal: FC<GradeModalProps> = ({ submission, maxPoints, onClose, onGra
                         </span>
                     )}
 
-                    {/* Student submission file */}
-                    {submission.fileUrl && (
+                    {/* File Submission */}
+                    {submission.uploadedFilePath && (
                         <div className="w-full mt-0.5">
-                            <a
-                                href={submission.fileUrl}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="flex items-center gap-3 w-full px-4 py-2.5 bg-blue-50 border border-blue-200 text-blue-700 rounded-xl text-sm font-semibold hover:bg-blue-100 transition-colors group"
+                            <button
+                                onClick={() => window.open(buildFullFileUrl(submission.uploadedFilePath), '_blank')}
+                                className="flex items-center gap-3 w-full px-4 py-2.5 bg-blue-50 border border-blue-200 text-blue-700 rounded-xl text-sm font-semibold hover:bg-blue-100 hover:border-blue-300 transition-colors cursor-pointer"
                             >
                                 <div className="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center shrink-0">
                                     <Paperclip size={15} className="text-white" />
@@ -94,7 +92,7 @@ const GradeModal: FC<GradeModalProps> = ({ submission, maxPoints, onClose, onGra
                                     <p className="text-xs text-blue-500 mb-0.5">Student Submission File</p>
                                     <p className="truncate text-blue-800">{submission.uploadedFilePath?.split('/').pop() ?? 'Open File'}</p>
                                 </div>
-                            </a>
+                            </button>
                         </div>
                     )}
                 </div>
@@ -102,7 +100,7 @@ const GradeModal: FC<GradeModalProps> = ({ submission, maxPoints, onClose, onGra
                 {/* Inline preview - تعديل الارتفاع إلى h-[200px] لتقليل الطول العام */}
                 {resolveFirstFileUrl(submission.fileUrl, submission.uploadedFilePath) && (
                     <div className="px-6 pb-1">
-                        <FileViewer url={resolveFirstFileUrl(submission.fileUrl, submission.uploadedFilePath)} height="h-[200px]" />
+                        <FileViewer url={resolveFirstFileUrl(submission.fileUrl, submission.uploadedFilePath)} height="h-[150px]" />
                     </div>
                 )}
 

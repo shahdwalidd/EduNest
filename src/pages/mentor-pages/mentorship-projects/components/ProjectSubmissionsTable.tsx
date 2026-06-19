@@ -1,14 +1,14 @@
-import React from 'react';
-import { Award, CheckCircle, Clock, AlertCircle, Download } from 'lucide-react';
-import type { TaskSubmission, ProjectStatistics } from '../../../../services/projectService';
 
+
+import React from 'react';
+import { Award, CheckCircle, Clock, AlertCircle, Download, Link } from 'lucide-react';
+import type { TaskSubmission, ProjectStatistics } from '../../../../services/projectService';
 
 type Props = {
   submissionsList: TaskSubmission[];
   stats: ProjectStatistics | null;
   page: number;
   submissionsPage: { totalPages: number } | null | undefined;
-
   onPageChange: (nextPage: number) => void;
   onOpenGradeModal: (submission: TaskSubmission) => void;
 };
@@ -21,6 +21,19 @@ export const ProjectSubmissionsTable: React.FC<Props> = ({
   onPageChange,
   onOpenGradeModal,
 }) => {
+
+  const getLinkUrl = (sub: TaskSubmission): string | null => {
+    return sub.fileUrl && sub.fileUrl.trim() !== '' ? sub.fileUrl : null;
+  };
+
+  const getFileUrl = (sub: TaskSubmission): string | null => {
+    if (sub.uploadedFilePath && sub.uploadedFilePath.trim() !== '') {
+      const filename = sub.uploadedFilePath.split('/').pop();
+      return `http://localhost:8080/uploads/submissions/${filename}`;
+    }
+    return null;
+  };
+
   return (
     <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden mt-6">
       <div className="p-5 border-b border-gray-100 flex justify-between items-center">
@@ -34,21 +47,27 @@ export const ProjectSubmissionsTable: React.FC<Props> = ({
               <th className="p-4 font-medium w-[25%]">Student Name</th>
               <th className="p-4 font-medium w-[20%]">Submitted At</th>
               <th className="p-4 font-medium w-[15%]">Status</th>
-              <th className="p-4 font-medium w-[15%]">File</th>
+              <th className="p-4 font-medium w-[10%]">Link</th>
+              <th className="p-4 font-medium w-[10%]">File</th>
               <th className="p-4 font-medium w-[10%]">Score</th>
-              <th className="p-4 font-medium text-right w-[15%]">Actions</th>
+              <th className="p-4 font-medium text-right w-[10%]">Actions</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-100">
             {submissionsList.length > 0 ? (
               submissionsList.map((sub) => (
                 <tr key={sub.submissionId} className="hover:bg-gray-50 transition-colors">
+
                   <td className="p-4 font-medium text-gray-900 break-words whitespace-normal max-w-[200px]">
                     {sub.studentFullName}
                   </td>
+
                   <td className="p-4 text-sm text-gray-500">
                     <div className="flex items-center gap-1.5">
-                      <Clock size={14} className={sub.isLate ? 'text-red-500 flex-shrink-0' : 'text-gray-400 flex-shrink-0'} />
+                      <Clock
+                        size={14}
+                        className={sub.isLate ? 'text-red-500 flex-shrink-0' : 'text-gray-400 flex-shrink-0'}
+                      />
                       <span className={sub.isLate ? 'text-red-600 font-medium break-words' : 'break-words'}>
                         {sub.submittedAt
                           ? new Date(sub.submittedAt).toLocaleString('en-GB', {
@@ -62,6 +81,7 @@ export const ProjectSubmissionsTable: React.FC<Props> = ({
                       </span>
                     </div>
                   </td>
+
                   <td className="p-4">
                     {sub.status === 'GRADED' ? (
                       <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-green-50 text-green-600">
@@ -77,20 +97,39 @@ export const ProjectSubmissionsTable: React.FC<Props> = ({
                       </span>
                     )}
                   </td>
+
+                  {/* Link Column */}
                   <td className="p-4">
-                    {sub.fileUrl ? (
-                      <a
-                        href={sub.fileUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1.5 text-blue-600 hover:text-blue-800 text-sm font-medium"
-                      >
-                        <Download size={16} className="flex-shrink-0" /> View File
-                      </a>
+                    {getLinkUrl(sub) ? (
+                        <a
+                          href={getLinkUrl(sub)!}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1.5 text-blue-600 hover:text-blue-800 text-sm font-medium"
+                        >
+                          <Link size={14} className="flex-shrink-0" /> View Link
+                        </a>
                     ) : (
-                      <span className="text-gray-400 text-sm">No File</span>
+                      <span className="text-gray-400 text-sm">-</span>
                     )}
                   </td>
+
+                  {/* File Column */}
+                  <td className="p-4">
+                    {getFileUrl(sub) ? (
+                      <a
+                        href={getFileUrl(sub)!}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1.5 text-indigo-600 hover:text-indigo-800 text-sm font-medium"
+                      >
+                        <Download size={14} className="flex-shrink-0" /> View File
+                      </a>
+                    ) : (
+                      <span className="text-gray-400 text-sm">-</span>
+                    )}
+                  </td>
+
                   <td className="p-4 font-medium">
                     {sub.status === 'GRADED' ? (
                       <span className="text-green-600 break-all">
@@ -100,6 +139,7 @@ export const ProjectSubmissionsTable: React.FC<Props> = ({
                       <span className="text-gray-400">-</span>
                     )}
                   </td>
+
                   <td className="p-4 text-right">
                     <button
                       onClick={() => onOpenGradeModal(sub)}
@@ -108,11 +148,12 @@ export const ProjectSubmissionsTable: React.FC<Props> = ({
                       <Award size={16} /> Grade
                     </button>
                   </td>
+
                 </tr>
               ))
             ) : (
               <tr>
-                <td colSpan={6} className="p-8 text-center text-gray-500">
+                <td colSpan={7} className="p-8 text-center text-gray-500">
                   No submissions found.
                 </td>
               </tr>
@@ -147,4 +188,3 @@ export const ProjectSubmissionsTable: React.FC<Props> = ({
     </div>
   );
 };
-

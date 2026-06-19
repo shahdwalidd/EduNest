@@ -157,7 +157,7 @@ const MentorDash: React.FC = () => {
                 <div className="lg:col-span-2 space-y-6">
                   <SalesChart
                     title="Sales"
-                    data={revenueData.length > 0 ? revenueData : undefined}
+                    data={revenueData}
                   />
 
                   <ReviewsList
