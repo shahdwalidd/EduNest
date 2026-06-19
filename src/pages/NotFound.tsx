@@ -1,7 +1,10 @@
-import { Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import notFoundImg from "../assets/not-found/not-found.svg";
 
+
 const NotFound = () => {
+ const navigate = useNavigate();
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
       
@@ -24,13 +27,13 @@ const NotFound = () => {
         </p>
 
         {/* Back Button */}
-        <Link
-          to="/"
+        <button
+          onClick={() => navigate(-1)}
           className="inline-block mt-6 px-6 py-3 rounded-xl text-white font-medium transition hover:opacity-90"
           style={{ backgroundColor: "var(--primary-500)" }}
         >
-          Go back home
-        </Link>
+          Go back 
+        </button>
       </div>
     </div>
   );

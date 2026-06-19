@@ -10,6 +10,7 @@ import { ProjectOverview } from './components/ProjectOverview';
 import { ProjectStatsCards } from './components/ProjectStatsCards';
 import { ProjectSubmissionsTable } from './components/ProjectSubmissionsTable';
 import { GradeSubmissionModal } from './components/GradeSubmissionModal';
+import GlobalLoadingOverlay from '../../../loadingApp/GlobalLoadingOverlay';
 
 const ProjectDetail: React.FC = () => {
   const { id, projectId } = useParams<{ id: string, projectId: string }>();
@@ -111,7 +112,7 @@ const submitGrade = async () => {
     return (
       <DashLayout pageTitle={`Dashboard / Projects / Details`}>
         <div className="flex h-[50vh] items-center justify-center p-4">
-          <p className="text-gray-500 text-center">Loading details...</p>
+          <GlobalLoadingOverlay/>
         </div>
       </DashLayout>
     );

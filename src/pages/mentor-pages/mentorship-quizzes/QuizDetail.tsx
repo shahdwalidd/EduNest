@@ -9,6 +9,7 @@ import { getQuizOverview } from '../../../services/mentorshipsContent/quiz';
 import { useAuthStore } from '../../../store/authStore';
 import toast from 'react-hot-toast';
 import EditQuizModal from './components/EditQuizModal';
+import GlobalLoadingOverlay from '../../../loadingApp/GlobalLoadingOverlay';
 
 const QuizDetail: FC = () => {
     const { id: mentorshipId, quizId } = useParams<{ id: string, quizId: string }>();
@@ -55,7 +56,7 @@ const QuizDetail: FC = () => {
         return (
             <DashLayout pageTitle="Quiz Detail">
                 <div className="flex items-center justify-center h-[calc(100vh-100px)]">
-                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+                   <GlobalLoadingOverlay/>
                 </div>
             </DashLayout>
         );

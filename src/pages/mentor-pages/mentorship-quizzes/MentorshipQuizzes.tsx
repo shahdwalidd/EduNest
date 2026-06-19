@@ -10,6 +10,7 @@ import EditQuizModal from './components/EditQuizModal';
 import ConfirmDeleteModal from './components/ConfirmDeleteModal';
 import { useAuthStore } from '../../../store/authStore';
 import toast from 'react-hot-toast';
+import GlobalLoadingOverlay from '../../../loadingApp/GlobalLoadingOverlay';
 
 const PAGE_SIZE = 10;
 
@@ -132,7 +133,7 @@ const MentorshipQuizzes: FC = () => {
         return (
             <DashLayout pageTitle="Quizzes">
                 <div className="flex items-center justify-center h-[calc(100vh-100px)]">
-                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+                    <GlobalLoadingOverlay/>
                 </div>
             </DashLayout>
         );
