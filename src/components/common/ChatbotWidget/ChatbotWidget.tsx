@@ -467,7 +467,7 @@ const ChatbotWidget: FC = () => {
               </button>
             </div>
             <p className="text-[10px] text-gray-400 text-center mt-2">
-              Mentra AI can make mistakes. Verify important information.
+              Neo can make mistakes. Verify important information.
             </p>
           </div>
         </div>
@@ -556,7 +556,7 @@ const ChatbotWidget: FC = () => {
                 </button>
               </div>
               <p className="text-[10px] text-gray-400 text-center mt-2">
-                Mentra AI can make mistakes. Verify important information.
+                Neo can make mistakes. Verify important information.
               </p>
             </div>
           </div>
@@ -570,7 +570,7 @@ const ChatbotWidget: FC = () => {
           className="chatbot-trigger chatbot-trigger-pulse fixed bottom-6 right-6 w-14 h-14 rounded-2xl
                      flex items-center justify-center shadow-xl active:scale-95 transition-transform duration-150"
           style={{ background: 'linear-gradient(135deg, #0c2340 0%, #0f5e8b 100%)', zIndex: 9999 }}
-          aria-label="Open Mentra AI"
+          aria-label="Open Neo"
         >
           <div className="w-9 h-9"><BotFaceIcon /></div>
         </button>
