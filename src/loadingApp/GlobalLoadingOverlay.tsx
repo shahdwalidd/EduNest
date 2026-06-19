@@ -1,14 +1,23 @@
 import { useEffect, useState } from 'react';
 
 const GlobalLoadingOverlay = () => {
-  const [visible, setVisible] = useState(true);
+  const [visible, setVisible] = useState(false);
 
   useEffect(() => {
-    // Show loader for 2 seconds (minimum) on initial app open.
-    const timer = window.setTimeout(() => setVisible(false),1000);
-    return () => window.clearTimeout(timer);
-  }, []);
+    // set a timer to show the overlay after a short delay
+    const showTimer = window.setTimeout(() => {
+      setVisible(true);
+    }, 100);
 
+    const hideTimer = window.setTimeout(() => {
+      setVisible(false);
+    }, 1000);
+
+    return () => {
+      window.clearTimeout(showTimer);
+      window.clearTimeout(hideTimer);
+    };
+  }, []);
 
   if (!visible) return null;
 
@@ -33,11 +42,9 @@ const GlobalLoadingOverlay = () => {
             <h1 className="text-xl font-bold tracking-wider">EduNest</h1>
           </div>
         </div>
-
       </div>
     </div>
   );
 };
 
 export default GlobalLoadingOverlay;
-

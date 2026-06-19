@@ -21,6 +21,8 @@ import MentorshipReviews from './components/MentorshipReviews';
 import MentorshipTopLearners from './components/MentorshipTopLearners';
 import MentorshipStudentsTable from './components/MentorshipStudentsTable';
 import MentorshipContentList from './components/MentorshipContentList';
+import NotFound from '../../NotFound';
+import GlobalLoadingOverlay from '../../../loadingApp/GlobalLoadingOverlay';
 
 const MentorshipDetail: FC = () => {
   const params = useParams<{ mentorshipId?: string; id?: string }>();
@@ -164,7 +166,7 @@ const MentorshipDetail: FC = () => {
     return (
       <DashLayout pageTitle="Mentorship Details">
         <div className="flex items-center justify-center h-screen">
-          <div className="text-gray-500">Loading...</div>
+         <GlobalLoadingOverlay/>
         </div>
       </DashLayout>
     );
@@ -173,9 +175,9 @@ const MentorshipDetail: FC = () => {
   if (error || !mentorship) {
     return (
       <DashLayout pageTitle="Mentorship Details">
-        <div className="flex items-center justify-center h-screen">
-          <div className="text-red-500">
-            {error || 'Mentorship not found'}
+        <div className="flex items-center justify-center h-screen bg-gray-50">
+          <div className="">
+            <NotFound />
           </div>
         </div>
       </DashLayout>

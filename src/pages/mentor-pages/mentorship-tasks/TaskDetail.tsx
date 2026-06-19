@@ -12,6 +12,7 @@ import { useTaskDetail } from '../../../hooks/useTaskDetail';
 import GradeModal from './components/GradeModal';
 import EditTaskModal from './components/EditTaskModal';
 import { API_BASE_URL } from '../../../services/api';
+import GlobalLoadingOverlay from '../../../loadingApp/GlobalLoadingOverlay';
 
 /* ════════════════════════════════════════════════
    Status Badge - Refined xlign
@@ -90,11 +91,8 @@ const TaskDetail: FC = () => {
     if (loading && !stats) {
         return (
             <DashLayout pageTitle="Loading Task...">
-                <div className="flex items-center justify-center min-h-[60vh]">
-                    <div className="flex flex-col items-center gap-4">
-                        <div className="w-12 h-12 border-4 border-indigo-100 border-t-indigo-600 rounded-full animate-spin" />
-                        <p className="text-slate-500 font-medium animate-pulse">Fetching details...</p>
-                    </div>
+                <div className="flex items-center justify-center">
+                        <GlobalLoadingOverlay/>    
                 </div>
             </DashLayout>
         );
@@ -107,7 +105,9 @@ const TaskDetail: FC = () => {
                 {/* ─── Header Section ─── */}
                 <header className="flex flex-col md:flex-row md:items-end justify-between gap-6">
                     <div className="space-y-3">
-                        <div className="flex items-baseline gap-2 cursor-pointer text-gray-600 hover:text-gray-900 mb-2" onClick={() => navigate(-1)}>
+                        <div
+                         className="flex items-baseline gap-2 cursor-pointer text-gray-600 hover:text-gray-900 mb-2"
+                          onClick={() => navigate(-1)}>
                             <ArrowLeft size={20} />
                             <h1 className="text-3xl md:text-3xl font-bold text-slate-900 tracking-tight">
                                 {stats?.taskTitle || 'Untitled Mission'}
@@ -181,10 +181,15 @@ const TaskDetail: FC = () => {
                             Edit
                         </button>
 
-                        <div className={`px-4 py-2 rounded-xl text-sm font-bold border-2 ${
-                            stats?.status === 'PUBLISHED' ? 'border-emerald-100 text-emerald-600 bg-emerald-50/50' : 'border-slate-100 text-slate-500 bg-slate-50'
-                        }`}>
-                            ● {stats?.status || 'DRAFT'}
+                       <div
+                           className={`px-4 py-2 rounded-xl text-sm font-bold border-2 flex items-center gap-2 ${
+                                  stats?.status === 'PUBLISHED'
+                                  ? 'border-emerald-100 text-emerald-600 bg-emerald-50/50'
+                                 : 'border-slate-100 text-slate-500 bg-slate-50'
+                                      }`}
+                                       >
+                                            <span className="text-sm">●</span>
+                                             <span>{stats?.status || 'DRAFT'}</span>
                         </div>
                     </div>
                 </header>

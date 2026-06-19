@@ -11,6 +11,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faVideo } from '@fortawesome/free-solid-svg-icons';
 import toast from 'react-hot-toast';
 import Pagination from '../../../components/mentor-components/mentor-dash-com/Pagination/Pagination';
+import GlobalLoadingOverlay from '../../../loadingApp/GlobalLoadingOverlay';
 
 const MentorshipSessions: FC = () => {
     const { id: mentorshipId } = useParams<{ id: string }>();
@@ -143,8 +144,8 @@ const MentorshipSessions: FC = () => {
         return (
             <DashLayout pageTitle="Mentorship Sessions">
                 <div className="flex items-center justify-center h-[60vh]">
-                    <div className="animate-spin rounded-full h-10 w-10 border-2 border-t-transparent border-[var(--primary-500)]"></div>
-                </div>
+                 <GlobalLoadingOverlay/>
+                  </div>
             </DashLayout>
         );
     }

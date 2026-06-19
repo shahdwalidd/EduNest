@@ -5,6 +5,7 @@ import { getProjectDashboard, type FullProjectDashboard, type ProjectListItem } 
 import { Briefcase, CheckCircle, Clock, BarChart2, Search, Eye, MoreVertical, Edit, Trash2, ArrowLeft } from 'lucide-react';
 import { type ProjectResponse } from '../../../services/projectService';
 import { EditProjectModal, DeleteProjectModal } from './components/ProjectModals';
+import GlobalLoadingOverlay from '../../../loadingApp/GlobalLoadingOverlay';
 
 const MentorshipProjects: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -63,7 +64,7 @@ const MentorshipProjects: React.FC = () => {
     return (
       <DashLayout pageTitle={`Dashboard / My Mentorships / Projects`}>
         <div className="flex h-[50vh] items-center justify-center">
-          <p className="text-gray-500">Loading projects...</p>
+      <GlobalLoadingOverlay/>
         </div>
       </DashLayout>
     );
