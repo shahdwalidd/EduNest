@@ -2,10 +2,13 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import DashLayout from '../../../components/layout/Dash-layout';
 import toast from 'react-hot-toast';
-import { buildFullFileUrl } from '../../../utils/fileUrl';
 import { getProjectStatistics, getProjectDashboard, gradeProjectSubmission, type ProjectStatistics, type TaskSubmission, type ProjectResponse } from '../../../services/projectService';
-import { Download, CheckCircle, Clock, AlertCircle, Award, ArrowLeft, Edit, ExternalLink } from 'lucide-react';
 import { EditProjectModal } from './components/ProjectModals';
+import { ProjectDetailHeader } from './components/ProjectDetailHeader';
+import { ProjectOverview } from './components/ProjectOverview';
+import { ProjectStatsCards } from './components/ProjectStatsCards';
+import { ProjectSubmissionsTable } from './components/ProjectSubmissionsTable';
+import { GradeSubmissionModal } from './components/GradeSubmissionModal';
 
 const ProjectDetail: React.FC = () => {
   const { id, projectId } = useParams<{ id: string, projectId: string }>();
@@ -79,8 +82,7 @@ const ProjectDetail: React.FC = () => {
     setScore('');
     setFeedback('');
   };
-
-  const submitGrade = async () => {
+const submitGrade = async () => {
     if (!activeSubmission) return;
     try {
       setIsSubmittingGrade(true);
@@ -91,8 +93,12 @@ const ProjectDetail: React.FC = () => {
       toast.success('Grade submitted successfully');
       closeGradeModal();
       fetchStats();
-    } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Failed to submit grade';
+    } catch (err: any) { // تم تغيير النوع هنا إلى any لتسهيل فحص خصائص الـ API response
+      // 1. التحقق أولاً إذا كان الخطأ قادم من السيرفر وبداخل الـ response body (مثل axios)
+      const apiError = err?.response?.data?.errorMessages?.error || err?.data?.errorMessages?.error;
+      
+      const directError = err?.errorMessages?.error ;
+      const message = apiError || directError || err?.message  || 'Failed to submit grade';
       toast.error(message);
     } finally {
       setIsSubmittingGrade(false);
@@ -125,290 +131,57 @@ const ProjectDetail: React.FC = () => {
   return (
     <DashLayout pageTitle={`Dashboard / Projects / ${stats?.projectTitle || 'Details'}`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6 space-y-6">
-        
         {/* Header Section */}
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-          <div className="min-w-0 flex-1">
-            <div className="flex items-start gap-2 cursor-pointer text-gray-600 hover:text-gray-900" onClick={handleBackToProjects}>
-              <ArrowLeft size={20} className="mt-2.5 flex-shrink-0" />
-              <h1 className="break-all text-xl sm:text-2xl font-bold text-gray-900 break-words whitespace-normal leading-tight">
-                {stats?.projectTitle || 'Project Details'}
-              </h1>
-            </div>
-            <div className="text-sm text-gray-500 mt-1 pl-7">
-              <p className="break-words">
-                Review student submissions and statistics
-              </p>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-3 w-full sm:w-auto flex-shrink-0">
-            <button
-              type="button"
-              onClick={openEditModal}
-              className="flex items-center justify-center gap-2 w-full sm:w-auto px-4 py-2 text-sm font-medium text-indigo-600 bg-indigo-50 hover:bg-indigo-100 rounded-lg transition-colors"
-            >
-              <Edit size={16} />
-              Edit
-            </button>
-          </div>
-        </div>
+        <ProjectDetailHeader
+          projectTitle={stats?.projectTitle || 'Project Details'}
+          onBack={handleBackToProjects}
+          onEdit={openEditModal}
+        />
 
         {/* Project Overview */}
-        {(stats?.goal || stats?.brief || stats?.descriptionUrl || stats?.uploadedAttachmentPath) && (
-          <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5 space-y-4">
-            <h2 className="text-lg font-bold text-gray-900">Project Overview</h2>
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              {stats?.goal && (
-                <div className="bg-slate-50 rounded-xl p-4">
-                  <p className="text-sm text-gray-500">Goal</p>
-                  <p className="mt-2 text-gray-900">{stats.goal}</p>
-                </div>
-              )}
-              {stats?.brief && (
-                <div className="bg-slate-50 rounded-xl p-4">
-                  <p className="text-sm text-gray-500">Brief</p>
-                  <p className="mt-2 text-gray-900">{stats.brief}</p>
-                </div>
-              )}
-            </div>
-            {(stats?.descriptionUrl || stats?.uploadedAttachmentPath) && (
-              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                {stats?.descriptionUrl && (
-                  <a
-                    href={buildFullFileUrl(stats.descriptionUrl)}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center justify-between gap-3 p-4 bg-blue-50 rounded-xl hover:bg-blue-100 transition-colors"
-                  >
-                    <div>
-                      <p className="text-sm text-blue-700 font-semibold">Description URL</p>
-                      <p className="mt-1 text-sm text-slate-600 break-words">{stats.descriptionUrl}</p>
-                    </div>
-                    <ExternalLink size={18} className="text-blue-700" />
-                  </a>
-                )}
-                {stats?.uploadedAttachmentPath && (
-                  <a
-                    href={buildFullFileUrl(stats.uploadedAttachmentPath)}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center justify-between gap-3 p-4 bg-emerald-50 rounded-xl hover:bg-emerald-100 transition-colors"
-                  >
-                    <div>
-                      <p className="text-sm text-emerald-700 font-semibold">Attachment</p>
-                      <p className="mt-1 text-sm text-slate-600 break-words">{stats.uploadedAttachmentPath}</p>
-                    </div>
-                    <Download size={18} className="text-emerald-700" />
-                  </a>
-                )}
-              </div>
-            )}
-          </div>
-        )}
+        <ProjectOverview stats={stats} />
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          <div className="bg-white p-5 rounded-xl border border-gray-100 shadow-sm flex items-center justify-between min-w-0">
-            <div className="min-w-0 w-full">
-              <p className="text-sm text-gray-500 font-medium truncate">Total Submissions</p>
-              <h3 className="text-2xl font-bold mt-1 text-gray-900 truncate">{stats?.totalSubmissions || 0}</h3>
-            </div>
-          </div>
-          <div className="bg-white p-5 rounded-xl border border-gray-100 shadow-sm flex items-center justify-between min-w-0">
-            <div className="min-w-0 w-full">
-              <p className="text-sm text-gray-500 font-medium truncate">Pending Review</p>
-              <h3 className="text-2xl font-bold mt-1 text-yellow-600 truncate">{stats?.pendingReview || 0}</h3>
-            </div>
-          </div>
-          <div className="bg-white p-5 rounded-xl border border-gray-100 shadow-sm flex items-center justify-between min-w-0">
-            <div className="min-w-0 w-full">
-              <p className="text-sm text-gray-500 font-medium truncate">Total Points</p>
-              <h3 className="text-2xl font-bold mt-1 text-gray-900 truncate">{stats?.totalPoints || 0} pts</h3>
-            </div>
-          </div>
-          <div className="bg-white p-5 rounded-xl border border-gray-100 shadow-sm flex items-center justify-between min-w-0">
-            <div className="min-w-0 w-full">
-              <p className="text-sm text-gray-500 font-medium truncate">Deadline</p>
-              <h3 className="text-base sm:text-lg font-bold mt-2 text-gray-900 break-words">
-                {stats?.deadLine ? new Date(stats.deadLine).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : 'No Deadline'}
-              </h3>
-            </div>
-          </div>
-        </div>
+        <ProjectStatsCards stats={stats} />
 
         {/* Submissions Table Container */}
-        <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden mt-6">
-          <div className="p-5 border-b border-gray-100 flex justify-between items-center">
-            <h2 className="text-lg font-bold text-gray-900">Student Submissions</h2>
-          </div>
-          
-          {/* Responsive Responsive Table Wrapper */}
-          <div className="overflow-x-auto w-full">
-            <table className="w-full text-left border-collapse min-w-[800px]">
-              <thead>
-                <tr className="bg-gray-50 text-gray-500 text-xs uppercase tracking-wider">
-                  <th className="p-4 font-medium w-[25%]">Student Name</th>
-                  <th className="p-4 font-medium w-[20%]">Submitted At</th>
-                  <th className="p-4 font-medium w-[15%]">Status</th>
-                  <th className="p-4 font-medium w-[15%]">File</th>
-                  <th className="p-4 font-medium w-[10%]">Score</th>
-                  <th className="p-4 font-medium text-right w-[15%]">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-100">
-                {submissionsList.length > 0 ? submissionsList.map((sub: TaskSubmission) => (
-                  <tr key={sub.submissionId} className="hover:bg-gray-50 transition-colors">
-                    <td className="p-4 font-medium text-gray-900 break-words whitespace-normal max-w-[200px]">
-                      {sub.studentFullName}
-                    </td>
-                    <td className="p-4 text-sm text-gray-500">
-                      <div className="flex items-center gap-1.5">
-                        <Clock size={14} className={sub.isLate ? 'text-red-500 flex-shrink-0' : 'text-gray-400 flex-shrink-0'} />
-                        <span className={sub.isLate ? 'text-red-600 font-medium break-words' : 'break-words'}>
-                          {sub.submittedAt ? new Date(sub.submittedAt).toLocaleString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit'}) : 'N/A'}
-                        </span>
-                      </div>
-                    </td>
-                    <td className="p-4">
-                      {sub.status === 'GRADED' ? (
-                        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-green-50 text-green-600">
-                          <CheckCircle size={12} /> Graded
-                        </span>
-                      ) : sub.status === 'SUBMITTED' ? (
-                        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-yellow-50 text-yellow-600">
-                          <AlertCircle size={12} /> Needs Review
-                        </span>
-                      ) : (
-                        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-600">
-                          {sub.status}
-                        </span>
-                      )}
-                    </td>
-                    <td className="p-4">
-                      {sub.fileUrl ? (
-                        <a href={sub.fileUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 text-blue-600 hover:text-blue-800 text-sm font-medium">
-                          <Download size={16} className="flex-shrink-0" /> View File
-                        </a>
-                      ) : (
-                        <span className="text-gray-400 text-sm">No File</span>
-                      )}
-                    </td>
-                    <td className="p-4 font-medium">
-                      {sub.status === 'GRADED' ? (
-                        <span className="text-green-600 break-all">{sub.finalScore || sub.rawScore || 0} / {stats?.totalPoints || 100}</span>
-                      ) : (
-                        <span className="text-gray-400">-</span>
-                      )}
-                    </td>
-                    <td className="p-4 text-right">
-                      <button 
-                        onClick={() => openGradeModal(sub)}
-                        className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 text-sm font-medium text-indigo-600 bg-indigo-50 hover:bg-indigo-100 rounded-lg transition-colors ml-auto"
-                      >
-                        <Award size={16} /> Grade
-                      </button>
-                    </td>
-                  </tr>
-                )) : (
-                  <tr>
-                    <td colSpan={6} className="p-8 text-center text-gray-500">
-                      No submissions found.
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
-          
-          {/* Pagination */}
-          {submissionsPage && submissionsPage.totalPages > 1 && (
-            <div className="p-4 border-t border-gray-100 flex flex-col sm:flex-row items-center justify-between sm:justify-end gap-4 text-sm text-gray-500">
-              <div className="flex items-center gap-2">
-                <button 
-                  disabled={page === 0}
-                  onClick={() => setPage(p => p - 1)}
-                  className="px-3 py-1 bg-gray-50 border border-gray-200 rounded text-gray-600 disabled:opacity-50 transition-colors"
-                >
-                  Previous
-                </button>
-                <span className="text-gray-900 font-medium px-2">{page + 1} of {submissionsPage.totalPages}</span>
-                <button 
-                  disabled={page >= submissionsPage.totalPages - 1}
-                  onClick={() => setPage(p => p + 1)}
-                  className="px-3 py-1 bg-white border border-gray-200 rounded text-gray-600 hover:bg-gray-50 disabled:opacity-50 transition-colors"
-                >
-                  Next
-                </button>
-              </div>
-            </div>
-          )}
-        </div>
+        <ProjectSubmissionsTable
+          submissionsList={submissionsList}
+          stats={stats}
+          page={page}
+          submissionsPage={submissionsPage}
+          onPageChange={(nextPage) => setPage(nextPage)}
+          onOpenGradeModal={openGradeModal}
+        />
       </div>
 
       {/* Edit Project Modal */}
       <EditProjectModal
         project={projectToEdit}
         isOpen={isEditOpen}
-        onClose={() => { setIsEditOpen(false); setProjectToEdit(null); }}
+        onClose={() => {
+          setIsEditOpen(false);
+          setProjectToEdit(null);
+        }}
         onSuccess={fetchStats}
       />
 
       {/* Grade Modal Overlay */}
-      {isGradeModalOpen && activeSubmission && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 p-4 overflow-y-auto">
-          <div className="bg-white rounded-xl shadow-xl w-full max-w-lg overflow-hidden flex flex-col my-auto">
-            <div className="p-5 sm:p-6 border-b border-gray-100 bg-[var(--primary-500)] bg-indigo-600 text-white">
-              <h3 className="text-lg sm:text-xl font-bold">Grade Submission</h3>
-              <p className="text-sm opacity-90 mt-1 break-words">
-                Student: <span className="font-semibold">{activeSubmission.studentFullName}</span>
-              </p>
-            </div>
-            
-            <div className="p-5 sm:p-6 overflow-y-auto space-y-4 max-h-[60vh]">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Score (Out of {stats?.totalPoints || 100})</label>
-                <input 
-                  type="number" 
-                  value={score}
-                  onChange={(e) => setScore(e.target.value)}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
-                  placeholder="Enter score"
-                />
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Feedback</label>
-                <textarea 
-                  value={feedback}
-                  onChange={(e) => setFeedback(e.target.value)}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all min-h-[120px] resize-y"
-                  placeholder="Provide constructive feedback..."
-                ></textarea>
-              </div>
-            </div>
-            
-            <div className="p-5 sm:p-6 border-t border-gray-100 flex flex-col sm:flex-row justify-end gap-3 bg-gray-50">
-              <button 
-                onClick={closeGradeModal}
-                className="w-full sm:w-auto order-2 sm:order-1 px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors font-medium"
-                disabled={isSubmittingGrade}
-              >
-                Cancel
-              </button>
-              <button 
-                onClick={submitGrade}
-                className="w-full sm:w-auto order-1 sm:order-2 px-4 py-2 text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg transition-colors font-medium flex items-center justify-center gap-2 disabled:opacity-50"
-                disabled={isSubmittingGrade || score === ''}
-              >
-                {isSubmittingGrade ? 'Saving...' : 'Submit Grade'}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <GradeSubmissionModal
+        isOpen={isGradeModalOpen}
+        stats={stats}
+        activeSubmission={activeSubmission}
+        score={score}
+        feedback={feedback}
+        isSubmitting={isSubmittingGrade}
+        onClose={closeGradeModal}
+        onChangeScore={setScore}
+        onChangeFeedback={setFeedback}
+        onSubmit={submitGrade}
+      />
     </DashLayout>
   );
 };
 
 export default ProjectDetail;
+
