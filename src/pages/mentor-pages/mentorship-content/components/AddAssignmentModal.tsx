@@ -73,10 +73,9 @@ const AddAssignmentModal: FC<AddAssignmentModalProps> = ({ weekId, editingItem, 
         onSuccess({ type: 'assignment', title: title.trim(), isDraft: true });
       }
     } catch (err) {
-      const serverError = (err as ApiError).errorMessages?.error;
-      toast.error(
-        serverError || (err instanceof Error ? err.message : 'Failed to save assignment')
-      );
+      console.error('Assignment save error', err);
+      const serverError = (err as ApiError).errorMessages?.error || (err instanceof Error ? err.message : undefined);
+      toast.error(serverError || 'Failed to save assignment');
     } finally {
       setSubmitting(false);
     }
@@ -109,7 +108,7 @@ const AddAssignmentModal: FC<AddAssignmentModalProps> = ({ weekId, editingItem, 
             onChange={(e) => setDescription(e.target.value)}
             rows={3}
             className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-[var(--primary-from)]"
-           maxLength={50}
+           maxLength={2000}
             placeholder="Enter assignment description......."
           />
         </div>

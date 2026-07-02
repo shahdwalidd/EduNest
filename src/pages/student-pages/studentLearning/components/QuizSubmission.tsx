@@ -108,24 +108,37 @@ const QuizSubmission = ({ quizId }: QuizSubmissionProps) => {
 
   const submittingRef = useRef(false);
 
+  // ── Handle Start Quiz (lazy load questions) ──────────────────────────────────
+  const handleStartQuiz = useCallback(async () => {
+    if (!quiz || !quiz.durationMinutes || quiz.durationMinutes <= 0) {
+      toast.error('Invalid quiz duration. Please contact your instructor.');
+      return;
+    }
+
+    setStage('loading');
+    try {
+      const questionsData = await getQuizQuestions(quizId);
+      setQuestions(questionsData);
+      setTimeLeft(quiz.durationMinutes * 60);
+      setStage('quiz');
+    } catch (err) {
+      console.error(err);
+      toast.error('Failed to load questions. Please try again.');
+      setStage('intro');
+    }
+  }, [quiz, quizId]);
+
   // ── Submit ──────────────────────────────────────────────────────────────────
   const doSubmit = useCallback(async (isAutoSubmit = false) => {
     if (submittingRef.current) return;
+    // ✅ Guard: only submit if quiz stage is active
+    if (stage !== 'quiz' && stage !== 'review') return;
     submittingRef.current = true;
 
     const payload: Answer[] = Object.entries(answers).map(([qId, sel]) => ({
       questionId: parseInt(qId),
       selectedAnswer: sel,
     }));
-
-    // لو auto-submit ومفيش إجابات خالص → score = 0 من غير request
-    if (isAutoSubmit && payload.length === 0) {
-      setSubmittedScore(0);
-      setSubmittedTotal(quiz?.totalPoints ?? 0);
-      toast('Time is up! Quiz auto-submitted with score 0.', { icon: '⏰' });
-      setStage('submitted');
-      return;
-    }
 
     try {
       const res = await submitQuizAnswers(quizId, payload);
@@ -142,6 +155,7 @@ const QuizSubmission = ({ quizId }: QuizSubmissionProps) => {
       if (axios.isAxiosError(err)) {
         const status = err.response?.status;
         const msg = err.response?.data?.errorMessages?.error;
+        // ✅ Handle 409 conflict gracefully
         if ((status === 400 || status === 409) && msg === 'Quiz already submitted') {
           toast.error('This quiz was already submitted.');
           setStage('already-done');
@@ -149,25 +163,23 @@ const QuizSubmission = ({ quizId }: QuizSubmissionProps) => {
         }
       }
       toast.error(getBackendErrorMessage(err, 'Submission failed.'));
+    } finally {
+      // ✅ Always release the lock - guaranteed to run
       submittingRef.current = false;
     }
-  }, [answers, quiz, quizId]);
+  }, [answers, quizId, stage]);
 
-  // ── Fetch on mount ──────────────────────────────────────────────────────────
+  // ── Fetch quiz details on mount (NOT questions - lazy load) ────────────────
   useEffect(() => {
     (async () => {
       try {
-        const [quizData, questionsData] = await Promise.all([
-          getQuizDetails(quizId),
-          getQuizQuestions(quizId),
-        ]);
+        const quizData = await getQuizDetails(quizId);
         setQuiz(quizData);
-        setQuestions(questionsData);
         setTimeLeft(quizData.durationMinutes * 60);
 
+        // ✅ Check if already submitted
         if (quizData.submissions > 0) {
           setAlreadyScore(quizData.averageScore);
-          // totalPoints بييجي من الـ API مش من حساب الـ questions
           setAlreadyTotal(quizData.totalPoints);
           setStage('already-done');
           return;
@@ -181,18 +193,39 @@ const QuizSubmission = ({ quizId }: QuizSubmissionProps) => {
     })();
   }, [quizId]);
 
-  // ── Timer ───────────────────────────────────────────────────────────────────
+  // ── Reset state when quiz ID changes ───────────────────────────────────────
   useEffect(() => {
+    return () => {
+      setAnswers({});
+      setCurrentIdx(0);
+      setReviewList([]);
+      submittingRef.current = false;
+    };
+  }, [quizId]);
+
+  // ── Timer (ONLY runs when quiz is actively being taken) ──────────────────
+  useEffect(() => {
+    // ✅ Guard 1: only run timer if we're in active quiz stage
     if (stage !== 'quiz') return;
-    if (timeLeft <= 0) { doSubmit(true); return; }
+    
+    // ✅ Guard 2: must have quiz with valid duration
+    if (!quiz || !quiz.durationMinutes || quiz.durationMinutes <= 0) return;
+    
+    // ✅ Guard 3: timeLeft must be valid
+    if (timeLeft <= 0) {
+      doSubmit(true);
+      return;
+    }
+
     const id = setInterval(() => {
       setTimeLeft(t => {
         if (t <= 1) { doSubmit(true); return 0; }
         return t - 1;
       });
     }, 1000);
+    
     return () => clearInterval(id);
-  }, [stage, timeLeft, doSubmit]);
+  }, [stage, timeLeft, doSubmit, quiz]);
 
   // ── View Answers ────────────────────────────────────────────────────────────
   const handleViewAnswers = async (origin: 'already-done' | 'submitted') => {
@@ -200,8 +233,16 @@ const QuizSubmission = ({ quizId }: QuizSubmissionProps) => {
     setLoadingAnswers(true);
     setStage('view-answers');
     try {
+      // ✅ Fetch questions if empty (coming from already-done without clicking Start)
+      if (questions.length === 0) {
+        const questionsData = await getQuizQuestions(quizId);
+        setQuestions(questionsData);
+      }
+
       const res = await getMyAnswers(quizId);
-      setReviewList(res?.Review ?? []);
+      // ✅ getMyAnswers returns apiResponse directly which has Review property
+      const reviewData = res?.Review ?? [];
+      setReviewList(reviewData);
     } catch (err) {
       console.error(err);
       toast.error('Failed to load answers.');
@@ -221,7 +262,7 @@ const QuizSubmission = ({ quizId }: QuizSubmissionProps) => {
   const handlePrev = () => { if (currentIdx > 0) setCurrentIdx(i => i - 1); };
 
   const answeredCount = Object.keys(answers).length;
-  const totalPoints = questions.reduce((s, q) => s + q.points, 0);
+  // const totalPoints = quiz ? quiz.totalPoints : 0;
 
   // ── LOADING ──────────────────────────────────────────────────────────────────
   if (stage === 'loading') return (
@@ -282,11 +323,10 @@ const QuizSubmission = ({ quizId }: QuizSubmissionProps) => {
             <p className="text-slate-500 text-sm max-w-md">{quiz.description}</p>
           )}
         </div>
-        <div className="grid grid-cols-3 gap-3 w-full max-w-sm">
+        <div className="grid grid-cols-2 gap-3 w-full max-w-sm">
           {[
             { label: 'Duration', value: `${quiz.durationMinutes} min` },
-            { label: 'Questions', value: questions.length },
-            { label: 'Total Points', value: totalPoints },
+{ label: 'Total Points', value: quiz.totalPoints },
           ].map(({ label, value }) => (
             <div key={label} className="bg-slate-50 rounded-xl p-3 text-center border border-slate-100">
               <p className="text-xl font-bold text-slate-800">{value}</p>
@@ -303,7 +343,7 @@ const QuizSubmission = ({ quizId }: QuizSubmissionProps) => {
           </ul>
         </div>
         <button
-          onClick={() => setStage('quiz')}
+          onClick={handleStartQuiz}
           className="inline-flex items-center gap-2 px-8 py-3 rounded-xl font-semibold"
           style={{ backgroundColor: 'var(--primary-500)', color: 'white' }}
         >
@@ -480,19 +520,8 @@ const QuizSubmission = ({ quizId }: QuizSubmissionProps) => {
 
   // ── VIEW ANSWERS ──────────────────────────────────────────────────────────────
   if (stage === 'view-answers') {
-    const mergedList = questions.map(q => {
-      const apiAnswer = reviewList.find(r => r.questionId === q.id);
-      return apiAnswer ?? {
-        questionId: q.id,
-        text: q.text,
-        optionA: q.optionA,
-        optionB: q.optionB,
-        optionC: q.optionC,
-        optionD: q.optionD,
-        correctAnswer: '',
-        selectedAnswer: '',
-      };
-    });
+    // ✅ Use reviewList directly - it already has all data from API
+    const displayList = reviewList.length > 0 ? reviewList : [];
 
     return (
       <Wrapper>
@@ -511,9 +540,14 @@ const QuizSubmission = ({ quizId }: QuizSubmissionProps) => {
             <div className="w-8 h-8 rounded-full border-4 border-slate-200 border-t-[var(--primary-500)] animate-spin" />
             <p className="text-sm">Loading your answers…</p>
           </div>
+        ) : displayList.length === 0 ? (
+          <div className="flex flex-col items-center gap-3 py-12 text-slate-400">
+            <AlertTriangle className="w-8 h-8" />
+            <p className="text-sm">No answers found</p>
+          </div>
         ) : (
           <div className="space-y-4 max-h-[60vh] overflow-y-auto pr-1">
-            {mergedList.map((a, i) => {
+            {displayList.map((a, i) => {
               const isAnswered = !!a.selectedAnswer;
               const isCorrect = isAnswered && a.selectedAnswer === a.correctAnswer;
 
@@ -548,7 +582,9 @@ const QuizSubmission = ({ quizId }: QuizSubmissionProps) => {
                       if (!optText) return null;
 
                       const isSelected = a.selectedAnswer === opt;
-                      const isCorrectOpt = isAnswered && a.correctAnswer === opt;
+                      const isCorrectAnswer = a.correctAnswer === opt; 
+                      const isCorrectOpt = isAnswered && isCorrectAnswer;  
+                      const showCorrectAnswer = !isAnswered && isCorrectAnswer;  
 
                       let optStyle = 'border-slate-200 bg-white text-slate-600';
                       let circleStyle = 'border-slate-300 text-slate-400';
@@ -561,6 +597,10 @@ const QuizSubmission = ({ quizId }: QuizSubmissionProps) => {
                           optStyle = 'border-red-400 bg-red-50 text-red-800';
                           circleStyle = 'border-red-500 bg-red-500 text-white';
                         }
+                      } else if (showCorrectAnswer) {
+                        // ✅ Show correct answer when not answered
+                        optStyle = 'border-green-400 bg-green-50 text-green-800';
+                        circleStyle = 'border-green-500 bg-green-500 text-white';
                       }
 
                       return (
@@ -579,6 +619,11 @@ const QuizSubmission = ({ quizId }: QuizSubmissionProps) => {
                             {isCorrectOpt && (
                               <span className="inline-flex items-center gap-1 text-xs text-green-600 font-medium">
                                 <CheckCircle className="w-3 h-3" /> Correct
+                              </span>
+                            )}
+                            {showCorrectAnswer && (
+                              <span className="inline-flex items-center gap-1 text-xs text-green-600 font-medium">
+                                <CheckCircle className="w-3 h-3" /> Correct Answer
                               </span>
                             )}
                           </div>

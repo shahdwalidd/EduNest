@@ -75,6 +75,11 @@ export interface StudentTaskDetails {
   feedback: string | null;
   mentorName: string | null;
   mentorPhoto: string | null;
+  // Extended fields to support multiple submissions
+  studentSubmission?: {
+    submissionUrl?: string | null;
+    uploadedSubmissionPath?: string | null;
+  };
 }
 
 export const getStudentTaskDetails = async (taskId: number): Promise<StudentTaskDetails> => {

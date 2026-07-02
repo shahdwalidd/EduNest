@@ -1,14 +1,18 @@
+
 import type { FC } from 'react';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { FileText, CheckCircle, Clock, BarChart2, Search, Filter, MoreVertical, Eye, Edit2, Trash2, ArrowLeft } from 'lucide-react';
 import DashLayout from '../../../components/layout/Dash-layout';
-import type { QuizOverviewContent, QuizOverviewDtoPageResponse, QuizDashboardDTO } from '../../../services/mentorshipsContent/quiz';
-import { getMentorshipQuizzesOverview, filterQuizzes, deleteQuiz } from '../../../services/mentorshipsContent/quiz';
+import type { QuizOverviewContent, QuizDashboardDTO } from '../../../services/mentorshipsContent/quiz';
+import { getMentorshipQuizzesOverview, deleteQuiz } from '../../../services/mentorshipsContent/quiz';
 import EditQuizModal from './components/EditQuizModal';
 import ConfirmDeleteModal from './components/ConfirmDeleteModal';
 import { useAuthStore } from '../../../store/authStore';
 import toast from 'react-hot-toast';
+import GlobalLoadingOverlay from '../../../loadingApp/GlobalLoadingOverlay';
+
+const PAGE_SIZE = 10;
 
 const MentorshipQuizzes: FC = () => {
     const { id: mentorshipId } = useParams<{ id: string }>();
@@ -16,18 +20,16 @@ const MentorshipQuizzes: FC = () => {
     const token = useAuthStore((s) => s.token);
 
     const [stats, setStats] = useState<QuizDashboardDTO | null>(null);
-    const [quizPage, setQuizPage] = useState<QuizOverviewDtoPageResponse | null>(null);
+    const [allQuizzes, setAllQuizzes] = useState<QuizOverviewContent[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
     // Filters
     const [searchQuery, setSearchQuery] = useState('');
-    // default to "All" so Published/Draft shows without extra filtering UX
     const [statusFilter, setStatusFilter] = useState<string>('');
 
-    // Pagination
-    const [page, setPage] = useState(0); // 0-indexed API
-    const size = 10;
+    // Client-side pagination
+    const [currentPage, setCurrentPage] = useState(0);
 
     // Actions state
     const [refreshTrigger, setRefreshTrigger] = useState(0);
@@ -58,26 +60,14 @@ const MentorshipQuizzes: FC = () => {
                 setLoading(true);
                 setError(null);
 
-                // Always load quizzes for pagination.
-                // Use filterQuizzes ONLY when user is actively searching or selecting a status.
-                const shouldUseFilter = Boolean(searchQuery) || Boolean(statusFilter);
-                if (shouldUseFilter) {
-                    const responseData = await filterQuizzes(Number(mentorshipId), searchQuery, statusFilter, page, size);
-                    if (active) setQuizPage(responseData);
-
-                    if (!stats) {
-                        const overviewData = await getMentorshipQuizzesOverview(Number(mentorshipId), 0, 1);
-                        if (active) setStats(overviewData.quizDashboardDTO);
-                    }
-                } else { 
-                    // No filter: fetch paginated data so pagination always appears.
-                    const responseData = await getMentorshipQuizzesOverview(Number(mentorshipId), page, size);
-                    if (active) {
-                        setStats(responseData.quizDashboardDTO);
-                        setQuizPage(responseData.quizOverviewDtoPageResponse);
-                    }
+                // Fetch all quizzes at once — filtering & pagination handled client-side
+                const responseData = await getMentorshipQuizzesOverview(Number(mentorshipId), 0, 1000);
+                if (active) {
+                    setStats(responseData.quizDashboardDTO);
+                    setAllQuizzes(responseData.quizOverviewDtoPageResponse.content || []);
+                    setCurrentPage(0);
                 }
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             } catch (err: any) {
                 if (!active) return;
                 const message = err?.message || 'Failed to load quizzes';
@@ -88,15 +78,27 @@ const MentorshipQuizzes: FC = () => {
             }
         };
 
-        const timeoutId = setTimeout(() => {
-            loadQuizzes();
-        }, 300); // Debounce search
+        loadQuizzes();
 
-        return () => {
-            active = false;
-            clearTimeout(timeoutId);
-        };
-    }, [mentorshipId, token, page, searchQuery, statusFilter, refreshTrigger]);
+        return () => { active = false; };
+    }, [mentorshipId, token, refreshTrigger]);
+
+    // Client-side filter
+    const filtered = useMemo(() => {
+        let list = allQuizzes;
+        if (searchQuery)
+            list = list.filter(q => q.title.toLowerCase().includes(searchQuery.toLowerCase()));
+        if (statusFilter)
+            list = list.filter(q => q.status === statusFilter);
+        return list;
+    }, [allQuizzes, searchQuery, statusFilter]);
+
+    const totalPages = Math.ceil(filtered.length / PAGE_SIZE);
+    const safePage = Math.min(currentPage, Math.max(0, totalPages - 1));
+    const quizzes = filtered.slice(safePage * PAGE_SIZE, (safePage + 1) * PAGE_SIZE);
+
+    const handleSearchChange = (val: string) => { setSearchQuery(val); setCurrentPage(0); };
+    const handleStatusChange = (val: string) => { setStatusFilter(val); setCurrentPage(0); };
 
     const triggerRefresh = () => setRefreshTrigger(prev => prev + 1);
 
@@ -119,7 +121,7 @@ const MentorshipQuizzes: FC = () => {
             toast.success('Quiz deleted successfully');
             setDeleteQuizId(null);
             triggerRefresh();
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } catch (err: any) {
             toast.error(err?.message || 'Failed to delete quiz');
         } finally {
@@ -127,29 +129,17 @@ const MentorshipQuizzes: FC = () => {
         }
     };
 
-    const handleNextPage = () => {
-        if (quizPage && page + 1 < quizPage.totalPages) {
-            setPage((prev) => prev + 1);
-        }
-    };
-
-    const handlePrevPage = () => {
-        if (page > 0) {
-            setPage((prev) => prev - 1);
-        }
-    };
-
-    if (loading && !quizPage) {
+    if (loading && allQuizzes.length === 0) {
         return (
             <DashLayout pageTitle="Quizzes">
                 <div className="flex items-center justify-center h-[calc(100vh-100px)]">
-                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+                    <GlobalLoadingOverlay/>
                 </div>
             </DashLayout>
         );
     }
 
-    if (error && !quizPage) {
+    if (error && allQuizzes.length === 0) {
         return (
             <DashLayout pageTitle="Quizzes">
                 <div className="flex flex-col items-center justify-center h-[50vh] px-4">
@@ -161,8 +151,6 @@ const MentorshipQuizzes: FC = () => {
             </DashLayout>
         );
     }
-
-    const quizzes = quizPage?.content || [];
 
     return (
         <DashLayout pageTitle="Quizzes">
@@ -214,7 +202,7 @@ const MentorshipQuizzes: FC = () => {
                     <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 flex items-center justify-between">
                         <div>
                             <p className="text-sm font-medium text-gray-500 mb-1">Avg Score</p>
-                            <h3 className="text-2xl font-bold text-gray-900"> {Number(stats?.averageScore || 0).toFixed(2)} %</h3>
+                            <h3 className="text-2xl font-bold text-gray-900">{Number(stats?.averageScore || 0).toFixed(2)} %</h3>
                         </div>
                         <div className="w-12 h-12 rounded-xl bg-amber-50 text-amber-500 flex items-center justify-center">
                             <BarChart2 size={24} />
@@ -230,7 +218,7 @@ const MentorshipQuizzes: FC = () => {
                         placeholder="Search quiz..."
                         className="flex-1 outline-none border-none text-gray-700 bg-transparent"
                         value={searchQuery}
-                        onChange={(e) => { setSearchQuery(e.target.value); setPage(0); }}
+                        onChange={(e) => handleSearchChange(e.target.value)}
                     />
                 </div>
 
@@ -239,15 +227,15 @@ const MentorshipQuizzes: FC = () => {
                     <div className="p-6 border-b border-gray-100 flex items-center justify-between">
                         <div>
                             <h2 className="text-xl font-bold text-gray-900">All Quizzes</h2>
-                            <p className="text-sm text-gray-500 font-medium">Total {quizPage?.totalElements || 0}</p>
+                            <p className="text-sm text-gray-500 font-medium">Total {filtered.length}</p>
                         </div>
                         <div className="relative">
                             <select
                                 value={statusFilter}
-                                onChange={(e) => { setStatusFilter(e.target.value); setPage(0); }}
+                                onChange={(e) => handleStatusChange(e.target.value)}
                                 className="appearance-none outline-none flex items-center gap-2 px-4 py-2 pr-8 border border-gray-200 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors cursor-pointer"
                             >
-                                <option value="">Fillter Status</option>
+                                <option value="">Filter Status</option>
                                 <option value="PUBLISHED">Published</option>
                                 <option value="DRAFT">Draft</option>
                             </select>
@@ -275,10 +263,10 @@ const MentorshipQuizzes: FC = () => {
                                     </tr>
                                 ) : (
                                     quizzes.map((quiz: QuizOverviewContent) => (
-                                        <tr key={quiz.id} className="hover:bg-gray-50/50 transition-colors ">
-                                            <td className="px-6 py-4 cursor-pointer"
-                                      onClick={() => navigate(`/mentor/mentorships/${mentorshipId}/quizzes/${quiz.id}`)}
-                                            
+                                        <tr key={quiz.id} className="hover:bg-gray-50/50 transition-colors">
+                                            <td
+                                                className="px-6 py-4 cursor-pointer"
+                                                onClick={() => navigate(`/mentor/mentorships/${mentorshipId}/quizzes/${quiz.id}`)}
                                             >
                                                 <div className="flex items-center gap-3">
                                                     <div className="p-2 bg-blue-50 text-[var(--primary-500)] rounded-lg">
@@ -314,7 +302,6 @@ const MentorshipQuizzes: FC = () => {
                                                         onClick={() => navigate(`/mentor/mentorships/${mentorshipId}/quizzes/${quiz.id}`)}
                                                         className="flex items-center gap-1.5 px-3 py-1 text-[#0f5e8b] font-medium text-sm border rounded-lg hover:bg-blue-50 transition-colors"
                                                     >
-
                                                         <Eye size={16} />
                                                         Details
                                                     </button>
@@ -355,41 +342,38 @@ const MentorshipQuizzes: FC = () => {
                     </div>
 
                     {/* Pagination Footer */}
-                    {quizPage && quizPage.totalPages > 0 && (
+                    {totalPages > 1 && (
                         <div className="px-6 py-4 border-t border-gray-100 flex items-center justify-between bg-white">
-                            <div className="text-sm text-gray-500 flex items-center gap-2">
-                                <span>Showing</span>
-                                <select className="border border-gray-200 text-gray-700 rounded-lg px-2 py-1 text-sm outline-none bg-gray-50">
-                                    <option>{quizPage.size}</option>
-                                </select>
-                                <span>items in one page</span>
+                            <div className="text-sm text-gray-500">
+                                Showing {safePage * PAGE_SIZE + 1}–{Math.min((safePage + 1) * PAGE_SIZE, filtered.length)} of {filtered.length}
                             </div>
 
                             <div className="flex items-center gap-1.5">
                                 <button
-                                    onClick={handlePrevPage}
-                                    disabled={page === 0}
+                                    onClick={() => setCurrentPage(p => Math.max(0, p - 1))}
+                                    disabled={safePage === 0}
                                     className="px-3 py-1.5 text-sm font-medium text-gray-600 hover:bg-gray-100 rounded-lg disabled:opacity-50 transition-colors"
                                 >
                                     Previous
                                 </button>
 
-                                {Array.from({ length: quizPage.totalPages }, (_, i) => (
+                                {Array.from({ length: totalPages }).map((_, i) => (
                                     <button
                                         key={i}
-                                        onClick={() => setPage(i)}
-                                        className={`w-8 h-8 flex items-center justify-center text-sm font-medium rounded-lg transition-colors ${page === i
-                                            ? ' text-white bg-[var(--primary-500)]'
-                                            : 'text-gray-600 hover:bg-gray-100 '
-                                            }`}
+                                        onClick={() => setCurrentPage(i)}
+                                        className={`w-8 h-8 flex items-center justify-center text-sm font-medium rounded-lg transition-colors ${
+                                            i === safePage
+                                                ? 'text-white bg-[var(--primary-500)]'
+                                                : 'text-gray-600 hover:bg-gray-100'
+                                        }`}
                                     >
                                         {i + 1}
                                     </button>
                                 ))}
 
                                 <button
-                                    onClick={handleNextPage}
-                                    disabled={page + 1 >= quizPage.totalPages}
+                                    onClick={() => setCurrentPage(p => Math.min(totalPages - 1, p + 1))}
+                                    disabled={safePage === totalPages - 1}
                                     className="px-3 py-1.5 text-sm font-medium text-gray-600 hover:bg-gray-100 rounded-lg disabled:opacity-50 transition-colors"
                                 >
                                     Next

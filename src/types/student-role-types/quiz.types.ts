@@ -8,6 +8,7 @@ export interface Quiz {
   submissions: number;
   averageScore: number;
   totalPoints: number;
+  questionCount?: number;
 }
 
 export interface Question {

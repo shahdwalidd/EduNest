@@ -32,41 +32,6 @@ const PERIODS: { value: PeriodKey; label: string }[] = [
   { value: '1year', label: 'Last Year' },
 ];
 
-const MOCK_DATA: Record<PeriodKey, SalesData[]> = {
-  '1month': [
-    { month: 'W1', value: 20000 },
-    { month: 'W2', value: 25000 },
-    { month: 'W3', value: 30000 },
-    { month: 'W4', value: 28000 },
-  ],
-  '3months': [
-    { month: 'Jan', value: 60000 },
-    { month: 'Feb', value: 45000 },
-    { month: 'Mar', value: 80000 },
-  ],
-  '6months': [
-    { month: 'Jan', value: 60000 },
-    { month: 'Feb', value: 45000 },
-    { month: 'Mar', value: 80000 },
-    { month: 'Apr', value: 65000 },
-    { month: 'May', value: 55000 },
-    { month: 'Jun', value: 70000 },
-  ],
-  '1year': [
-    { month: 'Jan', value: 60000 },
-    { month: 'Feb', value: 45000 },
-    { month: 'Mar', value: 80000 },
-    { month: 'Apr', value: 65000 },
-    { month: 'May', value: 55000 },
-    { month: 'Jun', value: 70000 },
-    { month: 'Jul', value: 75000 },
-    { month: 'Aug', value: 68000 },
-    { month: 'Sep', value: 72000 },
-    { month: 'Oct', value: 78000 },
-    { month: 'Nov', value: 82000 },
-    { month: 'Dec', value: 85000 },
-  ],
-};
 
 /* =======================
    Utils
@@ -120,6 +85,9 @@ const SalesChart: FC<SalesChartProps> = ({
   defaultPeriod = '6months',
   onPeriodChange,
 }) => {
+  // Note: when parent passes no data (null/undefined or empty array)
+  // we show the card with the "No Sales Data Available" empty state.
+  // Do not use mock data as a fallback.
   const [selectedPeriod, setSelectedPeriod] =
     useState<PeriodKey>(defaultPeriod);
   const [isOpen, setIsOpen] = useState(false);
@@ -138,7 +106,7 @@ const SalesChart: FC<SalesChartProps> = ({
 
   const [remoteData, setRemoteData] = useState<SalesData[]>(() => {
     if (data && data.length > 0) return data;
-    return MOCK_DATA['6months'];
+    return [];
   });
 
   const [isLoadingChart, setIsLoadingChart] = useState(false);
@@ -177,7 +145,7 @@ const SalesChart: FC<SalesChartProps> = ({
               .filter((d) => d.month)
           : [];
 
-        setRemoteData(mapped.length ? mapped : MOCK_DATA[period]);
+        setRemoteData(mapped);
       } catch (e: unknown) {
         if ((e as { name?: string }).name === 'CanceledError') return;
 

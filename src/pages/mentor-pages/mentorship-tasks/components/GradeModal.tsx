@@ -2,8 +2,7 @@ import type { FC } from 'react';
 import { useState } from 'react';
 import { X, Send, Award, Paperclip, AlertCircle, Star } from 'lucide-react';
 import FileViewer from '../../../../components/common/FileViewer';
-import ContentTypeBadge from '../../../../components/common/ContentTypeBadge';
-import { resolveFirstFileUrl } from '../../../../utils/fileUrl';
+import { resolveFirstFileUrl, buildFullFileUrl } from '../../../../utils/fileUrl';
 import type { GradePayload } from '../../../../services/mentorshipsContent/task';
 import { gradeTaskSubmission } from '../../../../services/mentorshipsContent/task';
 import toast from 'react-hot-toast';
@@ -50,8 +49,8 @@ const GradeModal: FC<GradeModalProps> = ({ submission, maxPoints, onClose, onGra
                 className="bg-white rounded-2xl shadow-2xl w-full max-w-lg mx-4 overflow-hidden"
                 style={{ animation: 'slideUp 0.3s ease-out' }}
             >
-                {/* Header */}
-                <div className="px-6 py-5 flex items-center justify-between bg-[var(--primary-500)]">
+                {/* Header - تقليل الحشو الرأسي بشكل بسيط جداً py-4 */}
+                <div className="px-6 py-4 flex items-center justify-between bg-[var(--primary-500)]">
                     <div className="flex items-center gap-3">
                         <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center">
                             <Award size={22} className="text-white" />
@@ -60,9 +59,6 @@ const GradeModal: FC<GradeModalProps> = ({ submission, maxPoints, onClose, onGra
                             <div>
                                 <h3 className="text-lg font-bold text-white">Grade Submission</h3>
                                 <p className="text-sm text-blue-100">{submission.studentFullName}</p>
-                            </div>
-                            <div>
-                                <ContentTypeBadge type="TASK" size="sm" />
                             </div>
                         </div>
                     </div>
@@ -74,72 +70,42 @@ const GradeModal: FC<GradeModalProps> = ({ submission, maxPoints, onClose, onGra
                     </button>
                 </div>
 
-                {/* Submission meta */}
-                <div className="px-6 pt-4 pb-2 flex flex-wrap gap-3">
+                {/* Submission meta - تقليص الحشو السفلي والعلوي */}
+                <div className="px-6 pt-3 pb-1 flex flex-wrap gap-3">
                     {submission.isLate && (
                         <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-red-50 text-red-600 rounded-full text-xs font-semibold">
                             <AlertCircle size={12} /> Late Submission
                         </span>
                     )}
 
-                    {/* Student submission file — shown prominently */}
-                    {resolveFirstFileUrl(submission.fileUrl, submission.uploadedFilePath) ? (
-                        <div className="w-full mt-1">
-                            {submission.fileUrl ? (
-                                <a
-                                    href={submission.fileUrl}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="flex items-center gap-3 w-full px-4 py-3 bg-blue-50 border border-blue-200 text-blue-700 rounded-xl text-sm font-semibold hover:bg-blue-100 transition-colors group"
-                                >
-                                    <div className="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center shrink-0">
-                                        <Paperclip size={15} className="text-white" />
-                                    </div>
-                                    <div className="flex-1 min-w-0">
-                                        <p className="text-xs text-blue-500 mb-0.5">Student Submission File</p>
-                                        <p className="truncate text-blue-800">{submission.uploadedFilePath?.split('/').pop() ?? 'Open File'}</p>
-                                    </div>
-                                    {/* <span className="text-xs text-blue-500 group-hover:text-blue-700 transition-colors shrink-0">Open ↗</span> */}
-                                </a>
-                            ) : (
-                                <div className="flex items-center gap-3 w-full px-4 py-3 bg-blue-50 border border-blue-200 rounded-xl text-sm transition-colors group">
-                                    <div className="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center shrink-0">
-                                        <Paperclip size={15} className="text-white" />
-                                    </div>
-                                    <div className="flex-1 min-w-0">
-                                        <p className="text-xs text-blue-500 mb-0.5">Submitted File</p>
-                                        <a 
-                                            href={(() => {
-                                                const path = submission.uploadedFilePath;
-                                                if (!path) return '';
-                                                if (path.startsWith('http')) return path;
-                                                let clean = path.startsWith('/') ? path.substring(1) : path;
-                                                if (clean.startsWith('app/')) clean = clean.substring(4);
-                                                return `${API_BASE_URL.endsWith('/') ? API_BASE_URL : API_BASE_URL+'/'}${clean}`;
-                                            })()}
-                                            target="_blank" 
-                                            rel="noopener noreferrer" 
-                                            className="block truncate text-blue-800 hover:underline"
-                                        >
-                                            {submission.uploadedFilePath?.split('/').pop()}
-                                        </a>
-                                    </div>
-                                    {/* <span className="text-xs text-blue-500 group-hover:text-blue-700 transition-colors shrink-0">Open ↗</span> */}
+                    {/* File Submission */}
+                    {submission.uploadedFilePath && (
+                        <div className="w-full mt-0.5">
+                            <button
+                                onClick={() => window.open(buildFullFileUrl(submission.uploadedFilePath), '_blank')}
+                                className="flex items-center gap-3 w-full px-4 py-2.5 bg-blue-50 border border-blue-200 text-blue-700 rounded-xl text-sm font-semibold hover:bg-blue-100 hover:border-blue-300 transition-colors cursor-pointer"
+                            >
+                                <div className="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center shrink-0">
+                                    <Paperclip size={15} className="text-white" />
                                 </div>
-                            )}
+                                <div className="flex-1 min-w-0">
+                                    <p className="text-xs text-blue-500 mb-0.5">Student Submission File</p>
+                                    <p className="truncate text-blue-800">{submission.uploadedFilePath?.split('/').pop() ?? 'Open File'}</p>
+                                </div>
+                            </button>
                         </div>
-                    ) : null}
+                    )}
                 </div>
 
-                {/* Inline preview for mentor to inspect without downloading */}
+                {/* Inline preview - تعديل الارتفاع إلى h-[200px] لتقليل الطول العام */}
                 {resolveFirstFileUrl(submission.fileUrl, submission.uploadedFilePath) && (
-                    <div className="px-6 pb-2">
-                        <FileViewer url={resolveFirstFileUrl(submission.fileUrl, submission.uploadedFilePath)} height="h-[260px]" />
+                    <div className="px-6 pb-1">
+                        <FileViewer url={resolveFirstFileUrl(submission.fileUrl, submission.uploadedFilePath)} height="h-[150px]" />
                     </div>
                 )}
 
-                {/* Form */}
-                <div className="px-6 py-4 space-y-5">
+                {/* Form - تعديل المسافة بين العناصر إلى space-y-3.5 والـ py-3 */}
+                <div className="px-6 py-3 space-y-3.5">
                     {/* Score */}
                     <div>
                         <label className="block text-sm font-semibold text-gray-700 mb-2">
@@ -160,11 +126,11 @@ const GradeModal: FC<GradeModalProps> = ({ submission, maxPoints, onClose, onGra
                         </div>
                     </div>
 
-                    {/* Feedback */}
+                    {/* Feedback - تقليص عدد الأسطر إلى rows={2} لتوفير مساحة عمودية */}
                     <div>
                         <label className="block text-sm font-semibold text-gray-700 mb-2">Feedback</label>
                         <textarea
-                            rows={3}
+                            rows={2}
                             value={feedback}
                             onChange={(e) => setFeedback(e.target.value)}
                             placeholder="Write constructive feedback for the student..."
@@ -173,8 +139,8 @@ const GradeModal: FC<GradeModalProps> = ({ submission, maxPoints, onClose, onGra
                     </div>
                 </div>
 
-                {/* Actions */}
-                <div className="px-6 pb-6 flex items-center justify-end gap-3">
+                {/* Actions - تعديل الحشو السفلي ليصبح متناسقاً pb-5 */}
+                <div className="px-6 pb-5 flex items-center justify-end gap-3">
                     <button
                         onClick={onClose}
                         disabled={submitting}
@@ -185,7 +151,7 @@ const GradeModal: FC<GradeModalProps> = ({ submission, maxPoints, onClose, onGra
                     <button
                         onClick={handleSubmit}
                         disabled={submitting}
-                        className="flex items-center gap-2 px-5 py-2.5 text-sm font-semibold text-white bg-gradient-to-r bg-[#0f5e8b] hover:bg-[#0f5e8b] rounded-xl  disabled:opacity-60 shadow-sm hover:shadow transition-all"
+                        className="flex items-center gap-2 px-5 py-2.5 text-sm font-semibold text-white bg-gradient-to-r bg-[#0f5e8b] hover:bg-[#0f5e8b] rounded-xl disabled:opacity-60 shadow-sm hover:shadow transition-all"
                     >
                         {submitting ? (
                             <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent" />
@@ -209,4 +175,3 @@ const GradeModal: FC<GradeModalProps> = ({ submission, maxPoints, onClose, onGra
 };
 
 export default GradeModal;
-

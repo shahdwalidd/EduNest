@@ -1,3 +1,4 @@
+
 import type { FC } from 'react';
 import { useState } from 'react';
 import {
@@ -11,9 +12,12 @@ import type { TaskSubmissionItem } from '../../../services/mentorshipsContent/ta
 import { useTaskDetail } from '../../../hooks/useTaskDetail';
 import GradeModal from './components/GradeModal';
 import EditTaskModal from './components/EditTaskModal';
+import FileViewer from '../../../components/common/FileViewer';
+import { buildFullFileUrl } from '../../../utils/fileUrl';
+import GlobalLoadingOverlay from '../../../loadingApp/GlobalLoadingOverlay';
 
 /* ════════════════════════════════════════════════
-   Status Badge - Refined Design
+   Status Badge
    ════════════════════════════════════════════════ */
 const StatusBadge: FC<{ status: TaskSubmissionItem['status']; isLate?: boolean }> = ({ status, isLate }) => {
     const configs = {
@@ -53,15 +57,27 @@ const StatusBadge: FC<{ status: TaskSubmissionItem['status']; isLate?: boolean }
 const TaskDetail: FC = () => {
     const { taskId } = useParams<{ taskId: string }>();
     const [editTaskOpen, setEditTaskOpen] = useState(false);
-
     const [editTaskId, setEditTaskId] = useState<number | null>(null);
 
     const navigate = useNavigate();
     const {
-        stats, loading,  submissions: filteredSubmissions,
-        paginationMeta, maxPoints, gradedCount, searchQuery,
-        setSearchQuery, statusFilter, setStatusFilter, STATUS_OPTIONS,
-        page, setPage, handleGraded,
+        stats,
+        loading,
+        submissions: filteredSubmissions,
+        paginationMeta,
+        maxPoints,
+        gradedCount,
+        searchQuery,
+        setSearchQuery,
+        statusFilter,
+        setStatusFilter,
+        STATUS_OPTIONS,
+        page,
+        setPage,
+        handleGraded,
+        taskDescription,
+        taskAttachmentUrl,
+        uploadedAttachmentPath,
     } = useTaskDetail();
 
     const [gradingSubmission, setGradingSubmission] = useState<TaskSubmissionItem | null>(null);
@@ -75,50 +91,51 @@ const TaskDetail: FC = () => {
     if (loading && !stats) {
         return (
             <DashLayout pageTitle="Loading Task...">
-                <div className="flex items-center justify-center min-h-[60vh]">
-                    <div className="flex flex-col items-center gap-4">
-                        <div className="w-12 h-12 border-4 border-indigo-100 border-t-indigo-600 rounded-full animate-spin" />
-                        <p className="text-slate-500 font-medium animate-pulse">Fetching details...</p>
-                    </div>
+                <div className="flex items-center justify-center">
+                        <GlobalLoadingOverlay/>    
                 </div>
             </DashLayout>
         );
     }
 
+    const hasAttachments = Boolean(taskAttachmentUrl || uploadedAttachmentPath);
+
     return (
         <DashLayout pageTitle="Task Administration">
             <div className="max-w-[1400px] mx-auto p-4 md:p-8 space-y-8">
-                
+
                 {/* ─── Header Section ─── */}
                 <header className="flex flex-col md:flex-row md:items-end justify-between gap-6">
                     <div className="space-y-3">
-                        <div className="flex items-baseline gap-2 cursor-pointer text-gray-600 hover:text-gray-900 mb-2" onClick={() => navigate(-1)}>
+                        <div
+                         className="flex items-baseline gap-2 cursor-pointer text-gray-600 hover:text-gray-900 mb-2"
+                          onClick={() => navigate(-1)}>
                             <ArrowLeft size={20} />
                             <h1 className="text-3xl md:text-3xl font-bold text-slate-900 tracking-tight">
                                 {stats?.taskTitle || 'Untitled Mission'}
                             </h1>
                         </div>
-                        <div className="flex items-center gap-3">
-
-                            {/* i will add the description here if needed */}
-                         {/* <p>{stats?.description || ""}</p> */}
+                        <div className="flex flex-col gap-2">
+                            <p className="text-slate-600">{taskDescription || ''}</p>
                         </div>
                         <div className="flex flex-wrap items-center gap-3">
-                             <span className="flex items-center gap-1.5 px-3 py-1 bg-slate-100 text-slate-700 rounded-full text-xs font-bold uppercase tracking-wider">
+                            <span className="flex items-center gap-1.5 px-3 py-1 bg-slate-100 text-slate-700 rounded-full text-xs font-bold uppercase tracking-wider">
                                 <Star size={12} className="fill-current" /> {maxPoints} Points
                             </span>
                             {stats?.deadLine && (
                                 <span className="text-sm text-slate-500 flex items-center gap-1.5">
                                     <Clock size={15} className="text-rose-500" />
                                     Deadline: <span className="font-semibold text-slate-700">
-                                        {new Date(stats.deadLine).toLocaleDateString('en-GB', { day:'2-digit', month:'short' })}
+                                        {new Date(stats.deadLine).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' })}
                                     </span>
                                 </span>
                             )}
                         </div>
                     </div>
+                    
 
                     <div className="flex items-center gap-3">
+                        
                         <button
                             onClick={() => {
                                 if (!taskId) return;
@@ -137,10 +154,15 @@ const TaskDetail: FC = () => {
                             Edit
                         </button>
 
-                        <div className={`px-4 py-2 rounded-xl text-sm font-bold border-2 ${
-                            stats?.status === 'PUBLISHED' ? 'border-emerald-100 text-emerald-600 bg-emerald-50/50' : 'border-slate-100 text-slate-500 bg-slate-50'
-                        }`}>
-                            ● {stats?.status || 'DRAFT'}
+                       <div
+                           className={`px-4 py-2 rounded-xl text-sm font-bold border-2 flex items-center gap-2 ${
+                                  stats?.status === 'PUBLISHED'
+                                  ? 'border-emerald-100 text-emerald-600 bg-emerald-50/50'
+                                 : 'border-slate-100 text-slate-500 bg-slate-50'
+                                      }`}
+                                       >
+                                            <span className="text-sm">●</span>
+                                             <span>{stats?.status || 'DRAFT'}</span>
                         </div>
                     </div>
                 </header>
@@ -163,9 +185,40 @@ const TaskDetail: FC = () => {
                     ))}
                 </div>
 
+                {hasAttachments && (
+                    <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5 space-y-4">
+                        <h2 className="text-lg font-bold text-gray-900">Task Attachments</h2>
+                        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                            {taskAttachmentUrl && (
+                                <div className="space-y-2">
+                                    <p className="text-sm font-semibold text-blue-700"> Attachment Link</p>
+                                    <div className="h-[320px]">
+                                        <FileViewer
+                                            url={buildFullFileUrl(taskAttachmentUrl)}
+                                            height="h-[250px]"
+                                        />
+                                    </div>
+                                </div>
+                            )}
+
+                            {uploadedAttachmentPath && (
+                                <div className="space-y-2">
+                                    <p className="text-sm font-semibold text-emerald-700"> Attachment File</p>
+                                    <div className="h-[320px]">
+                                        <FileViewer
+                                            url={buildFullFileUrl(uploadedAttachmentPath)}
+                                            height="h-[250px]"
+                                        />
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                )}
+
                 {/* ─── Data Section ─── */}
                 <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-                    
+
                     {/* Table Filters */}
                     <div className="p-4 md:p-6 border-b border-slate-100 flex flex-col md:flex-row md:items-center justify-between gap-4 bg-slate-50/30">
                         <div className="relative flex-1 max-w-md">
@@ -226,7 +279,7 @@ const TaskDetail: FC = () => {
                                                     <Search size={32} strokeWidth={1.5} />
                                                 </div>
                                                 <p className="font-medium">No results found for your filters</p>
-                                                <button onClick={() => {setSearchQuery(''); setStatusFilter('ALL')}} className="mt-2 text-indigo-600 text-sm font-bold hover:underline">Clear all filters</button>
+                                                <button onClick={() => { setSearchQuery(''); setStatusFilter('ALL'); }} className="mt-2 text-indigo-600 text-sm font-bold hover:underline">Clear all filters</button>
                                             </div>
                                         </td>
                                     </tr>
@@ -240,7 +293,6 @@ const TaskDetail: FC = () => {
                                                     </div>
                                                     <div>
                                                         <p className="font-bold text-slate-900 group-hover:text-indigo-600 transition-colors">{sub.studentFullName}</p>
-                                                        {/* <p className="text-xs text-slate-400 font-medium">ID: #{sub.submissionId.toString().slice(-5)}</p> */}
                                                     </div>
                                                 </div>
                                             </td>
@@ -250,9 +302,9 @@ const TaskDetail: FC = () => {
                                                 ) : (sub.finalScore ?? sub.rawScore) !== null ? (
                                                     <div className="flex items-center gap-2">
                                                         <div className="h-2 w-16 bg-slate-100 rounded-full overflow-hidden">
-                                                            <div 
-                                                                className="h-full bg-indigo-500 rounded-full" 
-                                                                style={{ width: `${((sub.finalScore ?? sub.rawScore)! / maxPoints) * 100}%` }} 
+                                                            <div
+                                                                className="h-full bg-indigo-500 rounded-full"
+                                                                style={{ width: `${((sub.finalScore ?? sub.rawScore)! / maxPoints) * 100}%` }}
                                                             />
                                                         </div>
                                                         <span className="text-sm font-bold text-slate-700">
@@ -307,8 +359,8 @@ const TaskDetail: FC = () => {
                                 Showing <span className="text-slate-900">{filteredSubmissions.length}</span> of <span className="text-slate-900">{paginationMeta.totalElements}</span> submissions
                             </p>
                             <div className="flex items-center gap-1">
-                                <button 
-                                    onClick={() => setPage(p => p - 1)} 
+                                <button
+                                    onClick={() => setPage(p => p - 1)}
                                     disabled={page === 0}
                                     className="p-2 hover:bg-white rounded-lg border border-transparent hover:border-slate-200 disabled:opacity-30 transition-all"
                                 >
@@ -325,8 +377,8 @@ const TaskDetail: FC = () => {
                                         {i + 1}
                                     </button>
                                 ))}
-                                <button 
-                                    onClick={() => setPage(p => p + 1)} 
+                                <button
+                                    onClick={() => setPage(p => p + 1)}
                                     disabled={page + 1 >= paginationMeta.totalPages}
                                     className="p-2 hover:bg-white rounded-lg border border-transparent hover:border-slate-200 disabled:opacity-30 transition-all"
                                 >

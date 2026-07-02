@@ -180,6 +180,7 @@ const EditTaskModal: React.FC<EditTaskModalProps> = ({ isOpen, onClose, taskId, 
                                 <textarea
                                     required
                                     value={description}
+                                    maxLength={150}
                                     onChange={e => setDescription(e.target.value)}
                                     rows={4}
                                     className="w-full px-4 py-2 border border-gray-200 rounded-lg outline-none focus:border-primary transition-colors resize-none"

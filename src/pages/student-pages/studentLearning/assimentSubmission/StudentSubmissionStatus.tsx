@@ -1,10 +1,10 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { CheckCircle, Award, AlertCircle, Download, MessageSquare } from 'lucide-react';
+import { CheckCircle, Award, AlertCircle, Download, MessageSquare, Link as LinkIcon } from 'lucide-react';
 import { API_BASE_URL } from '../../../../services/api';
 import ContentTypeBadge from '../../../../components/common/ContentTypeBadge';
 import type { StudentTaskDetails } from '../../../../services/student-roleService/submitTask';
 import FileViewer from '../../../../components/common/FileViewer';
-import { resolveFirstFileUrl } from '../../../../utils/fileUrl';
+import { buildFullFileUrl } from '../../../../utils/fileUrl';
 
 interface StudentSubmissionStatusProps {
   taskDetails: StudentTaskDetails;
@@ -34,10 +34,15 @@ const StudentSubmissionStatus = ({ taskDetails }: StudentSubmissionStatusProps) 
     uploadedSubmissionPath: (taskDetails as any).uploadedSubmissionPath,
   };
 
-  const studentSubmissionUrl = resolveFirstFileUrl(
-    studentSubmission.submissionUrl,
-    studentSubmission.uploadedSubmissionPath
-  );
+  // Get both submission types
+  const submissionUrl = studentSubmission.submissionUrl ? buildFullFileUrl(studentSubmission.submissionUrl) : '';
+  const uploadedFilePath = studentSubmission.uploadedSubmissionPath ? buildFullFileUrl(studentSubmission.uploadedSubmissionPath) : '';
+  
+  // Check if both or single submissions exist
+  const hasBothSubmissions = submissionUrl && uploadedFilePath;
+  const hasUrlOnly = submissionUrl && !uploadedFilePath;
+  const hasFileOnly = uploadedFilePath && !submissionUrl;
+  const hasNoSubmission = !submissionUrl && !uploadedFilePath;
 
   const getMentorPhotoUrl = (photo?: string | null) => {
     if (!photo) return '';
@@ -83,14 +88,29 @@ const StudentSubmissionStatus = ({ taskDetails }: StudentSubmissionStatusProps) 
 
         {/* Submission Details Grid */}
         <div className="grid grid-cols-1 gap-4">
-          {/* File/URL */}
-          {studentSubmissionUrl ? (
+          {/* Single URL Only */}
+          {hasUrlOnly && (
+            <div className="flex flex-col gap-3">
+              <div className="flex items-center gap-2 p-3 bg-blue-50 rounded-xl">
+                <LinkIcon className="w-4 h-4 text-blue-600" />
+                <div className="flex-1">
+                  <p className="text-sm text-slate-500">Submitted Link</p>
+                  <a href={submissionUrl} target="_blank" rel="noopener noreferrer" className="text-[var(--primary-500)] hover:text-[var(--primary-dark)] font-medium underline break-all">
+                    View Submission
+                  </a>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Single File Only */}
+          {hasFileOnly && (
             <div className="flex flex-col gap-3">
               <div className="flex items-center gap-2 p-3 bg-slate-50 rounded-xl">
                 <Download className="w-4 h-4 text-slate-600" />
                 <div className="flex-1">
                   <p className="text-sm text-slate-500">Submitted File</p>
-                  <a href={studentSubmissionUrl} target="_blank" rel="noopener noreferrer" className="text-[var(--primary-500)] hover:text-[var(--primary-dark)] font-medium underline">
+                  <a href={uploadedFilePath} target="_blank" rel="noopener noreferrer" className="text-[var(--primary-500)] hover:text-[var(--primary-dark)] font-medium underline">
                     View Your submission
                   </a>
                 </div>
@@ -99,11 +119,51 @@ const StudentSubmissionStatus = ({ taskDetails }: StudentSubmissionStatusProps) 
               <div>
                 {/* Inline preview */}
                 <div className="mt-2">
-                  <FileViewer url={studentSubmissionUrl} height="h-[300px]" />
+                  <FileViewer url={uploadedFilePath} height="h-[300px]" />
                 </div>
               </div>
             </div>
-          ) : (
+          )}
+
+          {/* Both Submissions */}
+          {hasBothSubmissions && (
+            <div className="space-y-3">
+              <p className="text-sm font-semibold text-slate-700">Multiple Submissions</p>
+              
+              {/* Link Submission */}
+              <div className="flex items-center gap-2 p-3 bg-blue-50 rounded-xl border-2 border-blue-100">
+                <LinkIcon className="w-4 h-4 text-blue-600 shrink-0" />
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs text-slate-500 font-medium">Link</p>
+                  <a href={submissionUrl} target="_blank" rel="noopener noreferrer" className="text-[var(--primary-500)] hover:text-[var(--primary-dark)] font-medium underline break-all text-sm">
+                    View Link
+                  </a>
+                </div>
+              </div>
+
+              {/* File Submission */}
+              <div className="flex flex-col gap-2">
+                <div className="flex items-center gap-2 p-3 bg-slate-50 rounded-xl border-2 border-slate-200">
+                  <Download className="w-4 h-4 text-slate-600 shrink-0" />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs text-slate-500 font-medium">File</p>
+                    <a href={uploadedFilePath} target="_blank" rel="noopener noreferrer" className="text-[var(--primary-500)] hover:text-[var(--primary-dark)] font-medium underline text-sm">
+                      View File
+                    </a>
+                  </div>
+                </div>
+
+                {/* Inline preview */}
+                <div className="mt-2 border-l-4 border-slate-200 pl-3">
+                  <p className="text-xs text-slate-500 mb-2 font-medium">File Preview</p>
+                  <FileViewer url={uploadedFilePath} height="h-[250px]" />
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* No Submission */}
+          {hasNoSubmission && (
             <div className="p-4 bg-slate-50 rounded-xl text-center text-slate-600">
               <p className="font-semibold">No submission yet</p>
               <p className="text-sm mt-1">You haven't attached a file or link for this submission.</p>

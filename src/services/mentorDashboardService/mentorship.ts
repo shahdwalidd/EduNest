@@ -84,7 +84,7 @@ export async function getMentorshipDetail(mentorshipId: string | number): Promis
   }
 
   const first = errors[0];
-  const msg = `Failed to load mentorship (${id}). Last error: ${first?.status ?? 'unknown'} ${JSON.stringify(first?.data ?? first?.message)}`;
+  const msg = ` ${JSON.stringify(first?.data ?? first?.message)}`;
   throw new Error(msg);
 }
 

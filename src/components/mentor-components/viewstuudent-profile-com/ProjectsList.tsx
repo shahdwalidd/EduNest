@@ -266,11 +266,11 @@ const ProjectsList: FC<ProjectsListProps> = ({
                               style={{ backgroundColor: PRIMARY }}
                             >
                               <ExternalLink size={12} />
-                              View Submission Link
+                              View Link
                             </a>
                           )}
 
-                          {hasFiles && !hasLink && (
+                          {hasFiles && (
                             <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border text-gray-600"
                               style={{ background: `${PRIMARY}06`, borderColor: `${PRIMARY}25` }}>
                               <Paperclip size={12} style={{ color: PRIMARY }} />

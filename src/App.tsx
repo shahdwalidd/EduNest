@@ -11,6 +11,7 @@ import AdminDashboard from './pages/admin-pages/AdminDashboard/AdminDashboard';
 import AdminPayment from './pages/admin-pages/AdminPayment/AdminPayment';
 import MentorshipOverviewPage from './pages/student-pages/studentLearning/MentorshipOverviewPage';
 import AdminUsers from './pages/admin-pages/admin-users/AdminUsers';
+import ChatbotWidget from './components/common/ChatbotWidget/ChatbotWidget';
 
 // Lazy load all page components for code splitting
 // This significantly reduces initial bundle size and improves FCP/LCP
@@ -78,6 +79,25 @@ const StudentProfilePage = lazy(() => import('./pages/student-pages/Profile/Stud
 const StudentSettings = lazy(() => import('./pages/student-pages/Settings/StudentSettings'));
 const StudentNotifications = lazy(() => import('./pages/student-pages/Notifications/StudentNotifications'));
 
+const chatbotAllowedPaths = [
+  '/',
+  '/mentor/dashboard',
+  '/mentor/mentorships',
+  '/mentor/students',
+  '/mentor/messages',
+  '/mentor/notifications',
+  '/mentor/profile',
+  '/mentor/settings',
+  '/mentorships',
+  '/explore-mentorships',
+  '/student/dashboard',
+  '/student/messages',
+  '/student/profile',
+  '/student/settings',
+  '/student/learning',
+  '/student/notifications'
+];
+
 // Loading fallback component - minimal to avoid layout shift
 const PageLoader = () => (
   <div className="min-h-screen flex items-center justify-center bg-gray-50">
@@ -127,6 +147,10 @@ function App() {
 
   // Only show navbar on home page
   const showNavbar = location.pathname === '/';
+
+  const showChatbot = chatbotAllowedPaths.some((path) =>
+    location.pathname === path || location.pathname.startsWith(`${path}/`)
+  );
 
   return (
     <QueryClientProvider client={queryClient}>
@@ -212,6 +236,7 @@ function App() {
           </Route>
         </Routes>
       </Suspense>
+      {showChatbot && <ChatbotWidget />}
     </QueryClientProvider>
   );
 }

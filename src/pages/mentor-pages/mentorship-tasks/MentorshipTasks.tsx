@@ -16,6 +16,7 @@ import { useAuthStore } from '../../../store/authStore';
 import toast from 'react-hot-toast';
 import EditTaskModal from './components/EditTaskModal';
 import ConfirmDeleteTaskModal from './components/ConfirmDeleteTaskModal';
+import GlobalLoadingOverlay from '../../../loadingApp/GlobalLoadingOverlay';
 
 const MentorshipTasks: FC = () => {
     const { id: mentorshipId } = useParams<{ id: string }>();
@@ -140,10 +141,7 @@ const MentorshipTasks: FC = () => {
         return (
             <DashLayout pageTitle="Assignments">
                 <div className="flex items-center justify-center h-[calc(100vh-100px)]">
-                    <div className="relative">
-                        <div className="animate-spin rounded-full h-14 w-14 border-4 border-blue-100 border-t-blue-600"></div>
-                        <ClipboardList size={20} className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-blue-600" />
-                    </div>
+                   <GlobalLoadingOverlay/>
                 </div>
             </DashLayout>
         );
